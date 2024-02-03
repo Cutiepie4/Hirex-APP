@@ -1,26 +1,31 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet } from 'react-native';
-import { View, Text, Card, Button, TextField } from 'react-native-ui-lib';
+import React from 'react';
+import { PersistGate } from 'redux-persist/integration/react';
+import { store, persistor } from './src/redux/config/store';
+import { Provider } from 'react-redux';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import HomeScreen from './src/components/HomeScreen';
 
-export default function App() {
+const listScreens = {
+  HomeScreen: HomeScreen
+}
+
+const App = () => {
+  const Stack = createStackNavigator();
+
   return (
-    <View flex paddingH-25 paddingT-120>
-      <Text blue50 text20>Welcome</Text>
-      <TextField text50 placeholder="username" grey10 />
-      <TextField text50 placeholder="password" secureTextEntry grey10 />
-      <View marginT-100 center>
-        <Button text70 white background-orange30 label="Login" />
-        <Button link text70 orange30 label="Sign Up" marginT-20 />
-      </View>
-    </View>
+    <Provider store={store}>
+      <PersistGate persistor={persistor} loading={null}>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            {Object.entries(listScreens).map(([name, component]) => (
+              <Stack.Screen key={name} name={name} component={component} />
+            ))}
+          </Stack.Navigator>
+        </NavigationContainer>
+      </PersistGate>
+    </Provider>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default App;
