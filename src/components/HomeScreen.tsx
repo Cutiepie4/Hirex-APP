@@ -1,6 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
-import { Button } from 'react-native-ui-lib'
 import { useDispatch, useSelector } from 'react-redux'
 import { increase, login } from '../redux/slice/authSlice';
 import { RootReducer } from '../redux/config/reducer';
@@ -14,14 +13,20 @@ export default function HomeScreen() {
     }
 
     return (
-        <View>
+        <View style={{ alignItems: 'center' }}>
             <Text style={{ marginTop: 100 }}>HomeScreen</Text>
             <Text style={{ textAlign: 'center' }}>{count}</Text>
-            <Button onPress={handlePress} label={'Increase'}></Button>
+            <TouchableOpacity
+                style={{
+                    backgroundColor: 'green',
+                    alignItems: 'center',
+                    width: 50,
+                    borderRadius: 5,
+                    height: 20
+                }}
+                onPress={handlePress}>
+                <Text style={{ color: 'white' }}>click</Text>
+            </TouchableOpacity>
         </View>
     )
 }
-
-const styles = StyleSheet.create({
-
-})
