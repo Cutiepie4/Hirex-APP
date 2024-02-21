@@ -51,7 +51,7 @@ const ListJob = () => {
     const renderItem2 = ({ item }) => {
         return (
             <TouchableOpacity style={styles.item2}>
-                <View style={{ flexDirection: 'row' }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'center'}}>
                     <View style={{ marginHorizontal: 20 }}>
                         <Image source={require('../../assets/facebook.png')} style={{ width: 50, height: 50 }}></Image>
                     </View>
