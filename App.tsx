@@ -5,9 +5,12 @@ import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from './src/components/HomeScreen';
+import { Login, Signup } from './src/screens';
 
 const listScreens = {
-  HomeScreen: HomeScreen
+  // HomeScreen: HomeScreen,
+  Login: Login,
+  Signup: Signup
 }
 
 const App = () => {
