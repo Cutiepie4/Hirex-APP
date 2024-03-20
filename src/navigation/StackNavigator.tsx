@@ -38,8 +38,9 @@ const StackNavigator = () => {
             <Tab.Navigator
                 screenOptions={{
                     tabBarActiveTintColor: "#50C7C7",
-                    tabBarLabelStyle: { fontFamily: 'mon-sb' },
+                    tabBarLabelStyle: { fontFamily: 'mon-b' },
                 }}
+                
             >
                 {tabScreen("Home", "home-outline", HomeScreen)}
                 {tabScreen("Message", "chatbox-ellipses-outline", MessageScreen)}

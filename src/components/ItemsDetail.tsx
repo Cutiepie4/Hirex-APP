@@ -1,103 +1,97 @@
-import { Button, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import React, { useState } from 'react';
-import moment from 'moment';
+import { Button, FlatList, Keyboard, Modal, StyleSheet, Switch, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import TimePicker from './TimePicker';
+import { ExtendedAgendaEntry } from '../screens/ScheduleScreen';
+import TakeOffModal from './TakeOffModal';
+import debounce from 'lodash.debounce';
 
 
-const ItemsDetail = () => {
+const ItemsDetail = (props: any) => {
+    const [showOptions, setShowOptions] = useState<boolean>(false);
+    const [selectedOption, setSelectedOption] = useState<string>('Không');
+    const [showTakeOffModal, setShowTakeOffModal] = useState<boolean>(false);
+    const [takeOffReason, setTakeOffReason] = useState<string>('');
+    const [editable, setEditable] = useState<boolean>(true);
+
+    const options = ['Không có', 'Vào lúc diễn ra sự kiện', 'Trước 30 phút', 'Trước 1 giờ', 'Trước 2 giờ'];
+
+    // const [newItem, setNewItem] = useState<ExtendedAgendaEntry>(props.reservationPick);
+
+    const handleShowTakeOffModal = () => {
+        setShowTakeOffModal(true);
+    };
+
+    const handleHideTakeOffModal = () => {
+        setShowTakeOffModal(false);
+    };
+
+    const handleTakeOff = (reason: string) => {
+        // Xử lý logic khi người dùng gửi lý do
+        // Ví dụ: Gửi lý do lên server, thực hiện hành động TAKE OFF, vv.
+        // Ở đây, bạn có thể sử dụng lý do được nhập (reason)
+        // Sau khi xử lý xong, bạn có thể đóng modal
+        handleHideTakeOffModal();
+    };
+
+    const handleOptionSelect = (option) => {
+        setSelectedOption(option);
+        setShowOptions(false);
+    };
+
+    const CustomTextInput = ({ value, onChangeText, editable, multiline, placeholder, style }) => {
+        const [text, setText] = useState(value);
+        const inputRef = useRef(null); // Tạo ref cho TextInput
+
+        const debouncedOnChangeText = useCallback(debounce((value) => {
+            onChangeText(value);
+        }, 700), [onChangeText]);
+
+        useEffect(() => {
+            // Cập nhật text mà không tự động đặt lại focus vào input
+            setText(value);
+        }, [value]);
+
+        // Đảm bảo hủy debounce khi component bị unmount
+        useEffect(() => {
+            return () => {
+                debouncedOnChangeText.cancel();
+            };
+        }, [debouncedOnChangeText]);
+
+        const handleChangeText = (newText) => {
+            setText(newText);
+            debouncedOnChangeText(newText);
+        };
+
+        return (
+            <TextInput
+                ref={inputRef}
+                style={style}
+                placeholder={placeholder}
+                value={text}
+                onChangeText={handleChangeText}
+                editable={editable}
+                multiline={multiline}
+            />
+        );
+    };
 
     return (
-        <View style={styles.taskContainer}>
-            <TextInput
-                style={styles.title}
-                placeholder="What do you need to do?"
-            />
-            <Text
-                style={{
-                    fontSize: 14,
-                    color: '#BDC6D8',
-                    marginVertical: 10
-                }}
-            >
-                Suggestion
-            </Text>
-            <View style={{ flexDirection: 'row' }}>
-                <View style={styles.readBook}>
-                    <Text style={{ textAlign: 'center', fontSize: 14 }}>
-                        Read book
-                    </Text>
-                </View>
-                <View style={styles.design}>
-                    <Text style={{ textAlign: 'center', fontSize: 14 }}>
-                        Design
-                    </Text>
-                </View>
-                <View style={styles.learn}>
-                    <Text style={{ textAlign: 'center', fontSize: 14 }}>Learn</Text>
-                </View>
-            </View>
-            <View style={styles.notesContent} />
-            <View>
-                <Text
-                    style={{
-                        color: '#9CAAC4',
-                        fontSize: 16,
-                        fontWeight: '600'
+        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+            <View style={styles.taskContainer}>
+                <CustomTextInput
+                    multiline={false}
+                    style={styles.title}
+                    placeholder="Enter your title"
+                    value={props.reservationPick.title}
+                    onChangeText={(value) => {
+                        if (props.reservationPick.type !== 'working') {
+                            props.setReservationPick({ ...props.reservationPick, title: value });
+                        }
                     }}
-                >
-                    Notes
-                </Text>
-                <TextInput
-                    style={{
-                        height: 25,
-                        fontSize: 19,
-                        marginTop: 3
-                    }}
-                    placeholder="Enter notes about the task."
+                    editable={props.reservationPick.type !== 'working'}
                 />
-            </View>
-            <View style={styles.separator} />
-            <View>
-                <Text
-                    style={{
-                        color: '#9CAAC4',
-                        fontSize: 16,
-                        fontWeight: '600'
-                    }}
-                >
-                    Times
-                </Text>
-                <View style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                }}>
-                    <Text><TimePicker /></Text>
-                    <Text style={{
-                        color: '#9CAAC4',
-                        fontSize: 16,
-                        fontWeight: '600'
-                    }}>-</Text>
-                    <Text><TimePicker /></Text>
-                </View>
-                {/* <TouchableOpacity
-                    style={{
-                        height: 25,
-                        marginTop: 3
-                    }}
-                >
-                    <Text style={{ fontSize: 19 }}>
-                    </Text>
-                </TouchableOpacity> */}
-            </View>
-            <View style={styles.separator} />
-            <View
-                style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                }}
-            >
+                <View style={styles.separator} />
                 <View>
                     <Text
                         style={{
@@ -106,56 +100,136 @@ const ItemsDetail = () => {
                             fontWeight: '600'
                         }}
                     >
-                        Alarm
+                        Times
                     </Text>
-                    <View
-                        style={{
-                            height: 25,
-                            marginTop: 3
-                        }}
-                    >
-                        <Text style={{ fontSize: 19 }}>
-                        </Text>
+                    <View style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginTop: 3
+                    }}>
+                        <Text><TimePicker editable={props.reservationPick.type !== 'working'} timeStart={props.reservationPick.start} reservationPick={props.reservationPick} setTime={props.setReservationPick} /></Text>
+                        <Text style={{
+                            color: '#9CAAC4',
+                            fontSize: 16,
+                            fontWeight: '600'
+                        }}>-</Text>
+                        <Text><TimePicker editable={props.reservationPick.type !== 'working'} timeEnd={props.reservationPick.end} reservationPick={props.reservationPick} setTime={props.setReservationPick} /></Text>
                     </View>
                 </View>
-                <Switch
-                />
-            </View>
-            <View
-                style={{
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                    alignItems: 'center'
-                }}
-            >
-                <TouchableOpacity
-                    style={styles.updateButton}
-                >
+                <View style={styles.notesContent} />
+                <View>
                     <Text
                         style={{
-                            fontSize: 18,
-                            textAlign: 'center',
-                            color: '#fff'
+                            color: '#9CAAC4',
+                            fontSize: 16,
+                            fontWeight: '600'
                         }}
                     >
-                        UPDATE
+                        Notes
                     </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.deleteButton}
+                    <CustomTextInput
+                        style={styles.notesInput}
+                        placeholder="Enter notes about the task."
+                        value={props.reservationPick.notes}
+                        onChangeText={(value) => {
+                            if (props.reservationPick.type !== 'working') {
+                                props.setReservationPick({ ...props.reservationPick, notes: value });
+                            }
+                        }}
+                        editable={props.reservationPick.type !== 'working'}
+                        multiline={true}
+                    />
+                </View>
+                <View style={styles.separator} />
+                <View
+                    style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                    }}
                 >
-                    <Text
-                        style={{
-                            fontSize: 18,
-                            textAlign: 'center',
-                            color: '#fff'
-                        }}
+                    <View>
+                        <Text
+                            style={{
+                                color: '#9CAAC4',
+                                fontSize: 16,
+                                fontWeight: '600'
+                            }}
+                        >
+                            Notification
+                        </Text>
+                    </View>
+                    <TouchableOpacity onPress={() => setShowOptions(true)}>
+                        <Text style={styles.selectedOption}>{selectedOption}</Text>
+                    </TouchableOpacity>
+                    <Modal
+                        visible={showOptions}
+                        transparent={true}
+                        animationType="slide"
+                        onRequestClose={() => setShowOptions(false)}
                     >
-                        DELETE
-                    </Text>
-                </TouchableOpacity>
+                        <TouchableWithoutFeedback onPress={() => setShowOptions(false)}>
+                            <View style={styles.modalOverlay} />
+                        </TouchableWithoutFeedback>
+                        <View style={styles.modalContainer}>
+                            <FlatList
+                                data={options}
+                                keyExtractor={(item, index) => index.toString()}
+                                renderItem={({ item }) => (
+                                    <TouchableOpacity
+                                        style={styles.optionItem}
+                                        onPress={() => handleOptionSelect(item)}
+                                    >
+                                        <Text style={styles.optionText}>{item}</Text>
+                                    </TouchableOpacity>
+                                )}
+                            />
+                        </View>
+                    </Modal>
+                </View>
+                <View
+                    style={{
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                    }}
+                >
+                    {props.reservationPick.type == 'working' && (
+                        <View
+                            style={{
+                                flexDirection: 'row',
+                                justifyContent: 'center',
+                                alignItems: 'center'
+                            }}
+                        >
+                            <TouchableOpacity
+                                disabled={props.isNew == true}
+                                style={styles.updateButton}
+                                onPress={handleShowTakeOffModal} // Gọi hàm khi nhấn nút TAKE OFF
+                            >
+                                <Text
+                                    style={{
+                                        fontSize: 18,
+                                        textAlign: 'center',
+                                        color: '#fff'
+                                    }}
+                                >
+                                    TAKE OFF
+                                </Text>
+                            </TouchableOpacity>
+
+                            <TakeOffModal
+                                visible={showTakeOffModal}
+                                onRequestClose={handleHideTakeOffModal}
+                                onTakeOff={handleTakeOff}
+                            />
+                        </View>
+                    )}
+
+                </View>
             </View>
-        </View>
+        </TouchableWithoutFeedback>
     )
 }
 
@@ -212,14 +286,29 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     },
     updateButton: {
-        backgroundColor: '#2E66E7',
-        width: 100,
+        backgroundColor: '#50C7C7',
+        width: 120,
+        height: 38,
+        alignSelf: 'center',
+        marginTop: 40,
+        justifyContent: 'center',
+        marginRight: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+        elevation: 10,
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 25,
+    },
+    createTaskButton: {
+        width: 230,
         height: 38,
         alignSelf: 'center',
         marginTop: 40,
         borderRadius: 5,
-        justifyContent: 'center',
-        marginRight: 20
+        justifyContent: 'center'
     },
     separator: {
         height: 0.5,
@@ -263,7 +352,8 @@ const styles = StyleSheet.create({
         borderColor: '#5DD976',
         borderLeftWidth: 1,
         paddingLeft: 8,
-        fontSize: 19
+        fontSize: 19,
+        marginTop: 30,
     },
     taskContainer: {
         height: 475,
@@ -280,5 +370,56 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         elevation: 5,
         padding: 22
-    }
+    },
+    selectedOption: {
+        color: 'black',
+        fontSize: 16,
+        fontWeight: '600'
+    },
+    modalContent: {
+        position: 'absolute',
+        alignItems: 'center',
+        bottom: 0,
+        width: '100%',
+        backgroundColor: 'white',
+        paddingVertical: 10,
+    },
+    option: {
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        fontSize: 16,
+    },
+    modalOverlay: {
+        flex: 1,
+        // backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContainer: {
+        position: 'absolute',
+        bottom: 0,
+        alignItems: 'center',
+        width: '100%',
+        height: 150,
+        backgroundColor: '#fff',
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+    },
+    optionItem: {
+        borderBottomWidth: 1,
+        borderBottomColor: '#f0f0f0',
+        paddingVertical: 15,
+        paddingHorizontal: 20,
+        backgroundColor: '#ffffff',
+    },
+    optionText: {
+        fontSize: 18,
+        fontWeight: '500',
+        color: '#333',
+    },
+    notesInput: {
+        justifyContent: 'center',
+        borderRadius: 5,
+        padding: 10,
+        height: 90,
+        fontSize: 19,
+    },
 })

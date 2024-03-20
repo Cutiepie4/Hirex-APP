@@ -1,18 +1,44 @@
-import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, View, TouchableOpacity, Modal, Button } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { Alert, StyleSheet, Text, View, TouchableOpacity, Modal, Button, SafeAreaView, Animated, I18nManager } from 'react-native';
 import { Agenda, DateData, AgendaEntry, AgendaSchedule } from 'react-native-calendars';
-import ItemsDetail from '../components/ItemsDetail';
-import { Ionicons, EvilIcons } from '@expo/vector-icons';
+import { GestureHandlerRootView, RectButton, Swipeable } from 'react-native-gesture-handler';
+import { Ionicons, EvilIcons, AntDesign } from '@expo/vector-icons';
+import ModalItems from '../components/ModalItems';
+import moment from 'moment';
 
 export type ExtendedAgendaEntry = AgendaEntry & {
+  notes: string,
   start: string;
   end: string;
   title: string;
+  type: string;
 };
+const generateRandomId = () => `newId_${Math.random().toString(36).substring(2, 9)}`;
 
+const timeToString = (time: number) => {
+  const date = new Date(time);
+  return date.toISOString().split('T')[0];
+};
 const AgendaScreen: React.FC = () => {
   const [items, setItems] = useState<AgendaSchedule | undefined>(undefined);
   const [showItemsDetail, setShowItemsDetail] = useState<boolean>(false);
+  const [dayPick, setDayPick] = useState<any>(moment().format('YYYY-MM-DD'));
+  const [isNew, setIsNew] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [reservationPick, setReservationPick] = useState<ExtendedAgendaEntry>(undefined);
+
+
+
+  const handleDeleteItem = useCallback((reservation: ExtendedAgendaEntry) => {
+    setItems(prevItems => {
+      const updatedItems = { ...prevItems };
+      if (updatedItems[reservation.day]) {
+        updatedItems[reservation.day] = updatedItems[reservation.day].filter(item => item.name !== reservation.name);
+      }
+      return updatedItems;
+    });
+    setRefreshing(false);
+  }, []);
 
   const loadItems = (day: DateData) => {
     const tempItems = items || {};
@@ -24,16 +50,18 @@ const AgendaScreen: React.FC = () => {
 
         if (!tempItems[strTime]) {
           tempItems[strTime] = [];
-
+          const type = Math.random() < 0.5 ? 'personal' : 'working';
           const numItems = Math.floor(Math.random() * 3 + 1);
           for (let j = 0; j < numItems; j++) {
             tempItems[strTime].push({
-              name: 'Item for ' + strTime + ' #' + j,
+              notes: 'Item for ' + strTime + ' #' + j,
+              name: generateRandomId(),
               height: Math.max(50, Math.floor(Math.random() * 150)),
               day: strTime,
               start: '08:00',
               end: '10:00',
-              title: 'Meeting'
+              title: 'Meeting',
+              type: type,
             } as ExtendedAgendaEntry);
           }
         }
@@ -46,35 +74,108 @@ const AgendaScreen: React.FC = () => {
       setItems(newItems);
     }, 1000);
   };
-
-  const renderItem = (reservation: ExtendedAgendaEntry, isFirst: boolean) => {
-    const fontSize = 16;
-    const color = isFirst ? 'black' : '#43515c';
+  const handleSetValue = useCallback((isShow: boolean, isNew: boolean, day: string, reservation: ExtendedAgendaEntry) => {
+    setReservationPick({ ...reservation })
+    setDayPick(day)
+    setShowItemsDetail(isShow);
+    setIsNew(isNew)
+  }, []);
+  const renderItem = useCallback((reservation: ExtendedAgendaEntry, isFirst: boolean) => {
+    const height = new Animated.Value(70)
+    const animatedDelete = () => {
+      Animated.timing(height, {
+        toValue: 0,
+        duration: 350,
+        useNativeDriver: false
+      }).start()
+    }
+    const renderRightActions = (progress, dragX) => {
+      const translateX = dragX.interpolate({
+        inputRange: [-64, 0],
+        outputRange: [0, 64],
+        extrapolate: 'clamp',
+      });
+      const scale = dragX.interpolate({
+        inputRange: [-64, 0],
+        outputRange: [1, 0],
+        extrapolate: 'clamp',
+      });
+      return (
+        <View
+          style={{
+            width: 64,
+            flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
+          }}>
+          <Animated.View style={{ flex: 1, transform: [{ translateX }] }}>
+            <RectButton
+              style={[styles.rightAction, { backgroundColor: 'red' }]}
+              onPress={() => handleDeleteItem(reservation)}>
+              {/* <Ionicons name="trash-outline" size={30} color="white" /> */}
+              <Animated.View style={[styles.actionIcon, ]} >
+                <Ionicons name="trash-outline" size={30} color="white" />
+              </Animated.View>
+            </RectButton>
+          </Animated.View>
+        </View>
+      );
+    };
 
     return (
-      <View>
-        <TouchableOpacity
-          style={[styles.item]}
-          onPress={() => Alert.alert(reservation.name)}
-        >
-          <View style={styles.textContainer}>
-            <Text style={[styles.timeText]}>
-              {reservation.start} - {reservation.end}
-            </Text>
-            <Text style={[styles.titleText]}>
-              {reservation.title}
-            </Text>
-            <Text style={[styles.nameText]}>
-              {reservation.name}
-            </Text>
-          </View>
-          <View
-            style={styles.coloredBar}
-          />
-        </TouchableOpacity>
-      </View>
+      <Swipeable
+        friction={2}
+        enableTrackpadTwoFingerGesture
+        leftThreshold={30}
+        rightThreshold={40}
+        renderRightActions={renderRightActions}
+        overshootRight={false}
+        onSwipeableOpen={animatedDelete}>
+        <View>
+          <TouchableOpacity
+            style={[styles.item]}
+            onPress={() => handleSetValue(true, false, reservation.day, reservation)}
+          >
+            <View style={styles.textContainer}>
+              <Text style={[styles.timeText]}>
+                {reservation.start} - {reservation.end}
+              </Text>
+              <Text style={[styles.titleText]}>
+                {reservation.title}
+              </Text>
+              <Text style={[styles.nameText]}>
+                {reservation.notes}
+              </Text>
+            </View>
+            <View style={styles.coloredBar} />
+            <View
+              style={{
+                position: 'absolute',
+                top: 10,
+                right: 10,
+              }}
+            >
+              <Text style={{
+                color: reservation.type === 'personal' ? 'purple' : 'green',
+                backgroundColor: reservation.type === 'personal' ? 'rgba(128,128,128,0.1)' : 'rgba(128,128,128,0.1)',
+                padding: 5,
+              }}>
+                {reservation.type}
+              </Text>
+            </View>
+            <View
+              style={{
+                position: 'absolute',
+                bottom: 10,
+                right: 10,
+              }}
+            >
+              <Ionicons name="notifications-outline" size={24} color="black" />
+            </View>
+          </TouchableOpacity>
+
+        </View>
+      </Swipeable>
     );
-  };
+  }, [handleSetValue]);
 
   const renderEmptyDate = () => {
     return (
@@ -88,49 +189,60 @@ const AgendaScreen: React.FC = () => {
     return r1.name !== r2.name;
   };
 
-  const timeToString = (time: number) => {
-    const date = new Date(time);
-    return date.toISOString().split('T')[0];
-  };
 
   return (
-    <View style={styles.container}>
-      <Agenda
-        items={items}
-        loadItemsForMonth={loadItems}
-        // selected={'2017-05-16'}
-        renderItem={renderItem}
-        renderEmptyDate={renderEmptyDate}
-        rowHasChanged={rowHasChanged}
-        showClosingKnob={true}
-      // markedDates={{
-      //   '2024-02-06': {marked: true, dotColor: 'red' },
-      // }}
-      />
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaView style={styles.container}>
+        <Agenda
+          items={items}
+          loadItemsForMonth={loadItems}
+          renderItem={renderItem}
+          renderEmptyDate={renderEmptyDate}
+          rowHasChanged={rowHasChanged}
+          showClosingKnob={true}
+          onRefresh={() => {
+            console.log('refresh')
+          }}
+          onDayChange={day => {
+            setDayPick(day.dateString);
+          }}
+          onDayPress={day => {
+            setDayPick(day.dateString);
+          }}
+          refreshing={refreshing}
+        // markedDates={{
+        //   '2024-02-06': {marked: true, dotColor: 'red' },
+        // }}
+        />
 
-      {/* Icon hiển thị ItemsDetail và khi nhấn vào sẽ hiển thị ItemsDetail */}
-      <TouchableOpacity
-        style={styles.viewTask}
-        onPress={() => setShowItemsDetail(true)}
-      >
-        <Ionicons name="add-circle-outline" size={60} color="#50C7C7" />
-      </TouchableOpacity>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={showItemsDetail}
-        onRequestClose={() => setShowItemsDetail(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <ItemsDetail />
-            <TouchableOpacity onPress={() => setShowItemsDetail(false)} style={styles.closeButton}>
-            <EvilIcons name="close-o" size={30} color="black" />
-          </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    </View>
+        <TouchableOpacity
+          style={styles.viewTask}
+          onPress={() => handleSetValue(true, true, dayPick, {
+            notes: '',
+            name: generateRandomId(),
+            height: Math.max(50, Math.floor(Math.random() * 150)),
+            day: dayPick,
+            start: '08:00',
+            end: '10:00',
+            title: '',
+            type: 'personal',
+          })}
+        >
+          <Ionicons name="add-circle-outline" size={60} color="#50C7C7" />
+        </TouchableOpacity>
+        <ModalItems
+          reservationPick={reservationPick}
+          setReservationPick={setReservationPick}
+          isNew={isNew}
+          isShow={showItemsDetail}
+          setIsShow={setShowItemsDetail}
+          dayPick={dayPick}
+          items={items}
+          setItems={setItems}
+          setRefreshing={setRefreshing}
+        />
+      </SafeAreaView>
+    </GestureHandlerRootView>
   );
 }
 
@@ -143,7 +255,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 10,
     padding: 10,
-    marginRight: 10,
+    // marginRight: 10,
     marginTop: 17
   },
   emptyDate: {
@@ -159,21 +271,6 @@ const styles = StyleSheet.create({
   dayItem: {
     marginLeft: 34
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    borderRadius: 10,
-    elevation: 5,
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-  },
   viewTask: {
     position: 'absolute',
     bottom: 40,
@@ -184,14 +281,6 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#2E66E7',
-    shadowOffset: {
-      width: 0,
-      height: 5
-    },
-    shadowRadius: 30,
-    shadowOpacity: 0.5,
-    elevation: 5,
     zIndex: 2
   },
   textContainer: {
@@ -209,18 +298,47 @@ const styles = StyleSheet.create({
   },
   nameText: {
     fontSize: 14,
-    fontStyle: 'italic',
+    // fontStyle: 'italic',
   },
   coloredBar: {
     position: 'absolute',
     height: '100%',
     width: 5,
-    backgroundColor: '#e32970',
+    backgroundColor: '#50C7C7',
     borderRadius: 5,
     right: 0,
     top: 10,
     alignSelf: 'stretch',
   },
+  deleteAction: {
+    backgroundColor: 'red',
+    padding: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  rightAction: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    marginTop: 17,
+    borderRadius: 10,
+  },
+  actionIcon: {
+    // width: 30,
+    marginHorizontal: 10,
+    // backgroundColor: 'plum',
+    // height: 30,
+  },
+  // deleteButton: {
+  //   flex: 1,
+  //   backgroundColor: 'red',
+  //   alignItems: 'center',
+  //   justifyContent: 'center',
+  //   marginTop: 17,
+  //   width: 60,
+  //   height: 100,
+  //   borderRadius: 25,
+  // },
 });
 
-export default AgendaScreen;
+export default React.memo(AgendaScreen);
