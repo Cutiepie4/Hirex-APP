@@ -41,9 +41,25 @@ export default function HomeScreen() {
                     justifyContent: 'center'
                 }}
                 onPress={() => {
-                    RootNavigation.navigate('ChatScreen');
+                    RootNavigation.navigate('Messages');
                 }}>
                 <Text style={[styles.titleButton]}>Chat</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={{
+                    marginTop: 30,
+                    backgroundColor: 'green',
+                    alignItems: 'center',
+                    width: 100,
+                    borderRadius: 5,
+                    height: 40,
+                    justifyContent: 'center'
+                }}
+                onPress={() => {
+                    RootNavigation.navigate('Notifications');
+                }}>
+                <Text style={[styles.titleButton]}>Notification</Text>
             </TouchableOpacity>
         </View>
     )

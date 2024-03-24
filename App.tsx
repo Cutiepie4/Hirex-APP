@@ -6,13 +6,18 @@ import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from './src/screens/HomeScreen';
-import ChatScreen from './src/screens/ChatScreen';
+import Message from './src/screens/Message';
 import { navigationRef } from './src/config/RootNavigation';
+import Messages from './src/screens/Messages';
+import Notifications from './src/screens/Notifications';
+import VideoCall from './src/screens/VideoCall';
 
 const listScreens = {
   HomeScreen: HomeScreen,
-  ChatScreen: ChatScreen
-
+  Message: Message,
+  Messages: Messages,
+  Notifications: Notifications,
+  VideoCall: VideoCall
 }
 
 const App = () => {
