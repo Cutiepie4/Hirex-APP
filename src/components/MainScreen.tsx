@@ -1,37 +1,38 @@
 import React, { useState } from 'react';
 import { SafeAreaView, ScrollView, View, Image, Text, TouchableOpacity, StyleSheet, Platform, Dimensions, Button } from 'react-native';
-import { FontAwesome6, FontAwesome} from '@expo/vector-icons';
+import { FontAwesome6, FontAwesome } from '@expo/vector-icons';
 import BoxJob from './constaints/BoxJob';
+import Navbar from './constaints/Navbar';
 
 const { height: heightScreen } = Dimensions.get('window');
 
 const MainScreen = () => {
     return (
-        <ScrollView style={styles.heightScroll}>
-            <SafeAreaView style={styles.container}>
-                <View style={styles.title}>
-                    <View style={styles.indexTextHeader}>
-                        <Text style={styles.textHeader}>Xin chào</Text>
-                        <Text style={styles.textHeader}>Orlando Diggs.</Text>
-                    </View>
-                    <View>
-                        <Image source={require('../../assets/avata2.png')} style={{ width: 50, height: 50 }}></Image>
-                    </View>
+        <SafeAreaView style={styles.container}>
+            <View style={styles.title}>
+                <View style={styles.indexTextHeader}>
+                    <Text style={styles.textHeader}>Xin chào</Text>
+                    <Text style={styles.textHeader}>Orlando Diggs.</Text>
                 </View>
                 <View>
-                    <View style={styles.joinNow}>
-                        <View>
-                            <Text style={styles.textJoinNow}>50% off</Text>
-                            <Text style={styles.textJoinNow}>take any courses</Text>
-                            <TouchableOpacity style={styles.buttonJoinNow}>
-                                <Text style={[styles.textJoinNow]}>
-                                    Join Now
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                    <Image source={require('../../assets/people.png')} style={styles.imagePeople}></Image>
+                    <Image source={require('../../assets/avata2.png')} style={{ width: 50, height: 50 }}></Image>
                 </View>
+            </View>
+            <View>
+                <View style={styles.joinNow}>
+                    <View>
+                        <Text style={styles.textJoinNow}>50% off</Text>
+                        <Text style={styles.textJoinNow}>take any courses</Text>
+                        <TouchableOpacity style={styles.buttonJoinNow}>
+                            <Text style={[styles.textJoinNow]}>
+                                Join Now
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                <Image source={require('../../assets/people.png')} style={styles.imagePeople}></Image>
+            </View>
+            <ScrollView style={{height: heightScreen/1.8}}>
                 <View>
                     <Text style={styles.textFindJob}>Find Your Job</Text>
                     <View style={styles.boxFindJob}>
@@ -57,8 +58,9 @@ const MainScreen = () => {
                 {[...Array(3)].map((_, index) => (
                     <BoxJob></BoxJob>
                 ))}
-            </SafeAreaView>
-        </ScrollView>
+            </ScrollView>
+            <Navbar></Navbar>
+        </SafeAreaView>
     )
 }
 
@@ -68,7 +70,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         backgroundColor: '#F5F5F5',
         marginHorizontal: 10,
-        paddingBottom: heightScreen / 30
+        paddingBottom: heightScreen / 15
     },
 
     title: {
@@ -79,10 +81,6 @@ const styles = StyleSheet.create({
 
     heightScreens: {
         height: heightScreen + heightScreen / 18
-    },
-
-    heightScroll: {
-        height: '98%'
     },
 
     indexTextHeader: {

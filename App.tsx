@@ -20,7 +20,6 @@ import AddJobDetail from './src/components/AddJobDetail';
 import BoxList from './src/components/constaints/BoxList';
 import Search from './src/components/constaints/Search';
 import AddJob from './src/components/AddJob';
-import Profile from './src/components/Profile';
 import JobPosition from './src/components/JobPosition';
 import SaveJob from './src/components/SaveJob';
 import NoSave from './src/components/NoSave';
@@ -40,18 +39,17 @@ const listScreens = {
     // Review : Review,
     // AllReview : AllReview,
     // ViewImage: ViewImage,
-    // MainScreen: MainScreen,
+    MainScreen: MainScreen,
     // AddJobDetail: AddJobDetail,
     // BoxList: BoxList
     // Search: Search,
     // AddJob: AddJob,
-    // Profile: Profile,
     // JobPosition: JobPosition
     // SaveJob: SaveJob
     // NoSave: NoSave
     // NoFind: NoFind
     // SearchJob: SearchJob
-    Navbar: Navbar
+    // Navbar: Navbar
 }
 
 const App = () => {
