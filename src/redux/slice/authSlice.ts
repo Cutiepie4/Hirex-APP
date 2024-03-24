@@ -25,12 +25,6 @@ const authSlice = createSlice({
         },
         increase: (state) => {
             return { ...state, count: state.count + 1 };
-        },
-        showLoading: (state) => {
-            return { ...state, isLoading: true };
-        },
-        hideLoading: (state) => {
-            return { ...state, isLoading: false };
         }
     },
     extraReducers(builder) {
