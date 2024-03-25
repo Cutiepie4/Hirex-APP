@@ -3,8 +3,10 @@ import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { increase, login } from '../redux/slice/authSlice';
 import { RootReducer } from '../redux/config/reducer';
+import { useNavigation } from '@react-navigation/native';
 
 export default function HomeScreen() {
+    const navigation = useNavigation();
     const { count } = useSelector((state: RootReducer) => state.authReducer);
     const dispatch = useDispatch();
 
@@ -24,7 +26,8 @@ export default function HomeScreen() {
                     borderRadius: 5,
                     height: 20
                 }}
-                onPress={handlePress}>
+                onPress={() => navigation.navigate('EmployeeList')}
+                >
                 <Text style={{ color: 'white' }}>click</Text>
             </TouchableOpacity>
         </View>

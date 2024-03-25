@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, StyleSheet, Text, View, TouchableOpacity, Modal, Button, SafeAreaView, Animated, I18nManager } from 'react-native';
 import { Agenda, DateData, AgendaEntry, AgendaSchedule } from 'react-native-calendars';
 import { GestureHandlerRootView, RectButton, Swipeable } from 'react-native-gesture-handler';
@@ -26,8 +26,9 @@ const AgendaScreen: React.FC = () => {
   const [isNew, setIsNew] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [reservationPick, setReservationPick] = useState<ExtendedAgendaEntry>(undefined);
-
-
+  useEffect(() => {
+    // console.log(items)
+  }, [items])
 
   const handleDeleteItem = useCallback((reservation: ExtendedAgendaEntry) => {
     setItems(prevItems => {
@@ -81,6 +82,16 @@ const AgendaScreen: React.FC = () => {
     setIsNew(isNew)
   }, []);
   const renderItem = useCallback((reservation: ExtendedAgendaEntry, isFirst: boolean) => {
+    // const inputRange = [-1, 0, 60 * index, 60 * (index + 0.5)];
+    // const opacityInputRange = [-1, 0, 60 * index, 60 * (index + 1)];
+    // const scale = scrolly.interpolate({
+    //   inputRange,
+    //   outputRange: [1, 1, 1, 0]
+    // });
+    // const opacity = scrolly.interpolate({
+    //   opacityInputRange,
+    //   outputRange: [1, 1, 1, 0]
+    // });
     const height = new Animated.Value(70)
     const animatedDelete = () => {
       Animated.timing(height, {
@@ -95,11 +106,6 @@ const AgendaScreen: React.FC = () => {
         outputRange: [0, 64],
         extrapolate: 'clamp',
       });
-      const scale = dragX.interpolate({
-        inputRange: [-64, 0],
-        outputRange: [1, 0],
-        extrapolate: 'clamp',
-      });
       return (
         <View
           style={{
@@ -111,7 +117,7 @@ const AgendaScreen: React.FC = () => {
               style={[styles.rightAction, { backgroundColor: 'red' }]}
               onPress={() => handleDeleteItem(reservation)}>
               {/* <Ionicons name="trash-outline" size={30} color="white" /> */}
-              <Animated.View style={[styles.actionIcon, ]} >
+              <Animated.View style={[styles.actionIcon,]} >
                 <Ionicons name="trash-outline" size={30} color="white" />
               </Animated.View>
             </RectButton>
@@ -133,6 +139,7 @@ const AgendaScreen: React.FC = () => {
           <TouchableOpacity
             style={[styles.item]}
             onPress={() => handleSetValue(true, false, reservation.day, reservation)}
+          // onPress={() => navigation.navigate('EmployeeList')}
           >
             <View style={styles.textContainer}>
               <Text style={[styles.timeText]}>
@@ -154,7 +161,8 @@ const AgendaScreen: React.FC = () => {
               }}
             >
               <Text style={{
-                color: reservation.type === 'personal' ? 'purple' : 'green',
+                fontFamily: 'mon',
+                color: reservation.type === 'personal' ? '#a45eff' : '#00c94d',
                 backgroundColor: reservation.type === 'personal' ? 'rgba(128,128,128,0.1)' : 'rgba(128,128,128,0.1)',
                 padding: 5,
               }}>
@@ -175,7 +183,7 @@ const AgendaScreen: React.FC = () => {
         </View>
       </Swipeable>
     );
-  }, [handleSetValue]);
+  }, [reservationPick]);
 
   const renderEmptyDate = () => {
     return (
@@ -186,6 +194,7 @@ const AgendaScreen: React.FC = () => {
   };
 
   const rowHasChanged = (r1: AgendaEntry, r2: AgendaEntry) => {
+    console.log(r1.name + ':' + r2.name)
     return r1.name !== r2.name;
   };
 
@@ -198,8 +207,10 @@ const AgendaScreen: React.FC = () => {
           loadItemsForMonth={loadItems}
           renderItem={renderItem}
           renderEmptyDate={renderEmptyDate}
-          rowHasChanged={rowHasChanged}
+          // rowHasChanged={rowHasChanged}
           showClosingKnob={true}
+          // minDate={'2024-03-20'}
+          // maxDate={'2024-03-28'}
           onRefresh={() => {
             console.log('refresh')
           }}
@@ -288,16 +299,18 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: 'mon-b',
     marginBottom: 5,
   },
   titleText: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: 'mon-sb',
+    // fontWeight: 'bold',
     marginBottom: 5,
   },
   nameText: {
     fontSize: 14,
+    fontFamily: 'mon',
     // fontStyle: 'italic',
   },
   coloredBar: {

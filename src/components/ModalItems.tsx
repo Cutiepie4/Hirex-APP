@@ -5,32 +5,29 @@ import { Ionicons, EvilIcons } from '@expo/vector-icons';
 import { ExtendedAgendaEntry } from '../screens/ScheduleScreen';
 
 export default function ModalItems(props: any) {
-    const [newItem, setNewItem] = useState<ExtendedAgendaEntry>(props.reservationPick);
+    const [submit, setSubmit] = useState<boolean>(false);
     useEffect(() => {
         console.log(props.reservationPick)
-        setNewItem({ ...props.reservationPick })
+        // setNewItem({ ...props.reservationPick })
     }, [props.reservationPick])
     const handleAddOrUpdateItem = () => {
         props.setItems(prevItems => {
             const newItems = { ...prevItems };
-            const dayItems = newItems[props.dayPick] || [];
+            const dayItems = newItems[props.dayPick] ? [...newItems[props.dayPick]] : [];
             if (props.isNew) {
-                dayItems.push(newItem);
+                dayItems.push(props.reservationPick);
             } else {
-                const index = dayItems.findIndex(item => item.name === newItem.name);
-                if (index !== -1) {
-                    dayItems[index] = newItem;
+                const itemIndex = dayItems.findIndex(item => item.name === props.reservationPick.name);
+                if (itemIndex > -1) {
+                    dayItems[itemIndex] = props.reservationPick;
                 } else {
-                    dayItems.push(newItem);
                 }
             }
+            // console.log(dayItems)
             newItems[props.dayPick] = dayItems;
             return newItems;
         });
-        // console.log(props.items)
-        props.setRefreshing(true); 
-        props.setIsShow(false)
-        // props.setIsShow(false)
+        props.setIsShow(false);
     };
     return (
         <Modal
@@ -38,7 +35,7 @@ export default function ModalItems(props: any) {
             transparent={true}
             visible={props.isShow}
         >
-            <View style={styles.modalContainer}>
+            <View style={styles.modalContainer} >
                 <View style={styles.modalContent}>
                     <ItemsDetail
                         reservationPick={props.reservationPick}
@@ -50,19 +47,29 @@ export default function ModalItems(props: any) {
                         setItems={props.setItems}
                         setRefreshing={props.setRefreshing}
                         setIsShow={props.setIsShow}
+                        setSubmit={setSubmit}
                     />
-                    <TouchableOpacity onPress={() => props.setIsShow(false)} style={styles.closeButton}>
+                    <TouchableOpacity onPress={() => props.setIsShow(false)} style={styles.closeButton} >
                         <EvilIcons name="close-o" size={30} color="black" />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => handleAddOrUpdateItem()} style={styles.saveButton}>
+                    <TouchableOpacity onPress={() => handleAddOrUpdateItem()} style={styles.saveButton} disabled={submit}>
                         <Text
                             style={{
-                                color: '#2c7cf5',
+                                color: submit ? '#999999' : '#2c7cf5',
                                 fontSize: 19,
                                 fontWeight: '600'
                             }}
                         >Save</Text>
                     </TouchableOpacity>
+                    <Text style={{
+                        position: 'absolute',
+                        top: 10,
+                        left: '30%',
+                        fontSize: 16,
+                        fontFamily: 'mon-m',
+                    }}>
+                        {props.dayPick}
+                    </Text>
                 </View>
             </View>
         </Modal>

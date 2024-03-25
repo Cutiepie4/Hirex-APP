@@ -8,14 +8,19 @@ import debounce from 'lodash.debounce';
 
 const ItemsDetail = (props: any) => {
     const [showOptions, setShowOptions] = useState<boolean>(false);
-    const [selectedOption, setSelectedOption] = useState<string>('Không');
+    const [selectedOption, setSelectedOption] = useState<any>('Không có');
     const [showTakeOffModal, setShowTakeOffModal] = useState<boolean>(false);
     const [takeOffReason, setTakeOffReason] = useState<string>('');
-    const [editable, setEditable] = useState<boolean>(true);
+    const [title, setTitle] = useState<string>(props.reservationPick.title);
+    const [notes, setNotes] = useState<string>(props.reservationPick.notes);
 
-    const options = ['Không có', 'Vào lúc diễn ra sự kiện', 'Trước 30 phút', 'Trước 1 giờ', 'Trước 2 giờ'];
-
-    // const [newItem, setNewItem] = useState<ExtendedAgendaEntry>(props.reservationPick);
+    const options = {
+        'Không có': false,
+        'Vào lúc diễn ra sự kiện': 0,
+        'Trước 30 phút': -30,
+        'Trước 1 giờ': -60,
+        'Trước 2 giờ': -120,
+    };
 
     const handleShowTakeOffModal = () => {
         setShowTakeOffModal(true);
@@ -26,71 +31,97 @@ const ItemsDetail = (props: any) => {
     };
 
     const handleTakeOff = (reason: string) => {
-        // Xử lý logic khi người dùng gửi lý do
-        // Ví dụ: Gửi lý do lên server, thực hiện hành động TAKE OFF, vv.
-        // Ở đây, bạn có thể sử dụng lý do được nhập (reason)
-        // Sau khi xử lý xong, bạn có thể đóng modal
         handleHideTakeOffModal();
     };
 
-    const handleOptionSelect = (option) => {
-        setSelectedOption(option);
+    const handleOptionSelect = (optionKey) => {
+        setSelectedOption(optionKey);
+        console.log(options[optionKey])
+        // Gán giá trị tương ứng từ object options vào state hoặc biến để xử lý logic
+        const optionValue = options[optionKey];
+        // Lưu giá trị này để sử dụng trong logic ứng dụng của bạn
+        // ...
         setShowOptions(false);
     };
 
-    const CustomTextInput = ({ value, onChangeText, editable, multiline, placeholder, style }) => {
-        const [text, setText] = useState(value);
-        const inputRef = useRef(null); // Tạo ref cho TextInput
+    // const CustomTextInput = ({ value, onChangeText, editable, multiline, placeholder, style }) => {
+    //     const [text, setText] = useState(value);
+    //     const inputRef = useRef(null);
 
-        const debouncedOnChangeText = useCallback(debounce((value) => {
-            onChangeText(value);
-        }, 700), [onChangeText]);
+    //     const debouncedOnChangeText = useCallback(debounce((value) => {
+    //         onChangeText(value);
+    //     }, 700), [onChangeText]);
 
-        useEffect(() => {
-            // Cập nhật text mà không tự động đặt lại focus vào input
-            setText(value);
-        }, [value]);
+    //     useEffect(() => {
+    //         // Cập nhật text mà không tự động đặt lại focus vào input
+    //         setText(value);
+    //     }, [value]);
 
-        // Đảm bảo hủy debounce khi component bị unmount
-        useEffect(() => {
-            return () => {
-                debouncedOnChangeText.cancel();
-            };
-        }, [debouncedOnChangeText]);
+    //     // Đảm bảo hủy debounce khi component bị unmount
+    //     useEffect(() => {
+    //         return () => {
+    //             debouncedOnChangeText.cancel();
+    //         };
+    //     }, [debouncedOnChangeText]);
 
-        const handleChangeText = (newText) => {
-            setText(newText);
-            debouncedOnChangeText(newText);
-        };
+    //     const handleChangeText = (newText) => {
+    //         setText(newText);
+    //         debouncedOnChangeText(newText);
+    //     };
 
-        return (
-            <TextInput
-                ref={inputRef}
-                style={style}
-                placeholder={placeholder}
-                value={text}
-                onChangeText={handleChangeText}
-                editable={editable}
-                multiline={multiline}
-            />
-        );
-    };
+    //     return (
+    //         <TextInput
+    //             ref={inputRef}
+    //             style={style}
+    //             placeholder={placeholder}
+    //             value={text}
+    //             onChangeText={handleChangeText}
+    //             editable={editable}
+    //             multiline={multiline}
+    //         />
+    //     );
+    // };
+    const debouncedOnTitleChange = useCallback(
+        debounce((value) => {
+            props.setReservationPick({ ...props.reservationPick, title: value });
+            props.setSubmit(false);
+        }, 500),
+        [props.reservationPick, props.setReservationPick, props.setSubmit]
+    );
 
+    const debouncedOnNotesChange = useCallback(
+        debounce((value) => {
+            props.setReservationPick({ ...props.reservationPick, notes: value });
+            props.setSubmit(false);
+        }, 500),
+        [props.reservationPick, props.setReservationPick, props.setSubmit]
+    );
     return (
         <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
             <View style={styles.taskContainer}>
-                <CustomTextInput
+                <TextInput
+                    style={styles.title}
+                    placeholder="Enter your title"
+                    value={title}
+
+                    onChangeText={(value) => {
+                        setTitle(value)
+                        props.setSubmit(true)
+                        debouncedOnTitleChange(value)
+
+                    }}
+                    editable={props.reservationPick.type !== 'working'}
+                />
+                {/* <CustomTextInput
                     multiline={false}
                     style={styles.title}
                     placeholder="Enter your title"
                     value={props.reservationPick.title}
                     onChangeText={(value) => {
-                        if (props.reservationPick.type !== 'working') {
-                            props.setReservationPick({ ...props.reservationPick, title: value });
-                        }
+                        props.setReservationPick({ ...props.reservationPick, title: value });
                     }}
                     editable={props.reservationPick.type !== 'working'}
-                />
+                /> */}
                 <View style={styles.separator} />
                 <View>
                     <Text
@@ -128,14 +159,15 @@ const ItemsDetail = (props: any) => {
                     >
                         Notes
                     </Text>
-                    <CustomTextInput
+                    <TextInput
                         style={styles.notesInput}
                         placeholder="Enter notes about the task."
-                        value={props.reservationPick.notes}
+                        value={notes}
                         onChangeText={(value) => {
-                            if (props.reservationPick.type !== 'working') {
-                                props.setReservationPick({ ...props.reservationPick, notes: value });
-                            }
+                            setNotes(value)
+                            props.setSubmit(true)
+                            debouncedOnNotesChange(value)
+
                         }}
                         editable={props.reservationPick.type !== 'working'}
                         multiline={true}
@@ -174,7 +206,7 @@ const ItemsDetail = (props: any) => {
                         </TouchableWithoutFeedback>
                         <View style={styles.modalContainer}>
                             <FlatList
-                                data={options}
+                                data={Object.keys(options)}
                                 keyExtractor={(item, index) => index.toString()}
                                 renderItem={({ item }) => (
                                     <TouchableOpacity
@@ -372,7 +404,8 @@ const styles = StyleSheet.create({
         padding: 22
     },
     selectedOption: {
-        color: 'black',
+        fontFamily: 'mon-m',
+        // color: 'black',
         fontSize: 16,
         fontWeight: '600'
     },
@@ -411,8 +444,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#ffffff',
     },
     optionText: {
+        fontFamily: 'mon',
         fontSize: 18,
-        fontWeight: '500',
         color: '#333',
     },
     notesInput: {
@@ -420,6 +453,7 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         padding: 10,
         height: 90,
-        fontSize: 19,
+        fontSize: 16,
+        fontFamily: 'mon',
     },
 })

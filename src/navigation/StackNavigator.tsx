@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native'
-import { SplashScreen} from 'expo-router';
+import { SplashScreen } from 'expo-router';
 import React, { useEffect } from 'react'
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -11,12 +11,18 @@ import ProfileScreen from '../screens/ProfileScreen';
 import SettingScreen from '../screens/SettingScreen';
 import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from 'expo-font';
+import EmployeeListScreen from '../screens/EmployeeListScreen';
+import ScheduleEmployerScreen from '../screens/ScheduleEmployerScreen';
 
 const StackNavigator = () => {
     const [loaded, error] = useFonts({
         'mon': require('../../assets/fonts/Montserrat-Regular.ttf'),
         'mon-sb': require('../../assets/fonts/Montserrat-SemiBold.ttf'),
         'mon-b': require('../../assets/fonts/Montserrat-Bold.ttf'),
+        'mon-l': require('../../assets/fonts/Montserrat-Light.ttf'),
+        'mon-m': require('../../assets/fonts/Montserrat-Medium.ttf'),
+        'mon-r': require('../../assets/fonts/Montserrat-Regular.ttf'),
+        'mon-t': require('../../assets/fonts/Montserrat-Thin.ttf'),
     });
     useEffect(() => {
         if (error) throw error;
@@ -40,11 +46,12 @@ const StackNavigator = () => {
                     tabBarActiveTintColor: "#50C7C7",
                     tabBarLabelStyle: { fontFamily: 'mon-b' },
                 }}
-                
+
             >
                 {tabScreen("Home", "home-outline", HomeScreen)}
                 {tabScreen("Message", "chatbox-ellipses-outline", MessageScreen)}
                 {tabScreen("Schedule", "calendar-outline", ScheduleScreen)}
+                {tabScreen("ScheduleEmployer", "calendar-outline", ScheduleEmployerScreen)}
                 {tabScreen("Profile", "person-circle-outline", ProfileScreen)}
                 {tabScreen("Setting", "settings", SettingScreen)}
             </Tab.Navigator>
@@ -72,6 +79,7 @@ const StackNavigator = () => {
                 <Stack.Screen name="Main" component={BottomTabs} options={{ headerShown: false }} />
                 <Stack.Screen name="Login" component={HomeScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="Register" component={MessageScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="EmployeeList" component={EmployeeListScreen} options={{ headerShown: false }} />
             </Stack.Navigator>
         </NavigationContainer>
     )

@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Modal, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 
 const TakeOffModal = ({ visible, onRequestClose, onTakeOff }) => {
-    const [reason, setReason] = useState('');
+    const [reason, setReason] = useState<string>('');
+    const inputRef = useRef(null);
 
+    useEffect(() => {
+        if (visible && inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [visible]);
     const handleTakeOff = () => {
         onTakeOff(reason);
         setReason('');
@@ -21,6 +27,7 @@ const TakeOffModal = ({ visible, onRequestClose, onTakeOff }) => {
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>Lý do</Text>
                         <TextInput
+                            ref={inputRef}
                             style={styles.input}
                             placeholder="Nhập lý do..."
                             multiline={true}
@@ -71,12 +78,12 @@ const styles = StyleSheet.create({
         padding: 14,
         fontSize: 16,
         color: '#333',
-        height: 150, // Auto adjust height based on content
+        height: 150,
         textAlignVertical: 'top',
         marginBottom: 20,
     },
     button: {
-        backgroundColor: '#34C759', // iOS green color
+        backgroundColor: '#34C759',
         borderRadius: 10,
         paddingVertical: 12,
         paddingHorizontal: 20,
