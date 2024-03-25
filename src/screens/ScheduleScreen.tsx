@@ -3,6 +3,7 @@ import { Alert, StyleSheet, Text, View, TouchableOpacity, Modal, Button } from '
 import { Agenda, DateData, AgendaEntry, AgendaSchedule } from 'react-native-calendars';
 import ItemsDetail from '../components/ItemsDetail';
 import { Ionicons, EvilIcons } from '@expo/vector-icons';
+import { colors, fonts, sizes } from '../constant';
 
 export type ExtendedAgendaEntry = AgendaEntry & {
   start: string;
@@ -191,7 +192,7 @@ const styles = StyleSheet.create({
     },
     shadowRadius: 30,
     shadowOpacity: 0.5,
-    elevation: 5,
+    // elevation: 5,
     zIndex: 2
   },
   textContainer: {
@@ -203,8 +204,9 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   titleText: {
+    fontFamily: fonts.DmBold,
     fontSize: 16,
-    fontWeight: 'bold',
+    // fontWeight: 'bold',
     marginBottom: 5,
   },
   nameText: {

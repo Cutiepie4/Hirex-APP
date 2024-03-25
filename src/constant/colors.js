@@ -1,0 +1,22 @@
+module.exports={
+    primary:"#0D0140",
+    secondary:"#000000",
+    tertiary:"#D6CDFE",
+    ultra:"#FCA34D",
+    background:"#f9f9f9",
+    background_2:"#f7f7f8",
+    background_3:"#cdc9d4",
+    nega:"#aaa6b9",
+    sega:"#afecfe",
+    tertiary_deep:"#beaffe",
+    ultra_light:"#ffd6ad",
+    infi:"#fde0d5",
+    incognito:"#afecfe",
+    grey:"#f2f2f2",
+    tertiary_light:"#F0EEF8",
+    grey_light:"#eeeef1",
+    pinky:"#fdeff5",
+    ultra_sur:"#fff5f3",
+    grey_sur:"#ccc4c2",
+    ultra_ama:"#faf2ea"
+}

@@ -1,0 +1,12 @@
+module.exports={
+    DmRegular:"DMRegular",
+    DmBold:"DMBold",
+    DmMedium:"DMMedium",
+    DmSans_Regular:"DMSansRegular",
+    DmSans_Bold:"DMSansBold",
+    DmSans_Medium:"DMSansMedium",
+    OpenSans_SemiBold:"OpenSansSemiBold",
+    OpenSans_Bold:"OpenSansBold",
+    OpenSans_Regular:"OpenSansRegular",
+    OpenSans_ExtraBold:"OpenSansExtraBold"   
+}
