@@ -3,21 +3,23 @@ import React, { useState } from 'react'
 import Container from '../components/Container'
 import Header from '../components/Header'
 import { TouchableOpacity } from 'react-native-gesture-handler'
-import { deepPurple, orange, placeholderFontStyle, placeholderTextColor, regularPadding, titleFontStyle } from '../styles/styles'
+import { deepPurple, orange, placeholderFontStyle, placeholderTextColor, purple, regularPadding, titleFontStyle } from '../styles/styles'
 import GOOGLE from '../assets/images/google_logo.png'
+import NO_NOTIFICATIONS from '../assets/images/no_notifications.png'
 import RootNavigation from '../config/RootNavigation'
 
 interface Notification {
     id: any,
     title?: string,
     description?: string,
-    time?: string
+    time?: string,
+    isRead?: boolean,
 }
 
 const Notifications = () => {
     const width = useWindowDimensions().width;
     const [noti, setNoti] = useState<Notification[]>([
-        { title: 'Application sent', id: 123, description: 'Applications for Google companies have entered for company review', time: '25 minutes ago' },
+        { isRead: true, title: 'Application sent', id: 123, description: 'Applications for Google companies have entered for company review', time: '25 minutes ago' },
         { title: 'Application sent', id: 123, description: 'Applications for Google companies have entered for company review', time: '25 minutes ago' },
         { title: 'Application sent', id: 123, description: 'Applications for Google companies have entered for company review', time: '25 minutes ago' },
         { title: 'Application sent', id: 123, description: 'Applications for Google companies have entered for company review', time: '25 minutes ago' },
@@ -31,7 +33,7 @@ const Notifications = () => {
     const renderItem = ({ item, index }) => (
         <TouchableOpacity
             key={index}
-            style={{
+            style={[{
                 flexDirection: 'row',
                 paddingVertical: 16,
                 paddingHorizontal: 12,
@@ -40,8 +42,8 @@ const Notifications = () => {
                 marginTop: 10,
                 marginHorizontal: regularPadding,
                 width: width - regularPadding * 2,
-            }}
-        // onPress={() => RootNavigation.navigate('VideoCall')}
+            }, item.isRead && styles.isRead]}
+            onPress={() => RootNavigation.navigate('NotificationDetail')}
         >
             <View style={{
                 width: '20%',
@@ -68,7 +70,7 @@ const Notifications = () => {
         <Container>
             <Header
                 title='Notifications'
-                leftHeader
+                backArrow
                 rightHeaderComponent={
                     <TouchableOpacity>
                         <Text style={{
@@ -79,17 +81,36 @@ const Notifications = () => {
                     </TouchableOpacity>
                 }
             />
-            <FlatList
-                data={noti}
-                renderItem={renderItem}
-                style={{
-                    height: '100%'
-                }}
-            />
+            {noti.length > 0 ?
+                <FlatList
+                    data={noti}
+                    renderItem={renderItem}
+                    style={{
+                        height: '100%'
+                    }}
+                /> : <View style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                }}>
+                    <Image source={NO_NOTIFICATIONS} />
+                    <Text style={[titleFontStyle, { fontSize: 20 }]}>No notifications</Text>
+                    <Text style={{
+                        marginTop: 20,
+                        maxWidth: '70%',
+                        textAlign: 'center',
+                        marginBottom: 100
+                    }}>You have no notifications at this time thank you</Text>
+                </View>
+            }
         </Container>
     )
 }
 
 export default Notifications
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+    isRead: {
+        backgroundColor: purple
+    }
+})

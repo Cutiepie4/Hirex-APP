@@ -1,15 +1,30 @@
 import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View, useWindowDimensions } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
 import Container from '../components/Container'
 import Header from '../components/Header'
 import SearchInput from '../components/SearchInput'
 import { backgroundColor, orange, placeholderTextColor, regularPadding, titleFontStyle } from '../styles/styles'
 import AVATAR from '../assets/images/avt.png'
+import NO_MESSAGES from '../assets/images/no_messages.png'
 import { ScrollView } from 'react-native-gesture-handler'
 import { Feather } from '@expo/vector-icons';
 import RootNavigation from '../config/RootNavigation'
 
 const Messages = () => {
+
+    const [messages, setMessages] = useState([
+        { name: 'ABC', content: 'di choi k ?', time: 2 },
+        { name: 'ABC', content: 'di choi k ?', time: 2 },
+        { name: 'ABC', content: 'di choi k ?', time: 2 },
+        { name: 'ABC', content: 'di choi k ?', time: 2 },
+        { name: 'ABC', content: 'di choi k ?', time: 2 },
+        { name: 'ABC', content: 'di choi k ?', time: 2 },
+        { name: 'ABC', content: 'di choi k ?', time: 2 },
+        { name: 'ABC', content: 'di choi k ?', time: 2 },
+        { name: 'ABC', content: 'di choi k ?', time: 2 },
+        { name: 'ABC', content: 'di choi k ?', time: 2 },
+        { name: 'ABC', content: 'di choi k ?', time: 2 },
+    ]);
 
     const width = useWindowDimensions().width;
 
@@ -98,8 +113,8 @@ const Messages = () => {
 
     return (
         <Container backgroundColor={'#f9f9f9'}>
-            <Header title='Messages' leftHeader />
-            <View style={[styles.container]}>
+            <Header title='Messages' backArrow/>
+            {messages.length > 0 ? <View style={[styles.container]}>
                 <SearchInput
                     placeholder="Search name..."
                     onChangeText={(text) => console.log(text)}
@@ -112,26 +127,28 @@ const Messages = () => {
                     }}
                 />
                 <FlatList
-                    data={[
-                        { name: 'ABC', content: 'di choi k ?', time: 2 },
-                        { name: 'ABC', content: 'di choi k ?', time: 2 },
-                        { name: 'ABC', content: 'di choi k ?', time: 2 },
-                        { name: 'ABC', content: 'di choi k ?', time: 2 },
-                        { name: 'ABC', content: 'di choi k ?', time: 2 },
-                        { name: 'ABC', content: 'di choi k ?', time: 2 },
-                        { name: 'ABC', content: 'di choi k ?', time: 2 },
-                        { name: 'ABC', content: 'di choi k ?', time: 2 },
-                        { name: 'ABC', content: 'di choi k ?', time: 2 },
-                        { name: 'ABC', content: 'di choi k ?', time: 2 },
-                        { name: 'ABC', content: 'di choi k ?', time: 2 },
-
-                    ]}
+                    data={messages}
                     renderItem={renderItem}
                     style={{
                         height: '100%'
                     }}
                 />
             </View>
+                : <View style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                }}>
+                    <Image source={NO_MESSAGES} />
+                    <Text style={[titleFontStyle, { fontSize: 20 }]}>No messages</Text>
+                    <Text style={{
+                        marginTop: 20,
+                        maxWidth: '70%',
+                        textAlign: 'center',
+                        marginBottom: 100
+                    }}>You currently have no incoming messages thank you</Text>
+                </View>
+            }
         </Container >
     )
 }

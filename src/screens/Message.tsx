@@ -1,74 +1,119 @@
-import { SafeAreaView, Text, View, FlatList, StyleSheet, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity, ScrollView, Button } from 'react-native'
+import { SafeAreaView, Text, View, FlatList, StyleSheet, Image, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity, ScrollView, Button, Keyboard, Dimensions, ActivityIndicator } from 'react-native'
 import React, { useCallback, useEffect, useState } from 'react'
 import Container from '../components/Container'
-import { backgroundColor, deepPurple, orange, regularPadding, titleFontSize } from '../styles/styles'
-import { collection, getDocs, getFirestore } from "firebase/firestore";
-import app from '../../firebaseConfig'
+import { backgroundColor, deepPurple, orange, regularPadding, titleFontSize, titleFontStyle } from '../styles/styles'
+import { Timestamp, addDoc, collection, doc, getDoc, getDocs, getFirestore, onSnapshot, runTransaction } from "firebase/firestore";
+import app, { db, storage } from '../../firebaseConfig'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
-import { Bubble, Composer, ComposerProps, GiftedChat, IChatMessage, InputToolbar, InputToolbarProps, Send } from 'react-native-gifted-chat'
+import { Bubble, Composer, ComposerProps, GiftedChat, IChatMessage, InputToolbar, InputToolbarProps, MessageImage, Send, TEST_ID } from 'react-native-gifted-chat'
 import Header from '../components/Header';
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 import { Entypo } from '@expo/vector-icons';
 import RootNavigation from '../config/RootNavigation';
+import AVATAR from '../assets/images/avt.png'
+import { ParseConversationId } from '../utils/utils';
+import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
+import { FontAwesome6 } from '@expo/vector-icons';
+import { getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
+import { FontAwesome } from '@expo/vector-icons';
+import { useDispatch, useSelector } from 'react-redux';
+import { hideLoading, showLoading } from '../redux/slice/authSlice';
+import { RootReducer } from '../redux/store/reducer';
+
+interface Message {
+    id: string,
+    content: string,
+    sentAt: Timestamp,
+    sentBy: string,
+    image?: string,
+}
+
+interface MessagesCollection {
+    participants: string[],
+    messages: Message[],
+}
 
 const Message = () => {
-    const db = getFirestore(app);
+    const { isLoading } = useSelector((state: RootReducer) => state.authReducer);
+    const [data, setData] = useState<MessagesCollection>();
+    const [participants, setParticipants] = useState(['user1', 'user2']);
     const [messages, setMessages] = useState<IChatMessage[]>([]);
+    const dispatch = useDispatch();
+    const [sendLoading, setSendLoading] = useState(false);
 
-    const fetchData = async () => {
-        const data = await getDocs(collection(db, "messages"));
-        data.forEach((doc) => {
-            console.log(`${doc.id} => ${JSON.stringify(doc.data())}`);
-        })
-    }
+    const convertMessageToSave = (array: IChatMessage[] | [{ user: { _id: string }, image: string }]) => {
+        return array.map(message => ({
+            content: message.text ?? '',
+            sentAt: Timestamp.fromDate(new Date()),
+            sentBy: message.user._id,
+            image: message.image ?? ''
+        }));
+    };
+
+    const convertMessageToRender = (array: MessagesCollection) => {
+        const sortedMessages = array.messages.sort((a, b) => b.sentAt.toMillis() - a.sentAt.toMillis());
+
+        return sortedMessages.map((message: Message) => ({
+            _id: message.id ?? '',
+            text: message.content ?? '',
+            createdAt: message.sentAt.toDate(),
+            user: {
+                _id: message.sentBy,
+                name: 'name sender'
+            },
+            image: message.image ?? '',
+        }));
+    };
 
     useEffect(() => {
-        setMessages([
-            {
-                _id: 1,
-                text: 'This is a quick reply. Do you love Gifted Chat? (radio) KEEP IT',
-                createdAt: new Date(),
+        data?.messages && setMessages(convertMessageToRender(data));
+        data?.participants && setParticipants(data.participants);
+    }, [data]);
 
-                user: {
-                    _id: 2,
-                    name: 'React Native',
-                },
-            },
-            {
-                _id: 2,
-                text: 'This is a quick reply. Do you love Gifted Chat? (checkbox)',
-                createdAt: new Date(),
-                // quickReplies: {
-                //     type: 'checkbox', // or 'radio',
-                //     values: [
-                //         {
-                //             title: 'Yes',
-                //             value: 'yes',
-                //         },
-                //         {
-                //             title: 'Yes, let me show you with a picture!',
-                //             value: 'yes_picture',
-                //         },
-                //         {
-                //             title: 'Nope. What?',
-                //             value: 'no',
-                //         },
-                //     ],
-                // },
-                user: {
-                    _id: 2,
-                    name: 'React Native',
-                },
-            }
-        ])
-    }, [])
+    useEffect(() => {
+        const fetchData = async () => {
+            const docRef = doc(db, 'conversations_col', ParseConversationId(participants));
+            const unsubscribe = onSnapshot(docRef, (docSnapshot) => {
+                if (docSnapshot.exists()) {
+                    setData(docSnapshot.data() as MessagesCollection);
+                } else {
+                    console.log("No such document!");
+                }
+            });
+            return unsubscribe;
+        };
+        dispatch(showLoading());
+        fetchData();
+        dispatch(hideLoading());
+    }, [participants]);
 
-    const onSend = useCallback((messages = []) => {
-        setMessages(previousMessages =>
-            GiftedChat.append(previousMessages, messages),
-        )
-    }, [])
+    const onSend = async (messages: IChatMessage[] = [], image?: string) => {
+        setSendLoading(true);
+        try {
+            const messageData = convertMessageToSave(image ? [{ user: { _id: 'user1' }, image: image }] : messages);
+            const conversationId = ParseConversationId(participants);
+            const conversationRef = doc(db, 'conversations_col', conversationId);
+            await runTransaction(db, async (transaction) => {
+                const docSnapshot = await transaction.get(conversationRef);
+                if (!docSnapshot.exists()) {
+                    throw new Error('Conversation document does not exist');
+                }
+
+                const currentMessages: any[] = docSnapshot.data()?.messages || [];
+                const updatedMessages = currentMessages.concat(messageData.map((message) => ({
+                    ...message,
+                    id: doc(collection(db, 'dummy')).id,
+                })));
+                transaction.update(conversationRef, { messages: updatedMessages });
+            });
+        } catch (error) {
+            console.error("Error sending message: ", error);
+        } finally {
+            setSendLoading(false);
+        }
+    };
 
     const renderBubble = (props) => {
         return (
@@ -97,15 +142,24 @@ const Message = () => {
                 marginHorizontal: regularPadding,
                 alignContent: 'center',
             }}
-
             renderComposer={(composerProps) => (
-                <View style={{
-                    flex: 1,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                }}>
-                    <TouchableOpacity onPress={() => console.log('Attach button pressed')}>
-                        <Feather name="paperclip" size={18} color={deepPurple} />
+                <View
+                    style={{
+                        flex: 1,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                    }}
+                >
+                    <TouchableOpacity
+                        onPress={pickImage}
+                        style={{
+                            marginRight: 10
+                        }}
+                    >
+                        <FontAwesome name="image" size={20} color={deepPurple} />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={pickDocument}>
+                        <FontAwesome6 name="file-pdf" size={18} color={deepPurple} />
                     </TouchableOpacity>
                     <Composer
                         {...composerProps}
@@ -126,6 +180,7 @@ const Message = () => {
     const renderSend = (props) => {
         return <Send
             {...props}
+            disabled={sendLoading}
             containerStyle={{
                 justifyContent: 'center',
             }}
@@ -138,10 +193,59 @@ const Message = () => {
                 borderRadius: 10,
                 backgroundColor: deepPurple
             }}>
-                <Ionicons name="send" size={18} color={'white'} />
+                {sendLoading ? <ActivityIndicator size={18} /> : <Ionicons name="send" size={18} color={'white'} />}
             </View>
         </Send>;
-    }
+    };
+
+    const renderMessageImage = (props) => {
+        return (
+            <MessageImage
+                {...props}
+                imageStyle={{
+                    resizeMode: 'contain'
+                }}
+            />
+        )
+    };
+
+    const pickDocument = async () => {
+        try {
+            const result = await DocumentPicker.getDocumentAsync({
+                type: '*/*',
+                copyToCacheDirectory: true,
+            });
+
+            if (!result.canceled) {
+                console.log('Document picked:', result.assets);
+            } else {
+                console.log('Document picking cancelled');
+            }
+        } catch (error) {
+            console.error('Error picking document:', error);
+        }
+    };
+
+    const pickImage = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            quality: 1,
+        });
+
+        if (!result.canceled) {
+            await uploadImage(result.assets[0].uri);
+        }
+    };
+
+    const uploadImage = async (uri) => {
+        setSendLoading(true);
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        const storageRef = ref(storage, `images/${new Date().getTime()}`);
+        const snapshot = await uploadBytes(storageRef, blob);
+        const downloadURL = await getDownloadURL(snapshot.ref);
+        await onSend([], downloadURL);
+    };
 
     return (
         <Container
@@ -150,19 +254,25 @@ const Message = () => {
             statusBarContentColor='dark'
         >
             <Header
-                title='Messages'
-                leftHeader
-                rightHeaderComponent={<Feather name="video" size={24} color={orange} />}
+                leftHeaderComponent={
+                    <>
+                        <Image source={AVATAR} style={styles.imageBox} />
+                        <Text style={[titleFontStyle, { fontSize: 16 }]}>Orion</Text>
+                    </>
+                }
+                backArrow
+                rightHeaderComponent={< Feather name="video" size={24} color={orange} />}
                 rightHeaderCallback={() => RootNavigation.navigate('VideoCall')}
                 style={{
                     backgroundColor: 'white'
                 }}
             />
+
             <GiftedChat
                 messages={messages}
                 onSend={messages => onSend(messages)}
                 user={{
-                    _id: 1,
+                    _id: 'user2',
                     name: 'Jonash',
                 }}
                 messagesContainerStyle={{
@@ -176,14 +286,19 @@ const Message = () => {
                 renderBubble={renderBubble}
                 renderInputToolbar={renderInputToolbar}
                 renderSend={renderSend}
-
+                renderMessageImage={renderMessageImage}
             />
-        </Container>
+        </Container >
     )
 }
 
 const styles = StyleSheet.create({
-
+    imageBox: {
+        width: 40,
+        height: 40,
+        marginRight: 10,
+        borderRadius: 20,
+    }
 });
 
 

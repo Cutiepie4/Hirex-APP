@@ -4,8 +4,10 @@ import { Ionicons } from '@expo/vector-icons';
 import RootNavigation from '../config/RootNavigation';
 
 const Header = (props: {
-    title: string,
-    leftHeader?: boolean,
+    title?: string,
+    backArrow?: boolean,
+    leftHeaderComponent?: ReactNode,
+    leftHeaderCallback?: () => void,
     rightHeaderComponent?: ReactNode,
     rightHeaderCallback?: () => void,
     style?: ViewStyle
@@ -13,7 +15,9 @@ const Header = (props: {
 
     const {
         title,
-        leftHeader,
+        backArrow,
+        leftHeaderComponent,
+        leftHeaderCallback,
         rightHeaderComponent,
         style,
         rightHeaderCallback
@@ -22,27 +26,44 @@ const Header = (props: {
     return (
         <View style={[styles.container, style]}>
             <View style={{
-                width: '30%',
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center'
             }}>
-                {leftHeader &&
+                {backArrow &&
                     <TouchableOpacity
+                        style={{
+                            marginRight: 20,
+                        }}
                         onPress={() => RootNavigation.pop()}
                     >
                         <Ionicons name="arrow-back" size={24} color="black" />
                     </TouchableOpacity>
                 }
+                <TouchableOpacity
+                    onPress={leftHeaderCallback}
+                    style={{
+                        justifyContent: 'center',
+                        flexDirection: 'row',
+                        alignItems: 'center'
+                    }}
+                >
+                    {leftHeaderComponent}
+                </TouchableOpacity>
             </View>
+            {title &&
+                <View style={{
+                    flex: 1,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}>
+                    <Text style={styles.titleFontStyle}>
+                        {title}
+                    </Text>
+                </View>
+            }
             <View style={{
-                width: '40%',
-                alignItems: 'center',
-                justifyContent: 'center',
-            }}>
-                <Text style={styles.titleFontStyle}>
-                    {title}
-                </Text>
-            </View>
-            <View style={{
-                width: '30%',
+                flex: 1,
                 alignItems: 'flex-end'
             }}>
                 {rightHeaderComponent &&
@@ -63,7 +84,8 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
         paddingVertical: 12,
-        paddingHorizontal: 12
+        paddingHorizontal: 12,
+        alignItems: 'center'
     },
     titleFontStyle: {
         fontWeight: '600',

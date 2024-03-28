@@ -1,192 +1,170 @@
-import React, { useState, useEffect } from "react";
-import { View } from "react-native";
+import { Camera, CameraType } from 'expo-camera';
+import { useRef, useState } from 'react';
+import { Button, LayoutAnimation, PanResponder, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome } from '@expo/vector-icons';
+import Container from '../components/Container';
+import RootNavigation from '../config/RootNavigation';
+import { deepPurple, purple } from '../styles/styles';
+import { Feather } from '@expo/vector-icons';
 
-import {
-    RTCPeerConnection,
-    RTCView,
-    mediaDevices,
-    RTCIceCandidate,
-    RTCSessionDescription,
-    MediaStream,
-} from "react-native-webrtc";
-import FB from "../../firebaseConfig";
-import {
-    addDoc,
-    collection,
-    doc,
-    setDoc,
-    getDoc,
-    updateDoc,
-    onSnapshot,
-    deleteField,
-} from "firebase/firestore";
+export default function VideoCall() {
+    const [cameraOn, setCameraOn] = useState(true);
+    const [type, setType] = useState(CameraType.back);
+    const [permission, requestPermission] = Camera.useCameraPermissions();
+    const [dragging, setDragging] = useState(false);
+    const [position, setPosition] = useState({ x: 0, y: 0 });
 
-import CallActionBox from "../screens/CallActionBox";
-import Container from "../components/Container";
+    const panResponder = useRef(
+        PanResponder.create({
+            onStartShouldSetPanResponder: () => true,
+            onPanResponderGrant: (_, gestureState) => {
+                setDragging(true);
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                setPosition({
+                    x: gestureState.x0 - position.x,
+                    y: gestureState.y0 - position.y,
+                });
+            },
+            onPanResponderMove: (_, gestureState) => {
+                setPosition({
+                    x: gestureState.dx,
+                    y: gestureState.dy,
+                });
+            },
+            onPanResponderRelease: () => {
+                setDragging(false);
+            },
+        })
+    ).current;
 
-const configuration = {
-    iceServers: [
-        {
-            urls: ["stun:stun1.l.google.com:19302", "stun:stun2.l.google.com:19302"],
-        },
-    ],
-    iceCandidatePoolSize: 10,
-};
+    if (!permission) {
+        return <View />;
+    }
 
-export default function CallScreen({ roomId, screens, setScreen }) {
-    // const [localStream, setLocalStream] = useState();
-    // const [remoteStream, setRemoteStream] = useState();
-    // const [cachedLocalPC, setCachedLocalPC] = useState();
+    if (!permission.granted) {
+        return (
+            <View style={styles.container}>
+                <Text style={{ textAlign: 'center' }}>We need your permission to show the camera</Text>
+                <Button onPress={requestPermission} title="Grant permission" />
+            </View>
+        );
+    }
 
-    // const [isMuted, setIsMuted] = useState(false);
-    // const [isOffCam, setIsOffCam] = useState(false);
-
-    // useEffect(() => {
-    //     startLocalStream();
-    // }, []);
-
-    // useEffect(() => {
-    //     if (localStream && roomId) {
-    //         startCall(roomId);
-    //     }
-    // }, [localStream, roomId]);
-
-    // //End call button
-    // async function endCall() {
-    //     if (cachedLocalPC) {
-    //         const senders = cachedLocalPC.getSenders();
-    //         senders.forEach((sender) => {
-    //             cachedLocalPC.removeTrack(sender);
-    //         });
-    //         cachedLocalPC.close();
-    //     }
-
-    //     const roomRef = doc(db, "room", roomId);
-    //     await updateDoc(roomRef, { answer: deleteField() });
-
-    //     setLocalStream();
-    //     setRemoteStream(); // set remoteStream to null or empty when callee leaves the call
-    //     setCachedLocalPC();
-    //     // cleanup
-    //     setScreen(screens.ROOM); //go back to room screen
-    // }
-
-    // const startLocalStream = async () => {
-    //     const isFront = true;
-    //     const devices = await mediaDevices.enumerateDevices();
-
-    //     const facing = isFront ? "front" : "environment";
-    //     const videoSourceId = devices.find(
-    //         (device) => device.kind === "videoinput" && device.facing === facing
-    //     );
-    //     const facingMode = isFront ? "user" : "environment";
-    //     const constraints = {
-    //         audio: true,
-    //         video: {
-    //             mandatory: {
-    //                 minWidth: 500, // Provide your own width, height and frame rate here
-    //                 minHeight: 300,
-    //                 minFrameRate: 30,
-    //             },
-    //             facingMode,
-    //             optional: videoSourceId ? [{ sourceId: videoSourceId }] : [],
-    //         },
-    //     };
-    //     const newStream = await mediaDevices.getUserMedia(constraints);
-    //     setLocalStream(newStream);
-    // };
-
-    // const startCall = async (id) => {
-    //     const localPC = new RTCPeerConnection(configuration);
-    //     localStream.getTracks().forEach((track) => {
-    //         localPC.addTrack(track, localStream);
-    //     });
-
-    //     const roomRef = doc(db, "room", id);
-    //     const callerCandidatesCollection = collection(roomRef, "callerCandidates");
-    //     const calleeCandidatesCollection = collection(roomRef, "calleeCandidates");
-
-    //     localPC.addEventListener("icecandidate", (e) => {
-    //         if (!e.candidate) {
-    //             console.log("Got final candidate!");
-    //             return;
-    //         }
-    //         addDoc(callerCandidatesCollection, e.candidate.toJSON());
-    //     });
-
-    //     localPC.ontrack = (e) => {
-    //         const newStream = new MediaStream();
-    //         e.streams[0].getTracks().forEach((track) => {
-    //             newStream.addTrack(track);
-    //         });
-    //         setRemoteStream(newStream);
-    //     };
-
-    //     const offer = await localPC.createOffer();
-    //     await localPC.setLocalDescription(offer);
-
-    //     await setDoc(roomRef, { offer, connected: false }, { merge: true });
-
-    //     // Listen for remote answer
-    //     onSnapshot(roomRef, (doc) => {
-    //         const data = doc.data();
-    //         if (!localPC.currentRemoteDescription && data.answer) {
-    //             const rtcSessionDescription = new RTCSessionDescription(data.answer);
-    //             localPC.setRemoteDescription(rtcSessionDescription);
-    //         } else {
-    //             setRemoteStream();
-    //         }
-    //     });
-
-    //     // when answered, add candidate to peer connection
-    //     onSnapshot(calleeCandidatesCollection, (snapshot) => {
-    //         snapshot.docChanges().forEach((change) => {
-    //             if (change.type === "added") {
-    //                 let data = change.doc.data();
-    //                 localPC.addIceCandidate(new RTCIceCandidate(data));
-    //             }
-    //         });
-    //     });
-
-    //     setCachedLocalPC(localPC);
-    // };
-
-    // const switchCamera = () => {
-    //     localStream.getVideoTracks().forEach((track) => track._switchCamera());
-    // };
-
-    // // Mutes the local's outgoing audio
-    // const toggleMute = () => {
-    //     if (!remoteStream) {
-    //         return;
-    //     }
-    //     localStream.getAudioTracks().forEach((track) => {
-    //         track.enabled = !track.enabled;
-    //         setIsMuted(!track.enabled);
-    //     });
-    // };
-
-    // const toggleCamera = () => {
-    //     localStream.getVideoTracks().forEach((track) => {
-    //         track.enabled = !track.enabled;
-    //         setIsOffCam(!isOffCam);
-    //     });
-    // };
+    function toggleCameraType() {
+        setType(current => (current === CameraType.back ? CameraType.front : CameraType.back));
+    }
 
     return (
-        <Container>
-            <RTCView
-                // streamURL={localStream && localStream.toURL()}
-                objectFit={"cover"}
-            />
-            <View>
-                <CallActionBox
-                // switchCamera={switchCamera}
-                // toggleMute={toggleMute}
-                // toggleCamera={toggleCamera}
-                // endCall={endCall}
-                />
+        <View style={styles.container}>
+
+            <View
+                style={[
+                    styles.draggableContainer,
+                    {
+                        zIndex: 9999,
+                        transform: [{ translateX: position.x }, { translateY: position.y }],
+                    },
+                ]}
+                {...panResponder.panHandlers}
+            >
+
+                <View style={styles.draggableContent}>
+                </View>
+                <TouchableOpacity style={{
+                    width: 30,
+                    height: 30,
+                    backgroundColor: deepPurple,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderRadius: 15,
+                    alignSelf: 'center',
+                    bottom: -15
+                }}>
+                    <MaterialIcons name="flip-camera-android" size={18} color='white' />
+                </TouchableOpacity>
             </View>
-        </Container>
+
+            <Camera style={styles.camera} type={type}>
+                <View style={{
+                    flex: 1,
+                }}>
+                    <Text style={{
+                        color: 'white',
+                        alignSelf: 'flex-end',
+                        position: 'absolute',
+                        bottom: 0,
+                        flex: 1,
+                        width: '100%',
+                        textAlign: 'center'
+                    }}>
+                        09:12
+                    </Text>
+                </View>
+                <View style={{
+                    height: '20%',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexDirection: 'row',
+                    paddingHorizontal: 50
+                }}>
+                    <TouchableOpacity style={[styles.button, { backgroundColor: 'white' }]} onPress={() => setCameraOn(prev => !prev)}>
+                        <Feather name="video" size={24} color="black" />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.button}>
+                        <Ionicons name="call" size={24} color="white" onPress={() => RootNavigation.pop()} />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.button}>
+                        <FontAwesome name="microphone" size={24} color="white" />
+                    </TouchableOpacity>
+                </View>
+
+            </Camera>
+        </View>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+    },
+    camera: {
+        flex: 1,
+        backgroundColor: 'white'
+    },
+    buttonContainer: {
+        flex: 1,
+        flexDirection: 'row',
+        backgroundColor: 'transparent',
+        marginBottom: 64,
+        paddingHorizontal: 50,
+        width: '100%',
+        justifyContent: 'space-between'
+    },
+    button: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 50,
+        height: 50,
+        backgroundColor: 'red',
+        borderRadius: 25,
+    },
+    text: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: 'white',
+    },
+    draggableContainer: {
+        position: 'absolute',
+        width: 100,
+        height: 150,
+        backgroundColor: 'rgba(255, 0, 0, 0.5)',
+        borderRadius: 10,
+    },
+    draggableContent: {
+        flex: 1,
+        borderRadius: 10,
+    },
+});

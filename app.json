@@ -28,8 +28,32 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    // "plugins": [
-    //   "@config-plugins/react-native-webrtc"
-    // ]
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Cho phép $(PRODUCT_NAME) truy cập camera",
+          "microphonePermission": "Cho phép $(PRODUCT_NAME) truy cập vào microphone",
+          "recordAudioAndroid": true
+        }
+      ],
+      [
+        "expo-document-picker",
+        {
+          "iCloudContainerEnvironment": "Production"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Cho phép ứng dụng truy cập thư viện",
+          "cameraPermission": "Cho phép $(PRODUCT_NAME) truy cập camera",
+          "microphonePermission": "Cho phép $(PRODUCT_NAME) truy cập vào microphone"
+        }
+      ],
+      [
+        "@config-plugins/react-native-webrtc"
+      ]
+    ]
   }
 }

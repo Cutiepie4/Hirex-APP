@@ -13,7 +13,7 @@ const orange = '#FF9228'
 
 export const titleFontStyle: TextStyle = {
     fontWeight: '600',
-    fontSize: 15,
+    fontSize: 16,
     color: deepPurple
 }
 
