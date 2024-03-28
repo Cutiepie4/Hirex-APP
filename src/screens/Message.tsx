@@ -262,7 +262,7 @@ const Message = () => {
                 }
                 backArrow
                 rightHeaderComponent={< Feather name="video" size={24} color={orange} />}
-                rightHeaderCallback={() => RootNavigation.navigate('VideoCall')}
+                rightHeaderCallback={() => RootNavigation.navigate('CallScreen')}
                 style={{
                     backgroundColor: 'white'
                 }}

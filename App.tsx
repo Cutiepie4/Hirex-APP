@@ -15,6 +15,7 @@ import NotificationDetail from './src/screens/NotificationDetail';
 import { ActivityIndicator } from 'react-native';
 import { RootReducer } from './src/redux/store/reducer';
 import LoadingOverlay from './src/components/LoadingOverlay';
+import CallScreen from './src/screens/CallScreen';
 
 const listScreens = {
   HomeScreen: HomeScreen,
@@ -22,7 +23,9 @@ const listScreens = {
   Messages: Messages,
   Notifications: Notifications,
   VideoCall: VideoCall,
-  NotificationDetail: NotificationDetail
+  NotificationDetail: NotificationDetail,
+  CallScreen: CallScreen
+
 }
 
 const App = () => {
