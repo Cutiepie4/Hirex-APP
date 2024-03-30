@@ -5,6 +5,7 @@ import { increase, login } from '../redux/slice/authSlice';
 import { RootReducer } from '../redux/store/reducer';
 import RootNavigation from '../config/RootNavigation';
 import { deepPurple, purple } from '../styles/styles';
+import Navbar from '../components/Navbar'; // Make sure the path is correct
 
 export default function HomeScreen() {
     const { count } = useSelector((state: RootReducer) => state.authReducer);
@@ -15,36 +16,39 @@ export default function HomeScreen() {
     }
 
     return (
-        <View style={{ alignItems: 'center' }}>
-            <Text style={{ marginTop: 100 }}>HomeScreen</Text>
-            <Text style={{ textAlign: 'center' }}>{count}</Text>
-            <TouchableOpacity
-                style={{
-                    backgroundColor: deepPurple,
-                    alignItems: 'center',
-                    width: 50,
-                    borderRadius: 5,
-                    height: 20
-                }}
-                onPress={handlePress}>
-                <Text style={{ color: 'white' }}>click</Text>
-            </TouchableOpacity>
 
-            <TouchableOpacity
-                style={{
-                    marginTop: 30,
-                    backgroundColor: 'green',
-                    alignItems: 'center',
-                    width: 100,
-                    borderRadius: 5,
-                    height: 40,
-                    justifyContent: 'center'
-                }}
-                onPress={() => {
-                    RootNavigation.navigate('ChatScreen');
-                }}>
-                <Text style={[styles.titleButton]}>Chat</Text>
-            </TouchableOpacity>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'space-between' }}>
+            <View style={{ alignItems: 'center', flex: 1, justifyContent: 'center' }}>
+                <Text style={{ marginTop: 100 }}>HomeScreen</Text>
+                <Text style={{ textAlign: 'center' }}>{count}</Text>
+                <TouchableOpacity
+                    style={{
+                        backgroundColor: deepPurple,
+                        alignItems: 'center',
+                        width: 50,
+                        borderRadius: 5,
+                        height: 20
+                    }}
+                    onPress={handlePress}>
+                    <Text style={{ color: 'white' }}>click</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={{
+                        marginTop: 30,
+                        backgroundColor: 'green',
+                        alignItems: 'center',
+                        width: 100,
+                        borderRadius: 5,
+                        height: 40,
+                        justifyContent: 'center'
+                    }}
+                    onPress={() => {
+                        RootNavigation.navigate('ChatScreen');
+                    }}>
+                    <Text style={[styles.titleButton]}>Chat</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     )
 }

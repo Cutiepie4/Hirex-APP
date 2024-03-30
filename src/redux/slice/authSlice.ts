@@ -1,7 +1,7 @@
-import { createSlice } from "@reduxjs/toolkit"
+import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 
 export interface AuthState {
-    username: string,
+    phoneNumber: string,
     access_token: string,
     role: string,
     isLoading: boolean,
@@ -9,7 +9,7 @@ export interface AuthState {
 }
 
 const initialState: AuthState = {
-    username: '',
+    phoneNumber: '',
     access_token: '',
     role: '',
     isLoading: false,
@@ -20,8 +20,16 @@ const authSlice = createSlice({
     name: 'authReducer',
     initialState,
     reducers: {
-        login: (state) => {
-
+        login: (state, action: PayloadAction<{ role: string, phoneNumber: string, access_token: string }>) => {
+            const { role, phoneNumber, access_token } = action.payload;
+            state.role = role;
+            state.phoneNumber = phoneNumber;
+            state.access_token = access_token;
+        },
+        logout: (state) => {
+            state.role = ''; 
+            state.phoneNumber = '';
+            state.access_token = '';
         },
         increase: (state) => {
             return { ...state, count: state.count + 1 };
@@ -31,12 +39,13 @@ const authSlice = createSlice({
         },
         hideLoading: (state) => {
             return { ...state, isLoading: false };
-        }
+        },
     },
     extraReducers(builder) {
 
     },
 })
 
-export const { login, increase } = authSlice.actions;
+export const { login, increase, logout } = authSlice.actions;
 export default authSlice.reducer
+    

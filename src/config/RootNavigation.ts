@@ -3,7 +3,8 @@
 import {
     createNavigationContainerRef,
     StackActions,
-    TabActions
+    TabActions,
+    useNavigation
 } from '@react-navigation/native';
 
 export const navigationRef = createNavigationContainerRef<any>();
@@ -58,12 +59,18 @@ function jumpToTab(name: string, params: any = {}) {
     }
 }
 
+function setOptions(options: any) {
+    const navigation = useNavigation();
+    navigation.setOptions(options);
+}
+
 const RootNavigation = {
     navigate,
     pop,
     popToTop,
     push,
-    jumpToTab
+    jumpToTab,
+    setOptions
 };
 
 export default RootNavigation;
