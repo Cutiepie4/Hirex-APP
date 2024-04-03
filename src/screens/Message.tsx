@@ -15,12 +15,12 @@ import AVATAR from '../assets/images/avt.png'
 import { ParseConversationId } from '../utils/utils';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
-import { FontAwesome6 } from '@expo/vector-icons';
-import { getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
 import { FontAwesome } from '@expo/vector-icons';
+import { getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
 import { useDispatch, useSelector } from 'react-redux';
 import { hideLoading, showLoading } from '../redux/slice/authSlice';
 import { RootReducer } from '../redux/store/reducer';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 interface Message {
     id: string,
@@ -159,7 +159,10 @@ const Message = () => {
                         <FontAwesome name="image" size={20} color={deepPurple} />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={pickDocument}>
-                        <FontAwesome6 name="file-pdf" size={18} color={deepPurple} />
+                        {/* <FontAwesome name="file-pdf" size={18} color={deepPurple} /> */}
+                        {/* <FontAwesome name="image" size={20} color={deepPurple} /> */}
+                        {/* <MaterialCommunityIcons name="file-pdf-box" size={24} color="black" /> */}
+                        <FontAwesome name="file-pdf-o" size={18} color="black" />
                     </TouchableOpacity>
                     <Composer
                         {...composerProps}
@@ -167,9 +170,9 @@ const Message = () => {
                         placeholderTextColor="lightgray"
                         textInputStyle={{
                             fontSize: 14,
-                            paddingTop: 8,
                             borderColor: 'lightgray',
-                            width: '80%'
+                            width: '80%',
+                            paddingLeft: 10
                         }}
                     />
                 </View>
@@ -262,7 +265,7 @@ const Message = () => {
                 }
                 backArrow
                 rightHeaderComponent={< Feather name="video" size={24} color={orange} />}
-                rightHeaderCallback={() => RootNavigation.navigate('CallScreen')}
+                rightHeaderCallback={() => RootNavigation.navigate('VideoCall')}
                 style={{
                     backgroundColor: 'white'
                 }}
