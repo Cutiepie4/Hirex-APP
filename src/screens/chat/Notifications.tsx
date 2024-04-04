@@ -1,12 +1,12 @@
 import { FlatList, Image, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
 import React, { useState } from 'react'
-import Container from '../components/Container'
-import Header from '../components/Header'
+import Container from '../../components/Container'
+import Header from '../../components/Header'
 import { TouchableOpacity } from 'react-native-gesture-handler'
-import { deepPurple, orange, placeholderFontStyle, placeholderTextColor, purple, regularPadding, titleFontStyle } from '../styles/styles'
-import GOOGLE from '../assets/images/google_logo.png'
-import NO_NOTIFICATIONS from '../assets/images/no_notifications.png'
-import RootNavigation from '../config/RootNavigation'
+import { deepPurple, orange, placeholderFontStyle, placeholderTextColor, purple, regularPadding, titleFontStyle } from '../../styles/styles'
+import GOOGLE from '../../assets/images/google_logo.png'
+import NO_NOTIFICATIONS from '../../assets/images/no_notifications.png'
+import RootNavigation from '../../config/RootNavigation'
 
 interface Notification {
     id: any,

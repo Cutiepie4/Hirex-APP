@@ -1,10 +1,10 @@
 import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { increase, login } from '../redux/slice/authSlice';
-import { RootReducer } from '../redux/store/reducer';
-import RootNavigation from '../config/RootNavigation';
-import { deepPurple, purple } from '../styles/styles';
+import { increase, login } from '../../redux/slice/authSlice';
+import { RootReducer } from '../../redux/store/reducer';
+import RootNavigation from '../../config/RootNavigation';
+import { deepPurple, purple } from '../../styles/styles';
 
 export default function HomeScreen() {
     const { count } = useSelector((state: RootReducer) => state.authReducer);

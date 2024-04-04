@@ -1,25 +1,25 @@
 import { SafeAreaView, Text, View, FlatList, StyleSheet, Image, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity, ScrollView, Button, Keyboard, Dimensions, ActivityIndicator } from 'react-native'
 import React, { useCallback, useEffect, useState } from 'react'
-import Container from '../components/Container'
-import { backgroundColor, deepPurple, orange, regularPadding, titleFontSize, titleFontStyle } from '../styles/styles'
+import Container from '../../components/Container'
+import { backgroundColor, deepPurple, orange, regularPadding, titleFontSize, titleFontStyle } from '../../styles/styles'
 import { Timestamp, addDoc, collection, doc, getDoc, getDocs, getFirestore, onSnapshot, runTransaction } from "firebase/firestore";
-import app, { db, storage } from '../../firebaseConfig'
+import app, { db, storage } from '../../../firebaseConfig'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { Bubble, Composer, ComposerProps, GiftedChat, IChatMessage, InputToolbar, InputToolbarProps, MessageImage, Send, TEST_ID } from 'react-native-gifted-chat'
-import Header from '../components/Header';
+import Header from '../../components/Header';
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 import { Entypo } from '@expo/vector-icons';
-import RootNavigation from '../config/RootNavigation';
-import AVATAR from '../assets/images/avt.png'
-import { ParseConversationId } from '../utils/utils';
+import RootNavigation from '../../config/RootNavigation';
+import AVATAR from '../../assets/images/avt.png'
+import { ParseConversationId } from '../../utils/utils';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { FontAwesome } from '@expo/vector-icons';
 import { getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
 import { useDispatch, useSelector } from 'react-redux';
-import { hideLoading, showLoading } from '../redux/slice/authSlice';
-import { RootReducer } from '../redux/store/reducer';
+import { hideLoading, showLoading } from '../../redux/slice/authSlice';
+import { RootReducer } from '../../redux/store/reducer';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 interface Message {

@@ -1,9 +1,9 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import Container from '../components/Container';
+import Container from '../../components/Container';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Octicons } from '@expo/vector-icons';
-import { deepPurple } from '../styles/styles';
+import { deepPurple } from '../../styles/styles';
 import { MaterialIcons, Ionicons, FontAwesome } from '@expo/vector-icons';
 
 interface CallActionProps {

@@ -9,7 +9,7 @@ import {
     RTCSessionDescription,
     MediaStream,
 } from "react-native-webrtc";
-import { db } from "../../firebaseConfig";
+import { db } from "../../../firebaseConfig";
 import {
     addDoc,
     collection,
@@ -21,9 +21,9 @@ import {
     deleteField,
 } from "firebase/firestore";
 
-import CallActionBox from "../screens/CallActionBox";
-import Container from "../components/Container";
-import RootNavigation from "../config/RootNavigation";
+import CallActionBox from "./CallActionBox";
+import Container from "../../components/Container";
+import RootNavigation from "../../config/RootNavigation";
 import { Octicons } from '@expo/vector-icons';
 
 const configuration = {

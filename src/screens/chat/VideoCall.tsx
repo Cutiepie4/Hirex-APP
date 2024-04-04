@@ -4,13 +4,13 @@ import { Animated, Button, LayoutAnimation, PanResponder, StyleSheet, Text, Touc
 import { MaterialIcons } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import { FontAwesome } from '@expo/vector-icons';
-import Container from '../components/Container';
-import RootNavigation from '../config/RootNavigation';
-import { deepPurple, purple } from '../styles/styles';
+import Container from '../../components/Container';
+import RootNavigation from '../../config/RootNavigation';
+import { deepPurple, purple } from '../../styles/styles';
 import { Feather } from '@expo/vector-icons';
 import { doc, updateDoc, deleteField, collection, addDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import Draggable from '@ngenux/react-native-draggable-view';
-import { db } from '../../firebaseConfig';
+import { db } from '../../../firebaseConfig';
 import {
     RTCPeerConnection,
     RTCView,

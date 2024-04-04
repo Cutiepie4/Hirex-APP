@@ -1,14 +1,14 @@
 import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View, useWindowDimensions } from 'react-native'
 import React, { useState } from 'react'
-import Container from '../components/Container'
-import Header from '../components/Header'
-import SearchInput from '../components/SearchInput'
-import { backgroundColor, orange, placeholderTextColor, regularPadding, titleFontStyle } from '../styles/styles'
-import AVATAR from '../assets/images/avt.png'
-import NO_MESSAGES from '../assets/images/no_messages.png'
+import Container from '../../components/Container'
+import Header from '../../components/Header'
+import SearchInput from '../../components/SearchInput'
+import { backgroundColor, orange, placeholderTextColor, regularPadding, titleFontStyle } from '../../styles/styles'
+import AVATAR from '../../assets/images/avt.png'
+import NO_MESSAGES from '../../assets/images/no_messages.png'
 import { ScrollView } from 'react-native-gesture-handler'
 import { Feather } from '@expo/vector-icons';
-import RootNavigation from '../config/RootNavigation'
+import RootNavigation from '../../config/RootNavigation'
 
 const Messages = () => {
 
@@ -113,7 +113,7 @@ const Messages = () => {
 
     return (
         <Container backgroundColor={'#f9f9f9'}>
-            <Header title='Messages' backArrow/>
+            <Header title='Messages' backArrow />
             {messages.length > 0 ? <View style={[styles.container]}>
                 <SearchInput
                     placeholder="Search name..."

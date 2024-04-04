@@ -1,16 +1,16 @@
 import { StyleSheet, Text, View, Image } from 'react-native'
 import React from 'react'
-import Container from '../components/Container'
-import Header from '../components/Header'
-import GOOGLE from '../assets/images/google_logo.png'
-import { placeholderTextColor, regularPadding, titleFontStyle } from '../styles/styles'
-import Group from '../components/Group'
+import Container from '../../components/Container'
+import Header from '../../components/Header'
+import GOOGLE from '../../assets/images/google_logo.png'
+import { placeholderTextColor, regularPadding, titleFontStyle } from '../../styles/styles'
+import Group from '../../components/Group'
 
 
 const NotificationDetail = () => {
     return (
         <Container>
-            <Header title='Notification' backArrow/>
+            <Header title='Notification' backArrow />
             <Group>
                 <Image source={GOOGLE} />
                 <Text style={[titleFontStyle, { marginTop: regularPadding }]}>UI/UX Designer</Text>
