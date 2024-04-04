@@ -7,10 +7,11 @@ import { ExtendedAgendaEntry } from '../screens/ScheduleScreen';
 export default function ModalItems(props: any) {
     const [submit, setSubmit] = useState<boolean>(false);
     useEffect(() => {
-        console.log(props.reservationPick)
+        // console.log(props.reservationPick)
         // setNewItem({ ...props.reservationPick })
     }, [props.reservationPick])
     const handleAddOrUpdateItem = () => {
+        props.setRefreshing(true);
         props.setItems(prevItems => {
             const newItems = { ...prevItems };
             const dayItems = newItems[props.dayPick] ? [...newItems[props.dayPick]] : [];
@@ -23,7 +24,7 @@ export default function ModalItems(props: any) {
                 } else {
                 }
             }
-            // console.log(dayItems)
+            console.log(dayItems)
             newItems[props.dayPick] = dayItems;
             return newItems;
         });

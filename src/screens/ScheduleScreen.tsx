@@ -5,6 +5,7 @@ import { GestureHandlerRootView, RectButton, Swipeable } from 'react-native-gest
 import { Ionicons, EvilIcons, AntDesign } from '@expo/vector-icons';
 import ModalItems from '../components/ModalItems';
 import moment from 'moment';
+import ItemsDetail from '../components/ItemsDetail';
 
 export type ExtendedAgendaEntry = AgendaEntry & {
   notes: string,
@@ -26,9 +27,28 @@ const AgendaScreen: React.FC = () => {
   const [isNew, setIsNew] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [reservationPick, setReservationPick] = useState<ExtendedAgendaEntry>(undefined);
-  useEffect(() => {
-    // console.log(items)
-  }, [items])
+  const [submit, setSubmit] = useState<boolean>(false);
+
+  const handleAddOrUpdateItem = () => {
+    // setRefreshing(true);
+    setItems(prevItems => {
+      const newItems = { ...prevItems };
+      const dayItems = newItems[dayPick] ? [...newItems[dayPick]] : [];
+      if (isNew) {
+        dayItems.push(reservationPick);
+      } else {
+        const itemIndex = dayItems.findIndex(item => item.name === reservationPick.name);
+        if (itemIndex > -1) {
+          dayItems[itemIndex] = reservationPick;
+        } else {
+        }
+      }
+      // console.log(dayItems)
+      newItems[dayPick] = dayItems;
+      return newItems;
+    });
+    setShowItemsDetail(false);
+  };
 
   const handleDeleteItem = useCallback((reservation: ExtendedAgendaEntry) => {
     setItems(prevItems => {
@@ -80,7 +100,7 @@ const AgendaScreen: React.FC = () => {
     setDayPick(day)
     setShowItemsDetail(isShow);
     setIsNew(isNew)
-  }, []);
+  }, [items, setItems]);
   const renderItem = useCallback((reservation: ExtendedAgendaEntry, isFirst: boolean) => {
     // const inputRange = [-1, 0, 60 * index, 60 * (index + 0.5)];
     // const opacityInputRange = [-1, 0, 60 * index, 60 * (index + 1)];
@@ -183,7 +203,7 @@ const AgendaScreen: React.FC = () => {
         </View>
       </Swipeable>
     );
-  }, [reservationPick]);
+  }, [items, setItems]);
 
   const renderEmptyDate = () => {
     return (
@@ -193,9 +213,15 @@ const AgendaScreen: React.FC = () => {
     );
   };
 
+  const renderDay = (day) => {
+    if (day) {
+      return <Text style={styles.customDay}>{day.getDay()}</Text>;
+    }
+    return <View style={styles.dayItem} />;
+  };
+
   const rowHasChanged = (r1: AgendaEntry, r2: AgendaEntry) => {
-    console.log(r1.name + ':' + r2.name)
-    return r1.name !== r2.name;
+    return r1.name === r2.name;
   };
 
 
@@ -221,6 +247,7 @@ const AgendaScreen: React.FC = () => {
             setDayPick(day.dateString);
           }}
           refreshing={refreshing}
+          // renderDay={renderDay}
         // markedDates={{
         //   '2024-02-06': {marked: true, dotColor: 'red' },
         // }}
@@ -241,7 +268,49 @@ const AgendaScreen: React.FC = () => {
         >
           <Ionicons name="add-circle-outline" size={60} color="#50C7C7" />
         </TouchableOpacity>
-        <ModalItems
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={showItemsDetail}
+        >
+          <View style={styles.modalContainer} >
+            <View style={styles.modalContent}>
+              <ItemsDetail
+                reservationPick={reservationPick}
+                setReservationPick={setReservationPick}
+                isNew={isNew}
+                dayPick={dayPick}
+                items={items}
+                setItems={setItems}
+                setRefreshing={setRefreshing}
+                setIsShow={setShowItemsDetail}
+                setSubmit={setSubmit}
+              />
+              <TouchableOpacity onPress={() => setShowItemsDetail(false)} style={styles.closeButton} >
+                <EvilIcons name="close-o" size={30} color="black" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleAddOrUpdateItem()} style={styles.saveButton} disabled={submit}>
+                <Text
+                  style={{
+                    color: submit ? '#999999' : '#2c7cf5',
+                    fontSize: 19,
+                    fontWeight: '600'
+                  }}
+                >Save</Text>
+              </TouchableOpacity>
+              <Text style={{
+                position: 'absolute',
+                top: 10,
+                left: '30%',
+                fontSize: 16,
+                fontFamily: 'mon-m',
+              }}>
+                {dayPick}
+              </Text>
+            </View>
+          </View>
+        </Modal>
+        {/* <ModalItems
           reservationPick={reservationPick}
           setReservationPick={setReservationPick}
           isNew={isNew}
@@ -251,7 +320,7 @@ const AgendaScreen: React.FC = () => {
           items={items}
           setItems={setItems}
           setRefreshing={setRefreshing}
-        />
+        /> */}
       </SafeAreaView>
     </GestureHandlerRootView>
   );
@@ -342,16 +411,26 @@ const styles = StyleSheet.create({
     // backgroundColor: 'plum',
     // height: 30,
   },
-  // deleteButton: {
-  //   flex: 1,
-  //   backgroundColor: 'red',
-  //   alignItems: 'center',
-  //   justifyContent: 'center',
-  //   marginTop: 17,
-  //   width: 60,
-  //   height: 100,
-  //   borderRadius: 25,
-  // },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    borderRadius: 10,
+    elevation: 5,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+  },
+  saveButton: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+  },
 });
 
 export default React.memo(AgendaScreen);
