@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Modal, SafeAreaView } from 'react-native';
 import { Ionicons } from "@expo/vector-icons";
-import RootNavigation from '../config/RootNavigation';
+import RootNavigation from '../route/RootNavigation';
 
 const AboutMeScreen = ({ route }) => {
     const [aboutMeText, setAboutMeText] = useState('');

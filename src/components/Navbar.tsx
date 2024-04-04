@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, TouchableOpacity, Text, StyleSheet, Dimensions } from 'react-native';
 import { FontAwesome, AntDesign, Ionicons, SimpleLineIcons } from '@expo/vector-icons';
-import RootNavigation from "../config/RootNavigation";
+import RootNavigation from "../route/RootNavigation";
 import { useSelector } from 'react-redux';
 import { RootReducer } from '../redux/store/reducer';
 

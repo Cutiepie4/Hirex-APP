@@ -4,12 +4,12 @@ import { AntDesign, Entypo, MaterialCommunityIcons, FontAwesome5, MaterialIcons 
 import { ScrollView } from 'react-native-gesture-handler';
 import * as ImagePicker from 'expo-image-picker';
 import { useActionSheet } from '@expo/react-native-action-sheet';
-import RootNavigation from '../config/RootNavigation';
+import RootNavigation from '../route/RootNavigation';
 import Container from '../components/Container';
 import { deepPurple } from '../styles/styles'
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
-import * as Permissions from 'expo-permissions'; 
+import * as Permissions from 'expo-permissions';
 import * as MediaLibrary from 'expo-media-library';
 import Navbar from '../components/Navbar';
 import BACKGROUND from '../assets/images/background.jpg'
@@ -76,21 +76,21 @@ const Profile = () => {
         if (isPickingDocument) {
             return;
         }
-        setIsPickingDocument(true); 
+        setIsPickingDocument(true);
 
         try {
             let result = await DocumentPicker.getDocumentAsync({
                 type: 'application/pdf',
             });
-            console.log(result); 
+            console.log(result);
             if (!result.canceled && result.assets && result.assets.length > 0) {
-                setSelectedFile(result.assets[0]); 
+                setSelectedFile(result.assets[0]);
             }
 
         } catch (error) {
             console.error("Document picking error:", error);
         } finally {
-            setIsPickingDocument(false); 
+            setIsPickingDocument(false);
         }
     };
     const formatFileSize = (sizeInBytes) => {
@@ -230,7 +230,7 @@ const Profile = () => {
         <Container statusBarColor={deepPurple} statusBarContentColor='light'>
             <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
                 <View style={styles.container}>
-                <Image source={BACKGROUND} style={{height: '20%', width: '100%', position: 'absolute', top: 0}}></Image>
+                    <Image source={BACKGROUND} style={{ height: '20%', width: '100%', position: 'absolute', top: 0 }}></Image>
                     <View style={styles.header}>
                         <View style={{ paddingTop: 10 }}>
                             {image ? (

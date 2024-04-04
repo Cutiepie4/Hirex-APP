@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import COLORS from '../constants/colors';
 import { Ionicons } from "@expo/vector-icons";
 import Button from '../components/Button';
-import RootNavigation from '../config/RootNavigation';
+import RootNavigation from '../route/RootNavigation';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from 'axios';
 

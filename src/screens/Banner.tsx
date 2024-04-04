@@ -5,14 +5,23 @@ import COLORS from '../constants/colors'
 import { deepPurple } from '../styles/styles'
 import BANNER from '../assets/images/banner.png'
 import { useNavigation } from '@react-navigation/native';
-import RootNavigation from '../config/RootNavigation'
+import RootNavigation from '../route/RootNavigation'
+import { useSelector } from 'react-redux'
+import { RootReducer } from '../redux/store/reducer'
 
 
 const Banner = () => {
 
+    const { access_token } = useSelector((state: RootReducer) => state.authReducer);
+
     useEffect(() => {
         const timer = setTimeout(() => {
-            RootNavigation.navigate('Welcome');
+            if (access_token) {
+                RootNavigation.navigate('HomeTab');
+            }
+            else {
+                RootNavigation.navigate('Welcome');
+            }
         }, 2000);
 
         return () => clearTimeout(timer);
@@ -41,7 +50,7 @@ const Banner = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                 }}>
-                    <Text style={{ color: 'white', fontSize: 21.34 }}>Hirex</Text>
+                    <Text style={{ color: 'white', fontSize: 20 }}>Hirex</Text>
                 </View>
             </View>
         </Container>

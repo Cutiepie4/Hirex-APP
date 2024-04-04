@@ -4,7 +4,7 @@ import { AntDesign, Entypo, MaterialCommunityIcons, FontAwesome5 } from '@expo/v
 import { ScrollView } from 'react-native-gesture-handler';
 import * as ImagePicker from 'expo-image-picker';
 import { useActionSheet } from '@expo/react-native-action-sheet';
-import RootNavigation from '../config/RootNavigation';
+import RootNavigation from '../route/RootNavigation';
 import Container from '../components/Container';
 import { deepPurple } from '../styles/styles'
 
@@ -257,7 +257,7 @@ const Profile = ({ route }) => {
                                                             <AntDesign name="edit" size={24} color="#FF9228" />
                                                         </TouchableOpacity>
                                                         <TouchableOpacity
-                                                            style={styles.addButton} 
+                                                            style={styles.addButton}
                                                             onPress={() => deleteEducation(index)}
                                                         >
                                                             <AntDesign name="delete" size={24} color="#FF9228" />

@@ -17,16 +17,16 @@ const Button = (props: ButtonProps) => {
     const textColor = props.filled ? COLORS.white : COLORS.primary;
 
     return (
-        <TouchableOpacity
-            style={{
-                ...styles.button,
-                ...{ backgroundColor: bgColor },
-                ...(props.style as object),
-            }}
-            onPress={props.onPress}
-        >
-            <Text style={{ fontSize: 16, ...({ color: textColor } as object) }}>{props.title}</Text>
-        </TouchableOpacity>
+      <TouchableOpacity
+        style={{
+            ...styles.button,
+            ...{ backgroundColor: bgColor },
+            ...(props.style as object),
+        }}
+        onPress={props.onPress}
+      >
+          <Text style={{ fontSize: 16, ...({ color: textColor } as object) }}>{props.title}</Text>
+      </TouchableOpacity>
     );
 };
 

@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import COLORS from '../constants/colors';
 import { Ionicons } from "@expo/vector-icons";
 import Button from '../components/Button';
-import RootNavigation from '../config/RootNavigation'
+import RootNavigation from '../route/RootNavigation'
 import Input from '../components/Input';
 
 const UpdatePassword = () => {
@@ -126,7 +126,7 @@ const UpdatePassword = () => {
 
 
                 </View>
-                
+
                 <Button
                     title="Xác nhận"
                     filled
