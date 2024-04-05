@@ -6,13 +6,11 @@ import * as ImagePicker from 'expo-image-picker';
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import RootNavigation from '../config/RootNavigation';
 import Container from '../components/Container';
-import { deepPurple } from '../styles/styles'
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
-import * as Permissions from 'expo-permissions'; 
 import * as MediaLibrary from 'expo-media-library';
 import Navbar from '../components/Navbar';
-import BACKGROUND from '../assets/images/background.jpg'
+import BACKGROUND from '../assets/images/background.jpg';
 
 const Profile = () => {
 
@@ -23,16 +21,12 @@ const Profile = () => {
     const [selectedSkills, setSelectedSkills] = useState([]);
     const [showAllSkills, setShowAllSkills] = useState(false);
     const [certificationLists, setCertificationLists] = useState([]);
-
-
     const [isPickingDocument, setIsPickingDocument] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
-
-
     const { showActionSheetWithOptions } = useActionSheet();
 
     const handleSeeMore = () => {
-        setShowAllSkills(!showAllSkills); // Đảo trạng thái hiển thị
+        setShowAllSkills(!showAllSkills);
     };
 
     const pickImage = async () => {
@@ -76,21 +70,21 @@ const Profile = () => {
         if (isPickingDocument) {
             return;
         }
-        setIsPickingDocument(true); 
+        setIsPickingDocument(true);
 
         try {
             let result = await DocumentPicker.getDocumentAsync({
                 type: 'application/pdf',
             });
-            console.log(result); 
+            console.log(result);
             if (!result.canceled && result.assets && result.assets.length > 0) {
-                setSelectedFile(result.assets[0]); 
+                setSelectedFile(result.assets[0]);
             }
 
         } catch (error) {
             console.error("Document picking error:", error);
         } finally {
-            setIsPickingDocument(false); 
+            setIsPickingDocument(false);
         }
     };
     const formatFileSize = (sizeInBytes) => {
@@ -160,7 +154,6 @@ const Profile = () => {
         });
     };
 
-
     const addNewEducation = (newEducation) => {
         // Thêm newEducation vào cuối mảng của các trải nghiệm làm việc
         setEducationLists([...educationLists, newEducation]);
@@ -202,8 +195,6 @@ const Profile = () => {
         });
     };
 
-
-
     const experienceScreen = () => {
         RootNavigation.navigate('Experience', { addNewExperience: addNewExperience });
     };
@@ -226,11 +217,249 @@ const Profile = () => {
         RootNavigation.navigate('Certification', { addNewCertification: addNewCertification });
     };
 
+    const renderAboutMeSection = () => {
+        return (
+            <View style={styles.section}>
+                <View style={styles.iconWithText}>
+                    <AntDesign name="user" size={24} color="#FF9228" />
+                    <Text style={styles.sectionText}>About me</Text>
+                    {aboutMe ? (
+                        <View style={styles.editButtonContainer}>
+                            <TouchableOpacity style={styles.addButton} onPress={aboutScreen}>
+                                <AntDesign name="edit" size={24} color="orange" />
+                            </TouchableOpacity>
+                        </View>
+                    ) : (
+                        <TouchableOpacity style={[styles.addButton, { marginLeft: 'auto' }]} onPress={aboutScreen}>
+                            <AntDesign name="plus" size={24} color="orange" />
+                        </TouchableOpacity>
+                    )}
+                </View>
+                {aboutMe ? (
+                    <>
+                        <View style={styles.separator}></View>
+                        <Text style={styles.aboutMeText}>{aboutMe}</Text>
+                    </>
+                ) : null}
+            </View>
+        );
+    };
+
+    const renderExperienceSection = () => {
+        return (
+            <View style={styles.section}>
+                <View style={styles.iconWithText}>
+                    <Entypo name="briefcase" size={24} color="orange" />
+                    <Text style={styles.sectionText}>Work experience</Text>
+                    <View style={styles.editButtonContainer}>
+                        <TouchableOpacity style={styles.addButton} onPress={experienceScreen}>
+                            <AntDesign name="plus" size={24} color="#FF9228" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                <View>
+                    {experienceLists.length > 0 && (
+                        <>
+                            <View style={styles.separator}></View>
+                            {experienceLists.map((experience, index) => (
+                                <View key={index} style={styles.experienceItem}>
+                                    <View style={styles.experienceInfo}>
+                                        <Text style={styles.experienceText}>{experience.jobTitle}</Text>
+                                        <Text>{experience.company}</Text>
+                                        <Text>{experience.startDate} - {experience.endDate}</Text>
+                                    </View>
+                                    <View style={styles.buttonsContainer1}>
+                                        <TouchableOpacity
+                                            style={styles.addButton}
+                                            onPress={() => editExperience(experience, index)}
+                                        >
+                                            <AntDesign name="edit" size={24} color="#FF9228" />
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={styles.addButton}
+                                            onPress={() => deleteExperience(index)}
+                                        >
+                                            <AntDesign name="delete" size={24} color="#FF9228" />
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            ))}
+                        </>
+                    )}
+                </View>
+            </View>
+        );
+    };
+
+    const renderEducationSection = () => {
+        return (
+            <View style={styles.section}>
+                <View style={styles.iconWithText}>
+                    <MaterialCommunityIcons name="book-education" size={24} color="orange" />
+                    <Text style={styles.sectionText}>Education</Text>
+                    <View style={styles.editButtonContainer}>
+                        <TouchableOpacity style={styles.addButton} onPress={educationScreen}>
+                            <AntDesign name="plus" size={24} color="orange" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                <View>
+                    {educationLists.length > 0 && (
+                        <>
+                            <View style={styles.separator}></View>
+                            {educationLists.map((education, index) => (
+                                <View key={index} style={styles.experienceItem}>
+                                    <View>
+                                        <Text style={styles.experienceText}>{education.major}</Text>
+                                        <Text>{education.institution}</Text>
+                                        <Text>{education.startDate} - {education.endDate}</Text>
+                                    </View>
+                                    <View style={styles.buttonsContainer1}>
+                                        <TouchableOpacity
+                                            style={styles.addButton}
+                                            onPress={() => editEducation(education, index)}
+                                        >
+                                            <AntDesign name="edit" size={24} color="#FF9228" />
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={styles.addButton}
+                                            onPress={() => deleteEducation(index)}
+                                        >
+                                            <AntDesign name="delete" size={24} color="#FF9228" />
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            ))}
+                        </>
+                    )}
+                </View>
+            </View>
+        );
+    };
+
+    const renderSkillSection = () => {
+        return (
+            <View style={styles.section}>
+                <View style={styles.iconWithText}>
+                    <AntDesign name="staro" size={24} color="#FF9228" />
+                    <Text style={styles.sectionText}>Skill</Text>
+                    <View style={styles.editButtonContainer}>
+                        <TouchableOpacity style={styles.addButton} onPress={skillScreen}>
+                            <AntDesign name="plus" size={24} color="orange" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                <View>
+                    {selectedSkills.length > 0 && (
+                        <>
+                            <View style={styles.separator}></View>
+                            <View style={styles.skillsContainer}>
+                                {selectedSkills.slice(0, showAllSkills ? selectedSkills.length : 5).map((skill, index) => (
+                                    <View key={index} style={styles.skillItem}>
+                                        <Text style={styles.skillText}>{skill}</Text>
+                                    </View>
+                                ))}
+                                {selectedSkills.length > 5 && (
+                                    <TouchableOpacity onPress={handleSeeMore}>
+                                        <Text style={styles.seeMoreText}>{showAllSkills ? 'See less' : 'See more'}</Text>
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+                        </>
+                    )}
+                </View>
+            </View>
+        );
+    };
+
+    const renderCertificationSection = () => {
+        return (
+            <View style={styles.section}>
+                <View style={styles.iconWithText}>
+                    <MaterialCommunityIcons name="certificate-outline" size={24} color="#FF9228" />
+                    <Text style={styles.sectionText}>Certification</Text>
+                    <View style={styles.editButtonContainer}>
+                        <TouchableOpacity style={styles.addButton} onPress={certificationScreen}>
+                            <AntDesign name="plus" size={24} color="orange" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                <View>
+                    {certificationLists.length > 0 && (
+                        <>
+                            <View style={styles.separator}></View>
+                            {certificationLists.map((certification, index) => (
+                                <View key={index} style={styles.experienceItem}>
+                                    <View>
+                                        <Text style={styles.experienceText}>{certification.name}</Text>
+                                        <Text>{certification.description}</Text>
+                                        <Text>{certification.startDate}</Text>
+                                    </View>
+
+                                    <View style={styles.buttonsContainer1}>
+                                        <TouchableOpacity
+                                            style={styles.addButton}
+                                            onPress={() => editCertification(certification, index)}
+                                        >
+                                            <AntDesign name="edit" size={24} color="#FF9228" />
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={styles.addButton}
+                                            onPress={() => deleteCertification(index)}
+                                        >
+                                            <AntDesign name="delete" size={24} color="#FF9228" />
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            ))}
+                        </>
+                    )}
+                </View>
+            </View>
+        );
+    };
+
+    const renderResumeSection = () => {
+        return (
+            <View style={styles.section}>
+                <View style={styles.iconWithText}>
+                    <MaterialCommunityIcons name="file-account" size={24} color="orange" />
+                    <Text style={styles.sectionText}>Resume</Text>
+                    <View style={styles.editButtonContainer}>
+                        <TouchableOpacity style={styles.addButton} onPress={pickDocument}>
+                            <AntDesign name="plus" size={24} color="orange" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                {selectedFile && (
+                    <>
+                        <View style={styles.separator}></View>
+                        <View style={styles.experienceItem}>
+                            <MaterialIcons name="picture-as-pdf" size={40} color="red" />
+                            <View >
+                                <Text style={styles.sectionText}>{selectedFile.name}</Text>
+                                <Text style={styles.sectionText}>{formatFileSize(selectedFile.size)}</Text>
+                            </View>
+                            <View style={styles.buttonsContainer1}>
+                                <TouchableOpacity style={styles.addButton} onPress={saveFile}>
+                                    <MaterialIcons name="save-alt" size={24} color="#FF9228" />
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.addButton} onPress={() => setSelectedFile(null)}>
+                                    <AntDesign name="delete" size={24} color="#FF9228" />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </>
+                )}
+            </View>
+        );
+    };
+
     return (
-        <Container statusBarColor={deepPurple} statusBarContentColor='light'>
+        <Container statusBarContentColor='light'>
             <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
                 <View style={styles.container}>
-                <Image source={BACKGROUND} style={{height: '20%', width: '100%', position: 'absolute', top: 0}}></Image>
+                    <Image source={BACKGROUND} style={{ height: '20%', width: '100%', position: 'absolute', top: 0 }}></Image>
                     <View style={styles.header}>
                         <View style={{ paddingTop: 10 }}>
                             {image ? (
@@ -250,225 +479,15 @@ const Profile = () => {
                         </View>
                     </View>
                     <ScrollView>
-                        <View style={styles.sectionContainer}>
-                            <View style={styles.section}>
-                                <View style={styles.iconWithText}>
-                                    <AntDesign name="user" size={24} color="#FF9228" />
-                                    <Text style={styles.sectionText}>About me</Text>
-                                    {aboutMe ? (
-                                        <View style={styles.editButtonContainer}>
-                                            <TouchableOpacity style={styles.addButton} onPress={aboutScreen}>
-                                                <AntDesign name="edit" size={24} color="orange" />
-                                            </TouchableOpacity>
-                                        </View>
-                                    ) : (
-                                        <TouchableOpacity style={[styles.addButton, { marginLeft: 'auto' }]} onPress={aboutScreen}>
-                                            <AntDesign name="plus" size={24} color="orange" />
-                                        </TouchableOpacity>
-                                    )}
-                                </View>
-                                {aboutMe ? (
-                                    <>
-                                        <View style={styles.separator}></View>
-                                        <Text style={styles.aboutMeText}>{aboutMe}</Text>
-                                    </>
-                                ) : null}
-                            </View>
-
-                            <View style={styles.section}>
-                                <View style={styles.iconWithText}>
-                                    <Entypo name="briefcase" size={24} color="orange" />
-                                    <Text style={styles.sectionText}>Work experience</Text>
-                                    <View style={styles.editButtonContainer}>
-                                        <TouchableOpacity style={styles.addButton} onPress={experienceScreen}>
-                                            <AntDesign name="plus" size={24} color="#FF9228" />
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-
-                                <View>
-                                    {experienceLists.length > 0 && (
-                                        <>
-                                            <View style={styles.separator}></View>
-                                            {experienceLists.map((experience, index) => (
-                                                <View key={index} style={styles.experienceItem}>
-                                                    <View style={styles.experienceInfo}>
-                                                        {/* Không cần hiển thị "Experience {index + 1}" nếu bạn không muốn */}
-                                                        <Text style={styles.experienceText}>{experience.jobTitle}</Text>
-                                                        <Text>{experience.company}</Text>
-                                                        <Text>{experience.startDate} - {experience.endDate}</Text>
-                                                    </View>
-
-                                                    <View style={styles.buttonsContainer1}>
-                                                        <TouchableOpacity
-                                                            style={styles.addButton}
-                                                            onPress={() => editExperience(experience, index)}
-                                                        >
-                                                            <AntDesign name="edit" size={24} color="#FF9228" />
-                                                        </TouchableOpacity>
-                                                        <TouchableOpacity
-                                                            style={styles.addButton} // Bạn nên thay đổi này thành styles.deleteButton nếu đã tạo
-                                                            onPress={() => deleteExperience(index)}
-                                                        >
-                                                            <AntDesign name="delete" size={24} color="#FF9228" />
-                                                        </TouchableOpacity>
-                                                    </View>
-                                                </View>
-                                            ))}
-                                        </>
-                                    )}
-                                </View>
-                            </View>
-
-                            <View style={styles.section}>
-                                <View style={styles.iconWithText}>
-                                    <MaterialCommunityIcons name="book-education" size={24} color="orange" />
-                                    <Text style={styles.sectionText}>Education</Text>
-                                    <View style={styles.editButtonContainer}>
-                                        <TouchableOpacity style={styles.addButton} onPress={educationScreen}>
-                                            <AntDesign name="plus" size={24} color="orange" />
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-                                <View>
-                                    {educationLists.length > 0 && (
-                                        <>
-                                            <View style={styles.separator}></View>
-                                            {educationLists.map((education, index) => (
-                                                <View key={index} style={styles.experienceItem}>
-                                                    <View>
-                                                        <Text style={styles.experienceText}>{education.major}</Text>
-                                                        <Text>{education.institution}</Text>
-                                                        <Text>{education.startDate} - {education.endDate}</Text>
-                                                    </View>
-
-                                                    <View style={styles.buttonsContainer1}>
-                                                        <TouchableOpacity
-                                                            style={styles.addButton}
-                                                            onPress={() => editEducation(education, index)}
-                                                        >
-                                                            <AntDesign name="edit" size={24} color="#FF9228" />
-                                                        </TouchableOpacity>
-                                                        <TouchableOpacity
-                                                            style={styles.addButton}
-                                                            onPress={() => deleteEducation(index)}
-                                                        >
-                                                            <AntDesign name="delete" size={24} color="#FF9228" />
-                                                        </TouchableOpacity>
-                                                    </View>
-                                                </View>
-                                            ))}
-                                        </>
-                                    )}
-                                </View>
-                            </View>
-
-                            <View style={styles.section}>
-                                <View style={styles.iconWithText}>
-                                    <AntDesign name="staro" size={24} color="#FF9228" />
-                                    <Text style={styles.sectionText}>Skill</Text>
-                                    <View style={styles.editButtonContainer}>
-                                        <TouchableOpacity style={styles.addButton} onPress={skillScreen}>
-                                            <AntDesign name="plus" size={24} color="orange" />
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-                                <View>
-                                    {selectedSkills.length > 0 && (
-                                        <>
-                                            <View style={styles.separator}></View>
-                                            <View style={styles.skillsContainer}>
-                                                {selectedSkills.slice(0, showAllSkills ? selectedSkills.length : 5).map((skill, index) => (
-                                                    <View key={index} style={styles.skillItem}>
-                                                        <Text style={styles.skillText}>{skill}</Text>
-                                                    </View>
-                                                ))}
-                                                {selectedSkills.length > 5 && (
-                                                    <TouchableOpacity onPress={handleSeeMore}>
-                                                        <Text style={styles.seeMoreText}>{showAllSkills ? 'See less' : 'See more'}</Text>
-                                                    </TouchableOpacity>
-                                                )}
-                                            </View>
-                                        </>
-                                    )}
-                                </View>
-                            </View>
-
-                            <View style={styles.section}>
-                                <View style={styles.iconWithText}>
-                                    <MaterialCommunityIcons name="certificate-outline" size={24} color="#FF9228" />
-                                    <Text style={styles.sectionText}>Certification</Text>
-                                    <View style={styles.editButtonContainer}>
-                                        <TouchableOpacity style={styles.addButton} onPress={certificationScreen}>
-                                            <AntDesign name="plus" size={24} color="orange" />
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-                                <View>
-                                    {certificationLists.length > 0 && (
-                                        <>
-                                            <View style={styles.separator}></View>
-                                            {certificationLists.map((certification, index) => (
-                                                <View key={index} style={styles.experienceItem}>
-                                                    <View>
-                                                        <Text style={styles.experienceText}>{certification.name}</Text>
-                                                        <Text>{certification.description}</Text>
-                                                        <Text>{certification.startDate}</Text>
-                                                    </View>
-
-                                                    <View style={styles.buttonsContainer1}>
-                                                        <TouchableOpacity
-                                                            style={styles.addButton}
-                                                            onPress={() => editCertification(certification, index)}
-                                                        >
-                                                            <AntDesign name="edit" size={24} color="#FF9228" />
-                                                        </TouchableOpacity>
-                                                        <TouchableOpacity
-                                                            style={styles.addButton}
-                                                            onPress={() => deleteCertification(index)}
-                                                        >
-                                                            <AntDesign name="delete" size={24} color="#FF9228" />
-                                                        </TouchableOpacity>
-                                                    </View>
-                                                </View>
-                                            ))}
-                                        </>
-                                    )}
-                                </View>
-                            </View>
-
-                            <View style={styles.section}>
-                                <View style={styles.iconWithText}>
-                                    <MaterialCommunityIcons name="file-account" size={24} color="orange" />
-                                    <Text style={styles.sectionText}>Resume</Text>
-                                    <View style={styles.editButtonContainer}>
-                                        <TouchableOpacity style={styles.addButton} onPress={pickDocument}>
-                                            <AntDesign name="plus" size={24} color="orange" />
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-                                {selectedFile && (
-                                    <>
-                                        <View style={styles.separator}></View>
-                                        <View style={styles.experienceItem}>
-                                            <MaterialIcons name="picture-as-pdf" size={40} color="red" />
-                                            <View >
-                                                <Text style={styles.sectionText}>{selectedFile.name}</Text>
-                                                <Text style={styles.sectionText}>{formatFileSize(selectedFile.size)}</Text>
-                                            </View>
-                                            <View style={styles.buttonsContainer1}>
-                                                <TouchableOpacity style={styles.addButton} onPress={saveFile}>
-                                                    <MaterialIcons name="save-alt" size={24} color="#FF9228" />
-                                                </TouchableOpacity>
-                                                <TouchableOpacity style={styles.addButton} onPress={() => setSelectedFile(null)}>
-                                                    <AntDesign name="delete" size={24} color="#FF9228" />
-                                                </TouchableOpacity>
-                                            </View>
-                                        </View>
-                                    </>
-                                )}
-                            </View>
-
+                        <View style={{
+                            margin: 20,
+                        }}>
+                            {renderAboutMeSection()}
+                            {renderExperienceSection()}
+                            {renderEducationSection()}
+                            {renderSkillSection()}
+                            {renderCertificationSection()}
+                            {renderResumeSection()}
                         </View>
                     </ScrollView>
                 </View>
@@ -480,16 +499,6 @@ const Profile = () => {
 
 const styles = StyleSheet.create({
 
-    deleteButton: {
-        width: 30,
-        height: 30,
-        borderRadius: 20,
-        backgroundColor: 'red',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginLeft: 30, // Nếu bạn muốn nút cách xa hơn một chút
-    },
-
     skillsContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -497,7 +506,6 @@ const styles = StyleSheet.create({
         // alignItems: 'center',
         marginVertical: 15,
     },
-
     skillItem: {
         backgroundColor: 'white',
         paddingVertical: 8,
@@ -510,25 +518,16 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         maxWidth: '40%', // Điều chỉnh này giúp không quá 3 kỹ năng trên một hàng
     },
-
     skillText: {
         color: '#130160',
         fontWeight: 'bold',
         textAlign: 'center', // Đảm bảo văn bản được căn giữa trong kỹ năng
     },
-
     seeMoreText: {
         color: '#130160',
         fontWeight: 'bold',
         marginTop: 10,
         alignSelf: 'center', // Đảm bảo nút "See more" được căn giữa
-    },
-
-
-    buttonsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        // Đặt thêm styles cho container chứa buttons nếu cần
     },
     buttonsContainer1: {
         // Đổi từ 'row' sang 'column' để sắp xếp các thành phần theo chiều dọc thay vì chiều ngang
@@ -552,33 +551,15 @@ const styles = StyleSheet.create({
         // shadowRadius: 2.22, // Bán kính bóng
         elevation: 3, // Độ cao của phần tử (cho Android)
     },
-    experienceItem1: {
-        flexDirection: 'row', // Sắp xếp các thành phần theo chiều ngang
-        // justifyContent: 'space-between', // Phân tách thông tin và các nút chỉnh sửa/xóa
-        alignItems: 'center', // Căn giữa các thành phần theo chiều dọc
-        padding: 10, // Thêm padding xung quanh để tạo khoảng cách
-        backgroundColor: 'white', // Nền trắng cho mỗi mục kinh nghiệm
-        marginBottom: 10, // Khoảng cách giữa các mục
-        borderRadius: 5, // Bo tròn góc nếu cần
-        elevation: 3, // Độ cao của phần tử (cho Android)
-    },
     experienceInfo: {
         flex: 1, // Cho phép nó chiếm đa phần không gian trong hàng
         marginRight: 10, // Khoảng cách giữa thông tin và các nút
     },
-
     experienceText: {
         fontSize: 18, // Đặt kích thước font
         fontWeight: '900', // Đặt font đậm
         color: 'black', // Màu chữ
         marginVertical: 2, // Khoảng cách giữa các dòng
-    },
-
-    editButton: {
-        padding: 8,
-        backgroundColor: 'blue',
-        borderRadius: 4,
-        margin: 4
     },
     container: {
         flex: 1,
@@ -618,9 +599,6 @@ const styles = StyleSheet.create({
         color: 'red',
         margin: 10
     },
-    sectionContainer: {
-        margin: 20,
-    },
     section: {
         marginBottom: 20,
         padding: 15,
@@ -638,11 +616,6 @@ const styles = StyleSheet.create({
     },
     sectionText: {
         marginLeft: 10,
-        fontSize: 15,
-        fontWeight: 'bold',
-    },
-    sectionText1: {
-        marginLeft: -2,
         fontSize: 15,
         fontWeight: 'bold',
     },

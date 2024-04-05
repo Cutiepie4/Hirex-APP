@@ -44,7 +44,7 @@ const ChooseRole = ({ route }) => {
                                 />
                             </View>
                         </TouchableOpacity>
-                        <Text style={styles.optionText}>Application</Text>
+                        <Text style={styles.optionText}>Người xin việc</Text>
                     </View>
                     <View style={styles.option}>
                         <TouchableOpacity onPress={() => toInformation(0)}>
@@ -56,7 +56,7 @@ const ChooseRole = ({ route }) => {
                                 />
                             </View>
                         </TouchableOpacity>
-                        <Text style={styles.optionText}>Business</Text>
+                        <Text style={styles.optionText}>Nhà tuyển dụng</Text>
                     </View>
                 </View>
             </View>
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     option: {
-        marginLeft: 10,
+        marginLeft: 30,
         alignItems: 'center',
         justifyContent: 'center',
     },

@@ -11,6 +11,7 @@ import RootNavigation from '../config/RootNavigation'
 import { useDispatch } from 'react-redux';
 import { login } from '../redux/slice/authSlice';
 import axios from 'axios';
+import { deepPurple } from '../styles/styles'
 
 const Login = ({ navigation }) => {
     const [isPasswordShown, setIsPasswordShown] = useState(true);
@@ -18,37 +19,37 @@ const Login = ({ navigation }) => {
     const [password, setPassword] = useState('');
     const dispatch = useDispatch();
 
-const handleLoginPress = async () => {
-    try {
-        const response = await axios.post('http://172.16.4.155:8080/api/v1/users/login', {
-            phoneNumber: phoneNumber,
-            password: password
-        });
+    const handleLoginPress = async () => {
+        try {
+            const response = await axios.post('http://192.168.1.223:8080/api/v1/users/login', {
+                phoneNumber: phoneNumber,
+                password: password
+            });
 
-        if (response && response.data) {
-            const token = response.data.token;
-            const role = response.data.role;
+            if (response && response.data) {
+                const token = response.data.token;
+                const role = response.data.role;
 
-            console.log('Token:', token);
-            console.log('Role:', role);
+                console.log('Token:', token);
+                console.log('Role:', role);
 
-            // Dispatch action to update Redux store with token
-            dispatch(login({ role, phoneNumber, access_token: token }));
+                // Dispatch action to update Redux store with token
+                dispatch(login({ role, phoneNumber, access_token: token }));
 
-            // Navigate to HomeTabs screen upon successful login
-            RootNavigation.navigate('HomeTabs');
-        } else {
-            console.error('Token not found in response');
+                // Navigate to HomeTabs screen upon successful login
+                RootNavigation.navigate('HomeTabs');
+            } else {
+                console.error('Token not found in response');
+            }
+        } catch (error) {
+            console.error('Error:', error.response.data);
         }
-    } catch (error) {
-        console.error('Error:', error.response.data);
-    }
-};
+    };
 
-    
+
 
     return (
-        <Container>
+        <Container statusBarColor={deepPurple} statusBarContentColor='light'>
             <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
                     <View style={{ marginHorizontal: 22, justifyContent: 'center' }}>
@@ -59,16 +60,13 @@ const handleLoginPress = async () => {
                         }}>
                             <View style={{ marginVertical: 50 }}>
                                 <Text style={{ fontSize: 30, fontWeight: '900', marginVertical: 12, color: COLORS.black }}>
-                                    Welcome Back
-                                </Text>
-                                <Text style={{ fontSize: 16, color: COLORS.black }}>
-                                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+                                    Chào mừng trở lại
                                 </Text>
                             </View>
                         </View>
                         <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
                             <Text style={{ fontSize: 16, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>
-                                Phone Number
+                                Số điện thoại
                             </Text>
                             <View style={{
                                 height: 48,
@@ -80,14 +78,14 @@ const handleLoginPress = async () => {
                                 paddingLeft: 22
                             }}>
 
-                                <Input placeholder="Phone Number" value={phoneNumber} onChangeText={setPhoneNumber} />
+                                <Input placeholder="Số điện thoại" value={phoneNumber} onChangeText={setPhoneNumber} />
                             </View>
 
                         </View>
 
                         <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
                             <Text style={{ fontSize: 16, color: COLORS.black, fontWeight: '900', marginBottom: 8 }}>
-                                Password
+                                Mật khẩu
                             </Text>
                             <View style={{
                                 height: 48,
@@ -98,7 +96,7 @@ const handleLoginPress = async () => {
                                 justifyContent: "center",
                                 paddingLeft: 22
                             }}>
-                                <Input placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry={isPasswordShown} />
+                                <Input placeholder="Mật khẩu" value={password} onChangeText={setPassword} secureTextEntry={isPasswordShown} />
                                 <TouchableOpacity
                                     onPress={() => setIsPasswordShown(!isPasswordShown)}
                                     style={{ position: 'absolute', right: 12 }}
@@ -115,13 +113,14 @@ const handleLoginPress = async () => {
                         <View style={{
                             flexDirection: 'row',
                             justifyContent: 'flex-end',
-                            marginVertical: 6
+                            marginVertical: 6,
+                        
                         }}>
-                            <Text>Forget Password?</Text>
+                            <Text>Quên mật khẩu?</Text>
                         </View>
 
                         <Button
-                            title="LOGIN"
+                            title="Đăng nhập"
                             filled
                             onPress={handleLoginPress}
                             style={{
@@ -160,10 +159,10 @@ const handleLoginPress = async () => {
                         </View>
 
                         <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 22 }}>
-                            <Text style={{ fontSize: 16, color: COLORS.black }}>You don't have an account yet?</Text>
+                            <Text style={{ fontSize: 16, color: COLORS.black }}>Bạn chưa có tài khoản?</Text>
                             <Pressable onPress={() => navigation.navigate('Signup')}>
                                 <Text style={{ fontSize: 16, color: '#FF9228', fontWeight: '900', marginLeft: 6 }}>
-                                    Sign up
+                                    Đăng ký
                                 </Text>
                             </Pressable>
                         </View>

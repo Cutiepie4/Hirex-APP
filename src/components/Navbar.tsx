@@ -27,7 +27,6 @@ const Navbar = () => {
             RootNavigation.navigate('HomeScreen')
         }
         if (index === ChosenScreen.PROFILE) {
-            console.log(role)
             if (role === 'user') {
                 RootNavigation.navigate('Profile')
             } else {

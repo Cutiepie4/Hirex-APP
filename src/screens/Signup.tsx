@@ -10,6 +10,8 @@ import Input from '../components/Input';
 
 const Signup = ({ navigation }) => {
     const [isPasswordShown, setIsPasswordShown] = useState(true);
+    const [isRetryPasswordShown, setIsRetryPasswordShown] = useState(true);
+
     const [password, setPassword] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [retryPassword, setRetryPassword] = useState('');
@@ -37,18 +39,18 @@ const Signup = ({ navigation }) => {
                         textAlign: 'center',
                         color: COLORS.black
                     }}>
-                        Create An Account
+                        Tạo tài khoản
                     </Text>
 
-                    <Text style={{
-                        fontSize: 16,
-                        color: COLORS.black
-                    }}> Fill your details or continue with social media</Text>
+                    {/* <Text style={{
+                            fontSize: 16,
+                            color: COLORS.black
+                        }}> Fill your details or continue with social media</Text> */}
                 </View>
 
                 <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>
-                        Phone Number
+                    <Text style={{ fontSize: 16, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>
+                        Số điện thoại
                     </Text>
                     <View style={{
                         width: "100%",
@@ -60,14 +62,14 @@ const Signup = ({ navigation }) => {
                         justifyContent: "center",
                         paddingLeft: 22
                     }}>
-                        <Input placeholder="Phone Number" value={phoneNumber} onChangeText={setPhoneNumber} />
+                        <Input placeholder="Số điện thoại" value={phoneNumber} onChangeText={setPhoneNumber} />
 
                     </View>
                 </View>
 
                 <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
                     <Text style={{ fontSize: 16, color: COLORS.black, fontWeight: 'bold', marginBottom: 8 }}>
-                        Password
+                        Mật khẩu
                     </Text>
                     <View style={{
                         height: 48,
@@ -78,7 +80,7 @@ const Signup = ({ navigation }) => {
                         justifyContent: "center",
                         paddingLeft: 22
                     }}>
-                        <Input placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry={isPasswordShown} />
+                        <Input placeholder="Mật khẩu" value={password} onChangeText={setPassword} secureTextEntry={isPasswordShown} />
                         <TouchableOpacity
                             onPress={() => setIsPasswordShown(!isPasswordShown)}
                             style={{ position: 'absolute', right: 12 }}
@@ -92,22 +94,27 @@ const Signup = ({ navigation }) => {
                     </View>
                 </View>
 
-                <View style={styles.container}>
-                    <Text style={styles.label}>
-                        Retype Password
+                <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                    <Text style={{ fontSize: 16, color: COLORS.black, fontWeight: 'bold', marginBottom: 8 }}>
+                        Nhập lại mật khẩu
                     </Text>
                     <View style={styles.inputContainer}>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Retype Password"
-                            onChangeText={setRetryPassword}
-                            value={retryPassword}
-                            />
+                        <Input placeholder="Nhập lại mật khẩu" value={retryPassword} onChangeText={setRetryPassword} secureTextEntry={isRetryPasswordShown} />
+                        <TouchableOpacity
+                            onPress={() => setIsRetryPasswordShown(!isRetryPasswordShown)}
+                            style={{ position: 'absolute', right: 12 }}
+                        >
+                            {isRetryPasswordShown ? (
+                                <Ionicons name="eye-off" size={24} color={COLORS.black} />
+                            ) : (
+                                <Ionicons name="eye" size={24} color={COLORS.black} />
+                            )}
+                        </TouchableOpacity>
                     </View>
                 </View>
 
                 <Button
-                    title="SIGN UP"
+                    title="Đăng ký"
                     filled
                     onPress={handleSigupPress}
                     style={{
@@ -151,7 +158,7 @@ const Signup = ({ navigation }) => {
                     justifyContent: "center",
                     marginVertical: 22
                 }}>
-                    <Text style={{ fontSize: 16, color: COLORS.black }}>Already have an account ?</Text>
+                    <Text style={{ fontSize: 16, color: COLORS.black }}>Bạn có sẵn sàng để tạo một tài khoản ?</Text>
                     <Pressable
                         onPress={() => RootNavigation.navigate("Login")}
                     >
@@ -160,7 +167,7 @@ const Signup = ({ navigation }) => {
                             color: '#FF9228',
                             fontWeight: "bold",
                             marginLeft: 6
-                        }}>Sign in</Text>
+                        }}>Đăng nhập</Text>
                     </Pressable>
                 </View>
             </View>
@@ -174,7 +181,7 @@ const styles = StyleSheet.create({
         paddingRight: 15,
     },
     label: {
-        fontSize: 12,
+        fontSize: 16,
         color: COLORS.black,
         marginBottom: 8,
         fontWeight: '900'
