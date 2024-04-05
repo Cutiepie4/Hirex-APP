@@ -20,8 +20,6 @@ const Information = ({ route }) => {
     const { password, phoneNumber, retryPassword, role } = route.params;
     const [modalVisible, setModalVisible] = useState(false);
 
-
-
     const onChange = (event, selectedDate) => {
         const currentDate = selectedDate || date;
         setShow(Platform.OS === 'ios');

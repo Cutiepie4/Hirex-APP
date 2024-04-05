@@ -28,10 +28,10 @@ const authScreens = {
     Banner: Banner,
     Welcome: Welcome,
     Login: Login,
-    HomeTab: HomeTab,
     SignUp: Signup,
     ChooseRole: ChooseRole,
     Information: Information,
+    HomeTab: HomeTab,
 }
 
 const ToHomeScreen = () => {
@@ -50,7 +50,7 @@ const ToHomeScreen = () => {
     );
 }
 
-const FirstNavigation = () => {
+const EntryNavigation = () => {
     const { access_token } = useSelector((state: RootReducer) => state.authReducer);
 
     if (access_token) {
@@ -72,7 +72,7 @@ const App = () => {
             <Provider store={store}>
                 <PersistGate persistor={persistor} loading={null}>
                     <NavigationContainer ref={navigationRef}>
-                        <FirstNavigation />
+                        <EntryNavigation />
                     </NavigationContainer>
                 </PersistGate>
             </Provider>

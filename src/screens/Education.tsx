@@ -4,7 +4,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import COLORS from '../constants/colors';
 import Button from '../components/Button';
-import { Picker } from '@react-native-picker/picker';
 import RootNavigation from '../route/RootNavigation';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 

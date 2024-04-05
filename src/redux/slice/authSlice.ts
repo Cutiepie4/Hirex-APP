@@ -5,16 +5,16 @@ export interface AuthState {
     access_token: string,
     role: string,
     isLoading: boolean,
-    count: number
-}
+    showTabBar: boolean,
+};
 
 const initialState: AuthState = {
     phoneNumber: '',
     access_token: '',
     role: '',
     isLoading: false,
-    count: 0
-}
+    showTabBar: false,
+};
 
 const authSlice = createSlice({
     name: 'authReducer',
@@ -27,12 +27,9 @@ const authSlice = createSlice({
             state.access_token = access_token;
         },
         logout: (state) => {
-            state.role = ''; 
+            state.role = '';
             state.phoneNumber = '';
             state.access_token = '';
-        },
-        increase: (state) => {
-            return { ...state, count: state.count + 1 };
         },
         showLoading: (state) => {
             return { ...state, isLoading: true };
@@ -40,12 +37,17 @@ const authSlice = createSlice({
         hideLoading: (state) => {
             return { ...state, isLoading: false };
         },
+        showTabBar: (state) => {
+            return { ...state, showTabBar: true };
+        },
+        hideTabBar: (state) => {
+            return { ...state, showTabBar: false };
+        }
     },
     extraReducers(builder) {
 
     },
-})
+});
 
-export const { login, increase, logout } = authSlice.actions;
-export default authSlice.reducer
-    
+export const { login, showLoading, hideLoading, logout, showTabBar, hideTabBar } = authSlice.actions;
+export default authSlice.reducer;
