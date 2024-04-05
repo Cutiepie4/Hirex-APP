@@ -1,5 +1,4 @@
 import { TextStyle } from "react-native";
-
 const backgroundColor = '#f0f4f4';
 const borderColor = '#C9DFF1';
 const placeholderTextColor = '#81A0BC';
