@@ -5,7 +5,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import { FontAwesome } from '@expo/vector-icons';
 import Container from '../../components/Container';
-import RootNavigation from '../../config/RootNavigation';
+import RootNavigation from '../../route/RootNavigation';
 import { deepPurple, purple } from '../../styles/styles';
 import { Feather } from '@expo/vector-icons';
 import { doc, updateDoc, deleteField, collection, addDoc, setDoc, onSnapshot } from 'firebase/firestore';

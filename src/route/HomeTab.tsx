@@ -1,23 +1,22 @@
 import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { BottomTabBarProps, createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ChatStack, HomeStack } from './TabStack';
 import { Entypo } from '@expo/vector-icons';
 import { orange, placeholderTextColor } from '../styles/styles';
 import { Feather } from '@expo/vector-icons';
-import { FontAwesome6 } from '@expo/vector-icons';
+import { FontAwesome } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
+import { TouchableOpacity, View, Text } from 'react-native';
+import { useSelector } from 'react-redux';
+import { RootReducer } from '../redux/store/reducer';
 
 const Tab = createBottomTabNavigator();
 
 const HomeTab = () => {
 
-    const iconSize = 22;
+    const { showTabBar } = useSelector((state: RootReducer) => state.authReducer);
 
-    const screenOptions = {
-        tabBarStyle: {
-            height: 60,
-        },
-    };
+    const iconSize = 22;
 
     const TabItems = [
         {
@@ -28,23 +27,22 @@ const HomeTab = () => {
         {
             name: 'Tab2',
             component: HomeStack,
-            icon: <FontAwesome6 name="address-card" size={iconSize} />,
+            icon: <FontAwesome name="id-card" size={iconSize} color="black" />,
         },
         {
             name: 'Tab3',
             component: ChatStack,
-            icon: <Ionicons name="chatbox-outline" size={iconSize} />,
+            icon: <Entypo name="chat" size={iconSize} color="black" />,
         },
         {
             name: 'Tab4',
             component: HomeStack,
-            icon: <Feather name="user" size={iconSize} />,
+            icon: <FontAwesome name="user" size={iconSize} color="black" />,
         },
-
     ];
 
     return (
-        <Tab.Navigator {...{ screenOptions }} >
+        <Tab.Navigator>
             {TabItems.map((item) => (
                 <Tab.Screen
                     key={item.name}
@@ -58,6 +56,12 @@ const HomeTab = () => {
                             });
                         },
                         tabBarLabel: () => null,
+                        tabBarStyle: {
+                            height: 60,
+                            borderTopLeftRadius: 20,
+                            borderTopRightRadius: 20,
+                            display: showTabBar ? 'flex' : 'none',
+                        }
                     })}
                 />
             ))}

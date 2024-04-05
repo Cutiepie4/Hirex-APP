@@ -10,7 +10,7 @@ import Header from '../../components/Header';
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 import { Entypo } from '@expo/vector-icons';
-import RootNavigation from '../../config/RootNavigation';
+import RootNavigation from '../../route/RootNavigation';
 import AVATAR from '../../assets/images/avt.png'
 import { ParseConversationId } from '../../utils/utils';
 import * as DocumentPicker from 'expo-document-picker';

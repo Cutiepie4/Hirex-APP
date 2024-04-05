@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Một layer đen đục phía sau modal để tạo hiệu ứng tối
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalContent: {
         backgroundColor: 'white',
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'blue',
         borderRadius: 10,
         padding: 10,
-        alignSelf: 'flex-end', // Đặt nút Close sang bên phải
+        alignSelf: 'flex-end',
     },
     closeButtonText: {
         color: 'white',

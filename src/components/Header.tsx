@@ -1,7 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
 import React, { ReactNode } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import RootNavigation from '../config/RootNavigation';
+import RootNavigation from '../route/RootNavigation';
 
 const Header = (props: {
     title?: string,

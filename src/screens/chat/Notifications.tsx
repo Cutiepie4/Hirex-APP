@@ -6,7 +6,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler'
 import { deepPurple, orange, placeholderFontStyle, placeholderTextColor, purple, regularPadding, titleFontStyle } from '../../styles/styles'
 import GOOGLE from '../../assets/images/google_logo.png'
 import NO_NOTIFICATIONS from '../../assets/images/no_notifications.png'
-import RootNavigation from '../../config/RootNavigation'
+import RootNavigation from '../../route/RootNavigation'
 
 interface Notification {
     id: any,

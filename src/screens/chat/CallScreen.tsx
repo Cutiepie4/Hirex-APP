@@ -23,7 +23,7 @@ import {
 
 import CallActionBox from "./CallActionBox";
 import Container from "../../components/Container";
-import RootNavigation from "../../config/RootNavigation";
+import RootNavigation from "../../route/RootNavigation";
 import { Octicons } from '@expo/vector-icons';
 
 const configuration = {

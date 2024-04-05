@@ -8,7 +8,7 @@ import AVATAR from '../../assets/images/avt.png'
 import NO_MESSAGES from '../../assets/images/no_messages.png'
 import { ScrollView } from 'react-native-gesture-handler'
 import { Feather } from '@expo/vector-icons';
-import RootNavigation from '../../config/RootNavigation'
+import RootNavigation from '../../route/RootNavigation'
 
 const Messages = () => {
 
@@ -113,7 +113,7 @@ const Messages = () => {
 
     return (
         <Container backgroundColor={'#f9f9f9'}>
-            <Header title='Messages' backArrow />
+            <Header title='Messages' />
             {messages.length > 0 ? <View style={[styles.container]}>
                 <SearchInput
                     placeholder="Search name..."
