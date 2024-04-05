@@ -1,12 +1,19 @@
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useLayoutEffect } from 'react';
+import { NavigationContainer, getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Welcome from '../screens/Welcome';
 import Banner from '../screens/Banner';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootReducer } from '../redux/store/reducer';
 import HomeScreen from '../screens/HomeScreen';
-import ChatScreen from '../screens/ChatScreen';
+import Messages from '../screens/chat/Messages';
+import Message from '../screens/chat/Message';
+import VideoCall from '../screens/chat/VideoCall';
+import CallActionBox from '../screens/chat/CallActionBox';
+import CallScreen from '../screens/chat/CallScreen';
+import DraggableCameraView from '../screens/chat/DraggableCameraView';
+import { hideTabBar, showTabBar } from '../redux/slice/authSlice';
+
 import Setting from '../screens/Setting';
 import { Profile, AboutMeScreen, Experience, Education, Certification, Skill } from '../screens'; 
 
@@ -16,7 +23,12 @@ const homeScreenStack = {
 }
 
 const chatScreenStack = {
-    ChatScreen: ChatScreen,
+    Messages: Messages,
+    Message: Message,
+    VideoCall: VideoCall,
+    CallActionBox: CallActionBox,
+    CallScreen: CallScreen,
+    DraggableCameraView: DraggableCameraView,
 }
 
 const pofileScreenStack = {
@@ -34,7 +46,19 @@ const settingScreenStack = {
 
 const Stack = createStackNavigator();
 
-const HomeStack = () => {
+const HomeStack = ({ navigation, route }: any) => {
+
+    const dispatch = useDispatch();
+
+    useLayoutEffect(() => {
+        const routeName = getFocusedRouteNameFromRoute(route);
+        if (routeName === 'HomeScreen' || routeName == undefined) {
+            dispatch(showTabBar());
+        } else {
+            dispatch(hideTabBar());
+        }
+    }, [navigation, route]);
+
     return (
         <Stack.Navigator
             screenOptions={{
@@ -42,13 +66,27 @@ const HomeStack = () => {
             }}
         >
             {Object.entries(homeScreenStack).map(([name, component]) => (
-                <Stack.Screen key={name} name={name} component={component} />
+                <Stack.Screen key={name} name={name} component={component} options={{
+                    title: name
+                }} />
             ))}
         </Stack.Navigator>
     );
 };
 
-const ChatStack = () => {
+const ChatStack = ({ navigation, route }: any) => {
+
+    const dispatch = useDispatch();
+
+    useLayoutEffect(() => {
+        const routeName = getFocusedRouteNameFromRoute(route);
+        if (routeName === 'Messages' || routeName == undefined) {
+            dispatch(showTabBar());
+        } else {
+            dispatch(hideTabBar());
+        }
+    }, [navigation, route]);
+
     return (
         <Stack.Navigator
             screenOptions={{
@@ -56,12 +94,15 @@ const ChatStack = () => {
             }}
         >
             {Object.entries(chatScreenStack).map(([name, component]) => (
-                <Stack.Screen key={name} name={name} component={component} />
+                <Stack.Screen key={name} name={name} component={component} options={{
+                    title: name
+                }} />
             ))}
         </Stack.Navigator>
     );
 
 };
+
 
 const ProfileStack = () => {
     return (

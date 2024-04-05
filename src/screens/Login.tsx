@@ -20,7 +20,7 @@ const Login = () => {
 
     const handleLoginPress = async () => {
         try {
-            const response = await axios.post('http://172.16.4.155:8080/api/v1/users/login', {
+            const response = await axios.post('http://192.168.1.223:8080/api/v1/users/login', {
                 phoneNumber: phoneNumber,
                 password: password
             });
