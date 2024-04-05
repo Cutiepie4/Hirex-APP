@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import COLORS from '../constants/colors';
 import { Ionicons } from "@expo/vector-icons";
 import Button from '../components/Button';
-import RootNavigation from '../config/RootNavigation'
+import RootNavigation from '../route/RootNavigation'
 import Input from '../components/Input';
 
 
@@ -99,6 +99,7 @@ const Signup = ({ navigation }) => {
                         Nhập lại mật khẩu
                     </Text>
                     <View style={styles.inputContainer}>
+<<<<<<< HEAD
                         <Input placeholder="Nhập lại mật khẩu" value={retryPassword} onChangeText={setRetryPassword} secureTextEntry={isRetryPasswordShown} />
                         <TouchableOpacity
                             onPress={() => setIsRetryPasswordShown(!isRetryPasswordShown)}
@@ -110,6 +111,14 @@ const Signup = ({ navigation }) => {
                                 <Ionicons name="eye" size={24} color={COLORS.black} />
                             )}
                         </TouchableOpacity>
+=======
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Retype Password"
+                            onChangeText={setRetryPassword}
+                            value={retryPassword}
+                        />
+>>>>>>> fd096d922d062ad363ad51d4259bbb2bca753ce7
                     </View>
                 </View>
 

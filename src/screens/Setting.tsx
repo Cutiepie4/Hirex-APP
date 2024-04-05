@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, Switch, TouchableOpacity, StyleSheet, Modal, Pressable } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from '@expo/vector-icons'; 
-import RootNavigation from '../config/RootNavigation';
+import { Ionicons } from '@expo/vector-icons';
+import RootNavigation from '../route/RootNavigation';
 import Navbar from '../components/Navbar';
 import { useDispatch } from 'react-redux';  // Import thêm useDispatch từ redux
 import { logout } from '../redux/slice/authSlice';
@@ -11,7 +11,7 @@ const Setting = () => {
     const [isEnabled, setIsEnabled] = React.useState(false);
     const [modalVisible, setModalVisible] = React.useState(false);
     const toggleSwitch = () => setIsEnabled(previousState => !previousState);
-    const dispatch = useDispatch(); 
+    const dispatch = useDispatch();
 
     const confirmLogout = () => {
         dispatch(logout()); // Dispatch action logout
@@ -77,7 +77,7 @@ const Setting = () => {
                             style={[styles.button, styles.buttonYes]}
                             onPress={() => {
                                 setModalVisible(!modalVisible);
-                                confirmLogout() 
+                                confirmLogout()
                             }}
                         >
                             <Text style={styles.textStyle}>Đồng ý</Text>

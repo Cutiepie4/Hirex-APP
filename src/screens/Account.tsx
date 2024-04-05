@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity, Image, TextInput, Platform } 
 import { MaterialCommunityIcons, FontAwesome5, Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useActionSheet } from '@expo/react-native-action-sheet';
-import RootNavigation from '../config/RootNavigation';
+import RootNavigation from '../route/RootNavigation';
 import Container from '../components/Container';
 import { deepPurple } from '../styles/styles'
 import COLORS from '../constants/colors';
@@ -13,14 +13,14 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import BACKGROUND from '../assets/images/background.jpg'
 
 const Account = ({ route }) => {
-    
+
     const [date, setDate] = useState(new Date());
     const [show, setShow] = useState(false);
     const [gender, setGender] = useState('female');
     const [image, setImage] = useState(null);
     const { showActionSheetWithOptions } = useActionSheet();
     const [isEditing, setIsEditing] = useState(true);
-    // Mock user data - replace with actual data retrieval logic
+
     useEffect(() => {
         const mockData = {
             fullName: 'Nguyễn Phúc Quân',
@@ -31,11 +31,11 @@ const Account = ({ route }) => {
             address: '123 Đường Lý Thường Kiệt, Quận 10, TP.HCM',
         };
 
-        if (mockData.fullName) { // Check if there is any data to indicate an existing user
+        if (mockData.fullName) {
             setUserData(mockData);
-            setDate(new Date(mockData.birthDate)); // Update the date state for the date picker
-            setGender(mockData.gender); // Update the gender state
-            // setIsEditing(false); // Switch to view mode
+            setDate(new Date(mockData.birthDate));
+            setGender(mockData.gender);
+            // setIsEditing(false);
         }
     }, []);
 
@@ -108,7 +108,7 @@ const Account = ({ route }) => {
                         pickImage();
                         break;
                     default:
-                        break; // Cancel action
+                        break;
                 }
             }
         );

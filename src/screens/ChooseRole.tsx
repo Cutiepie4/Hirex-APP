@@ -6,7 +6,7 @@ import { deepPurple } from '../styles/styles'
 import APPLICATION from '../assets/images/application.png'
 import BUSINESS from '../assets/images/business.png'
 import { useNavigation } from '@react-navigation/native';
-import RootNavigation from '../config/RootNavigation'
+import RootNavigation from '../route/RootNavigation'
 import { Ionicons } from "@expo/vector-icons";
 
 const ChooseRole = ({ route }) => {

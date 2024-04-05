@@ -1,5 +1,3 @@
-// RootNavigation.js
-
 import {
     createNavigationContainerRef,
     StackActions,

@@ -1,4 +1,3 @@
-// Login.tsx
 import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,13 +6,13 @@ import COLORS from '../constants/colors';
 import Input from '../components/Input';
 import Button from '../components/Button';
 import Container from '../components/Container';
-import RootNavigation from '../config/RootNavigation'
+import RootNavigation from '../route/RootNavigation'
 import { useDispatch } from 'react-redux';
 import { login } from '../redux/slice/authSlice';
 import axios from 'axios';
 import { deepPurple } from '../styles/styles'
 
-const Login = ({ navigation }) => {
+const Login = () => {
     const [isPasswordShown, setIsPasswordShown] = useState(true);
     const [phoneNumber, setPhoneNumber] = useState('');
     const [password, setPassword] = useState('');
@@ -160,7 +159,7 @@ const Login = ({ navigation }) => {
 
                         <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 22 }}>
                             <Text style={{ fontSize: 16, color: COLORS.black }}>Bạn chưa có tài khoản?</Text>
-                            <Pressable onPress={() => navigation.navigate('Signup')}>
+                            <Pressable onPress={() => RootNavigation.navigate('Signup')}>
                                 <Text style={{ fontSize: 16, color: '#FF9228', fontWeight: '900', marginLeft: 6 }}>
                                     Đăng ký
                                 </Text>

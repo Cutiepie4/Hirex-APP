@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import COLORS from '../constants/colors';
 import Button from '../components/Button';
 import { Picker } from '@react-native-picker/picker';
-import RootNavigation from '../config/RootNavigation';
+import RootNavigation from '../route/RootNavigation';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 const Education = ({ route, navigation }) => {

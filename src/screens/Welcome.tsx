@@ -1,12 +1,11 @@
 import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native'
 import React from 'react'
 import BANNERTITLE from '../assets/images/banner_title.png'
-import BANNERWELCOM1 from '../assets/images/banner_welcome1.png'
-import BANNERWELCOM from '../assets/images/banner_welcome.png'
+import BANNERWELCOME1 from '../assets/images/banner_welcome1.png'
+import BANNERWELCOME from '../assets/images/banner_welcome.png'
 import NEXT from '../assets/images/next.png'
-import RootNavigation from '../config/RootNavigation'
-
-
+import RootNavigation from '../route/RootNavigation'
+import Container from '../components/Container'
 
 const Welcome = () => {
 
@@ -15,10 +14,10 @@ const Welcome = () => {
     }
 
     return (
-        <View style={styles.container}>
-            <View style={{ flexDirection: 'row', width: '100%', marginTop: '50%' }}>
+        <Container>
+            <View style={{ flexDirection: 'row', width: '100%', marginTop: '40%' }}>
                 <Image style={{ marginHorizontal: 24 }}
-                    source={BANNERWELCOM}
+                    source={BANNERWELCOME}
                 />
             </View>
             <View style={{ flexDirection: 'row', width: '100%', marginTop: '20%' }}>
@@ -30,7 +29,7 @@ const Welcome = () => {
             <View style={{ flexDirection: 'row', width: '100%', marginTop: '5%' }}>
                 <Image
                     style={{ marginHorizontal: 24 }}
-                    source={BANNERWELCOM1}
+                    source={BANNERWELCOME1}
                 />
             </View>
             <View style={{ flexDirection: 'row', width: '100%' }}>
@@ -41,18 +40,12 @@ const Welcome = () => {
                     />
                 </TouchableOpacity>
             </View>
-
-        </View >
+        </Container>
     )
 }
 
 export default Welcome
 
 const styles = StyleSheet.create({
-    container: {
-        // flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'column',
-    },
+
 })
