@@ -41,11 +41,6 @@ const Signup = ({ navigation }) => {
                     }}>
                         Tạo tài khoản
                     </Text>
-
-                    {/* <Text style={{
-                            fontSize: 16,
-                            color: COLORS.black
-                        }}> Fill your details or continue with social media</Text> */}
                 </View>
 
                 <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
@@ -99,7 +94,6 @@ const Signup = ({ navigation }) => {
                         Nhập lại mật khẩu
                     </Text>
                     <View style={styles.inputContainer}>
-<<<<<<< HEAD
                         <Input placeholder="Nhập lại mật khẩu" value={retryPassword} onChangeText={setRetryPassword} secureTextEntry={isRetryPasswordShown} />
                         <TouchableOpacity
                             onPress={() => setIsRetryPasswordShown(!isRetryPasswordShown)}
@@ -111,14 +105,6 @@ const Signup = ({ navigation }) => {
                                 <Ionicons name="eye" size={24} color={COLORS.black} />
                             )}
                         </TouchableOpacity>
-=======
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Retype Password"
-                            onChangeText={setRetryPassword}
-                            value={retryPassword}
-                        />
->>>>>>> fd096d922d062ad363ad51d4259bbb2bca753ce7
                     </View>
                 </View>
 

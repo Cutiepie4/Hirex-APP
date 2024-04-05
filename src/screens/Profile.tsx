@@ -8,10 +8,6 @@ import RootNavigation from '../route/RootNavigation';
 import Container from '../components/Container';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
-<<<<<<< HEAD
-=======
-import * as Permissions from 'expo-permissions';
->>>>>>> fd096d922d062ad363ad51d4259bbb2bca753ce7
 import * as MediaLibrary from 'expo-media-library';
 import Navbar from '../components/Navbar';
 import BACKGROUND from '../assets/images/background.jpg';
