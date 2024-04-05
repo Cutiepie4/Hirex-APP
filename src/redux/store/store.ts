@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const persistConfig = {
     storage: AsyncStorage,
     key: 'root',
+    blacklist: ['isLoading']
 };
 
 export const persistedReducer = persistReducer(persistConfig, rootReducer);

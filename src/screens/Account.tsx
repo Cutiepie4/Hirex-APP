@@ -9,7 +9,6 @@ import { deepPurple } from '../styles/styles'
 import COLORS from '../constants/colors';
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from '../components/Button';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import BACKGROUND from '../assets/images/background.jpg'
 
 const Account = ({ route }) => {
@@ -181,7 +180,7 @@ const Account = ({ route }) => {
                                     <Ionicons name="calendar" size={24} color={COLORS.black} />
                                 </TouchableOpacity>
                             </View>
-                            {show && (
+                            {/* {show && (
                                 <DateTimePicker
                                     testID="dateTimePicker"
                                     value={date}
@@ -190,7 +189,7 @@ const Account = ({ route }) => {
                                     display="default"
                                     onChange={onChange}
                                 />
-                            )}
+                            )} */}
                         </View>
                         <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
                             <Text style={{ fontSize: 13, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}> Giới tính </Text>

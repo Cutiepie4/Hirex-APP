@@ -18,8 +18,6 @@ const Information = ({ route }) => {
     const [email, setEmail] = useState('');
     const { password, phoneNumber, retryPassword, role } = route.params;
 
-
-
     const onChange = (event, selectedDate) => {
         const currentDate = selectedDate || date;
         setShow(Platform.OS === 'ios');
@@ -42,8 +40,6 @@ const Information = ({ route }) => {
         console.log(retryPassword)
         console.log(date.toISOString().split('T')[0])
         console.log(role)
-
-
 
         try {
             const response = await axios.post('http://172.16.4.155:8080/api/v1/users/register', payload);

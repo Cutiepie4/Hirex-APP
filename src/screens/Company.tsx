@@ -5,7 +5,6 @@ import { Ionicons } from "@expo/vector-icons";
 import COLORS from '../constants/colors';
 import Button from '../components/Button';
 import RootNavigation from '../route/RootNavigation';
-import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { ScrollView } from 'react-native-gesture-handler';
 
 const Company = ({ route, navigation }) => {

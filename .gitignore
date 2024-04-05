@@ -33,3 +33,8 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+.idea/.gitignore
+.idea/hirex-app.iml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml

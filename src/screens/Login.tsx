@@ -35,7 +35,7 @@ const Login = () => {
         //     dispatch(login({ role, phoneNumber, access_token: token }));
 
         // Navigate to HomeTabs screen upon successful login
-        RootNavigation.navigate('Welcome');
+        RootNavigation.navigate('HomeTab');
         //     } else {
         //         console.error('Token not found in response');
         //     }
