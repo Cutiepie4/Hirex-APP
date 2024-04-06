@@ -7,6 +7,7 @@ import Button from '../components/Button';
 import RootNavigation from '../route/RootNavigation';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from 'axios';
+import { BASE_API } from '../services/BaseApi';
 
 
 const Information = ({ route }) => {
@@ -34,16 +35,16 @@ const Information = ({ route }) => {
             date_of_birth: date.toISOString().split('T')[0],
             role_id: role,
         };
-        console.log(phoneNumber)
-        console.log(password)
-        console.log(address)
-        console.log(retryPassword)
-        console.log(date.toISOString().split('T')[0])
-        console.log(role)
+        // console.log(phoneNumber)
+        // console.log(password)
+        // console.log(address)
+        // console.log(retryPassword)
+        // console.log(date.toISOString().split('T')[0])
+        // console.log(role)
+        console.log('payload', payload);
 
         try {
-            const response = await axios.post('http://172.16.4.155:8080/api/v1/users/register', payload);
-
+            const response = await BASE_API.post('/users/register', payload);
             if (response.status === 200) {
                 Alert.alert("Success", "Registration successful");
                 // Navigate to login or another screen
