@@ -9,7 +9,7 @@ import Container from '../components/Container';
 import RootNavigation from '../route/RootNavigation'
 import { useDispatch } from 'react-redux';
 import { login } from '../redux/slice/authSlice';
-import axios from 'axios';
+import { BASE_API } from '../services/BaseApi';
 
 const Login = () => {
     const [isPasswordShown, setIsPasswordShown] = useState(true);
@@ -18,33 +18,31 @@ const Login = () => {
     const dispatch = useDispatch();
 
     const handleLoginPress = async () => {
-        // try {
-        // const response = await axios.post('http://172.16.4.155:8080/api/v1/users/login', {
-        //     phoneNumber: phoneNumber,
-        //     password: password
-        // });
+        try {
+            const response = await BASE_API.post('/users/login', {
+                phoneNumber: phoneNumber,
+                password: password
+            });
 
-        // if (response && response.data) {
-        //     const token = response.data.token;
-        //     const role = response.data.role;
+            if (response && response.data) {
+                const token = response.data.token;
+                const role = response.data.role;
 
-        //     console.log('Token:', token);
-        //     console.log('Role:', role);
+                console.log('Token:', token);
+                console.log('Role:', role);
 
-        //     // Dispatch action to update Redux store with token
-        //     dispatch(login({ role, phoneNumber, access_token: token }));
+                // Dispatch action to update Redux store with token
+                dispatch(login({ role, phoneNumber, access_token: token }));
 
-        // Navigate to HomeTabs screen upon successful login
-        RootNavigation.navigate('HomeTab');
-        //     } else {
-        //         console.error('Token not found in response');
-        //     }
-        // } catch (error) {
-        //     console.error('Error:', error.response.data);
-        // }
+                // Navigate to HomeTabs screen upon successful login
+                RootNavigation.navigate('HomeTab');
+            } else {
+                console.error('Token not found in response');
+            }
+        } catch (error) {
+            console.error('Error:', error.response.data);
+        }
     };
-
-
 
     return (
         <Container>

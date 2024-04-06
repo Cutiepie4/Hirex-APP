@@ -159,9 +159,6 @@ const Message = () => {
                         <FontAwesome name="image" size={20} color={deepPurple} />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={pickDocument}>
-                        {/* <FontAwesome name="file-pdf" size={18} color={deepPurple} /> */}
-                        {/* <FontAwesome name="image" size={20} color={deepPurple} /> */}
-                        {/* <MaterialCommunityIcons name="file-pdf-box" size={24} color="black" /> */}
                         <FontAwesome name="file-pdf-o" size={18} color="black" />
                     </TouchableOpacity>
                     <Composer
