@@ -8,8 +8,9 @@ import Button from '../components/Button';
 import Container from '../components/Container';
 import RootNavigation from '../route/RootNavigation'
 import { useDispatch } from 'react-redux';
-import { login } from '../redux/slice/authSlice';
+import { hideLoading, login, showLoading } from '../redux/slice/authSlice';
 import { BASE_API } from '../services/BaseApi';
+import Toast from 'react-native-toast-message';
 
 const Login = () => {
     const [isPasswordShown, setIsPasswordShown] = useState(true);
@@ -18,6 +19,7 @@ const Login = () => {
     const dispatch = useDispatch();
 
     const handleLoginPress = async () => {
+        dispatch(showLoading());
         try {
             const response = await BASE_API.post('/users/login', {
                 phoneNumber: phoneNumber,
@@ -36,11 +38,21 @@ const Login = () => {
 
                 // Navigate to HomeTabs screen upon successful login
                 RootNavigation.navigate('HomeTab');
+                Toast.show({
+                    type: 'success',
+                    props: {
+                        title: 'Đăng nhập thành công',
+                        content: 'Chào mừng trở lại!'
+                    },
+                    autoHide: false
+                })
             } else {
                 console.error('Token not found in response');
             }
         } catch (error) {
             console.error('Error:', error.response.data);
+        } finally {
+            dispatch(hideLoading());
         }
     };
 
