@@ -50,9 +50,7 @@ const HomeStack = ({ navigation, route }: any) => {
             }}
         >
             {Object.entries(homeScreenStack).map(([name, component]) => (
-                <Stack.Screen key={name} name={name} component={component} options={{
-                    title: name
-                }} />
+                <Stack.Screen key={name} name={name} component={component} />
             ))}
         </Stack.Navigator>
     );
@@ -78,9 +76,7 @@ const ChatStack = ({ navigation, route }: any) => {
             }}
         >
             {Object.entries(chatScreenStack).map(([name, component]) => (
-                <Stack.Screen key={name} name={name} component={component} options={{
-                    title: name
-                }} />
+                <Stack.Screen key={name} name={name} component={component} />
             ))}
         </Stack.Navigator>
     );

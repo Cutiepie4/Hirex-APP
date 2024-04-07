@@ -15,6 +15,7 @@ import Information from './src/screens/Information';
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { RootReducer } from './src/redux/store/reducer';
 import HomeTab from './src/route/HomeTab';
+import LoadingOverlay from './src/components/LoadingOverlay';
 
 const Stack = createStackNavigator();
 
@@ -65,7 +66,9 @@ const App = () => {
             <Provider store={store}>
                 <PersistGate persistor={persistor} loading={null}>
                     <NavigationContainer ref={navigationRef}>
-                        <EntryNavigation />
+                        <LoadingOverlay>
+                            <EntryNavigation />
+                        </LoadingOverlay>
                     </NavigationContainer>
                 </PersistGate>
             </Provider>
