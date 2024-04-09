@@ -7,12 +7,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootReducer } from '../redux/store/reducer';
 import HomeScreen from '../screens/HomeScreen';
 import Messages from '../screens/chat/Messages';
-import Message from '../screens/chat/Message';
 import VideoCall from '../screens/chat/VideoCall';
 import CallActionBox from '../screens/chat/CallActionBox';
 import CallScreen from '../screens/chat/CallScreen';
 import DraggableCameraView from '../screens/chat/DraggableCameraView';
 import { hideTabBar, showTabBar } from '../redux/slice/authSlice';
+import ChatScreen from '../screens/chat/ChatScreen';
 
 const homeScreenStack = {
     HomeScreen: HomeScreen,
@@ -21,7 +21,7 @@ const homeScreenStack = {
 
 const chatScreenStack = {
     Messages: Messages,
-    Message: Message,
+    ChatScreen: ChatScreen,
     VideoCall: VideoCall,
     CallActionBox: CallActionBox,
     CallScreen: CallScreen,
