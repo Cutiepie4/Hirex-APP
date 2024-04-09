@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Platform, StyleSheet } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import COLORS from '../constants/colors';
+import { colors } from '@/theme';
 import Button from '../components/Button';
 import RootNavigation from '../route/RootNavigation';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -66,7 +66,7 @@ const Company = ({ route, navigation }) => {
         navigation.goBack();
     };
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
             <ScrollView>
                 <View style={{ flex: 1, marginHorizontal: 22 }}>
                     <View style={{ marginVertical: 22 }}>
@@ -78,14 +78,14 @@ const Company = ({ route, navigation }) => {
                             fontWeight: 'bold',
                             marginVertical: 12,
                             textAlign: 'center',
-                            color: COLORS.black
+                            color: colors.black
                         }}>
                             {typeof experienceIndex === 'number' ? 'Change company' : 'Add company'}
                         </Text>
                     </View>
 
                     <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 12, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>Tên ngắn</Text>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Tên ngắn</Text>
                         <TextInput
                             style={styles.input}
                             value={jobTitle}
@@ -94,7 +94,7 @@ const Company = ({ route, navigation }) => {
                     </View>
 
                     <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 12, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>Tên công ty</Text>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Tên công ty</Text>
                         <TextInput
                             style={styles.input}
                             value={company}
@@ -103,7 +103,7 @@ const Company = ({ route, navigation }) => {
                     </View>
 
                     <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 12, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>Quy mô công ty</Text>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Quy mô công ty</Text>
                         <TextInput
                             style={styles.input}
                         // value={jobTitle}
@@ -111,16 +111,7 @@ const Company = ({ route, navigation }) => {
                         />
                     </View>
                     <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 12, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>Địa điểm</Text>
-                        <TextInput
-                            style={styles.input}
-                        // value={jobTitle}
-                        // onChangeText={setJobTitle}
-                        />
-                    </View>
-
-                    <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 12, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>Ngành nghề</Text>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Địa điểm</Text>
                         <TextInput
                             style={styles.input}
                         // value={jobTitle}
@@ -129,7 +120,7 @@ const Company = ({ route, navigation }) => {
                     </View>
 
                     <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 12, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>Website</Text>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Ngành nghề</Text>
                         <TextInput
                             style={styles.input}
                         // value={jobTitle}
@@ -138,7 +129,16 @@ const Company = ({ route, navigation }) => {
                     </View>
 
                     <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 12, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>Mô tả</Text>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Website</Text>
+                        <TextInput
+                            style={styles.input}
+                        // value={jobTitle}
+                        // onChangeText={setJobTitle}
+                        />
+                    </View>
+
+                    <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Mô tả</Text>
                         <TextInput
                             style={styles.input1}
                             value={description}
@@ -170,9 +170,9 @@ const styles = StyleSheet.create({
         height: 48,
         padding: 10,
         marginBottom: 12,
-        backgroundColor: COLORS.white,
+        backgroundColor: colors.white,
         borderWidth: 1,
-        borderColor: COLORS.black,
+        borderColor: colors.black,
         borderRadius: 8,
         color: 'black'
     },
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         textAlignVertical: 'top',
         borderWidth: 1,
-        borderColor: COLORS.black,
+        borderColor: colors.black,
     },
 });
 

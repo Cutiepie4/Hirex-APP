@@ -1,7 +1,7 @@
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native'
 import { useState, useEffect } from 'react'
 import Container from '../components/Container'
-import COLORS from '../constants/colors'
+import { colors } from '@/theme'
 import { deepPurple } from '../styles/styles'
 import APPLICATION from '../assets/images/application.png'
 import BUSINESS from '../assets/images/business.png'

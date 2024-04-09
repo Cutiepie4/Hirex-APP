@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { View } from "react-native";
 
-import {
-    RTCPeerConnection,
-    RTCView,
-    mediaDevices,
-    RTCIceCandidate,
-    RTCSessionDescription,
-    MediaStream,
-} from "react-native-webrtc";
+// import {
+//     RTCPeerConnection,
+//     RTCView,
+//     mediaDevices,
+//     RTCIceCandidate,
+//     RTCSessionDescription,
+//     MediaStream,
+// } from "react-native-webrtc";
 import { db } from "../../../firebaseConfig";
 import {
     addDoc,

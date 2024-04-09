@@ -11,14 +11,14 @@ import { Feather } from '@expo/vector-icons';
 import { doc, updateDoc, deleteField, collection, addDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import Draggable from '@ngenux/react-native-draggable-view';
 import { db } from '../../../firebaseConfig';
-import {
-    RTCPeerConnection,
-    RTCView,
-    mediaDevices,
-    RTCIceCandidate,
-    RTCSessionDescription,
-    MediaStream,
-} from "react-native-webrtc";
+// import {
+//     RTCPeerConnection,
+//     RTCView,
+//     mediaDevices,
+//     RTCIceCandidate,
+//     RTCSessionDescription,
+//     MediaStream,
+// } from "react-native-webrtc";
 import CallActionBox from './CallActionBox';
 
 const configuration = {

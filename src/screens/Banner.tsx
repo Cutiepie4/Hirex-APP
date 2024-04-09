@@ -1,7 +1,7 @@
 import { View, Text, Image } from 'react-native'
 import { useEffect } from 'react'
 import Container from '../components/Container'
-import COLORS from '../constants/colors'
+import { colors } from '@/theme'
 import { deepPurple } from '../styles/styles'
 import BANNER from '../assets/images/banner.png'
 import { useNavigation } from '@react-navigation/native';

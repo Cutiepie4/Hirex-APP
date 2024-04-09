@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import COLORS from '../constants/colors';
+import { colors } from '@/theme';
 import Input from '../components/Input';
 import Button from '../components/Button';
 import Container from '../components/Container';
@@ -50,7 +50,7 @@ const Login = () => {
                 console.error('Token not found in response');
             }
         } catch (error) {
-            console.error('Error:', error.response.data);
+            console.error('Error:');
         } finally {
             dispatch(hideLoading());
         }
@@ -58,7 +58,7 @@ const Login = () => {
 
     return (
         <Container>
-            <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
+            <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
                     <View style={{ marginHorizontal: 22, justifyContent: 'center' }}>
                         <View style={{
@@ -67,21 +67,21 @@ const Login = () => {
                             alignItems: 'center',
                         }}>
                             <View style={{ marginVertical: 50 }}>
-                                <Text style={{ fontSize: 30, fontWeight: '900', marginVertical: 12, color: COLORS.black }}>
+                                <Text style={{ fontSize: 30, fontWeight: '900', marginVertical: 12, color: colors.black }}>
                                     Welcome Back
                                 </Text>
-                                <Text style={{ fontSize: 16, color: COLORS.black }}>
+                                <Text style={{ fontSize: 16, color: colors.black }}>
                                     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
                                 </Text>
                             </View>
                         </View>
                         <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                            <Text style={{ fontSize: 16, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>
+                            <Text style={{ fontSize: 16, color: colors.black, marginBottom: 8, fontWeight: '900' }}>
                                 Phone Number
                             </Text>
                             <View style={{
                                 height: 48,
-                                borderColor: COLORS.black,
+                                borderColor: colors.black,
                                 borderWidth: 1,
                                 borderRadius: 8,
                                 alignItems: "center",
@@ -95,12 +95,12 @@ const Login = () => {
                         </View>
 
                         <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                            <Text style={{ fontSize: 16, color: COLORS.black, fontWeight: '900', marginBottom: 8 }}>
+                            <Text style={{ fontSize: 16, color: colors.black, fontWeight: '900', marginBottom: 8 }}>
                                 Password
                             </Text>
                             <View style={{
                                 height: 48,
-                                borderColor: COLORS.black,
+                                borderColor: colors.black,
                                 borderWidth: 1,
                                 borderRadius: 8,
                                 alignItems: "center",
@@ -113,9 +113,9 @@ const Login = () => {
                                     style={{ position: 'absolute', right: 12 }}
                                 >
                                     {isPasswordShown ? (
-                                        <Ionicons name="eye-off" size={24} color={COLORS.black} />
+                                        <Ionicons name="eye-off" size={24} color={colors.black} />
                                     ) : (
-                                        <Ionicons name="eye" size={24} color={COLORS.black} />
+                                        <Ionicons name="eye" size={24} color={colors.black} />
                                     )}
                                 </TouchableOpacity>
                             </View>
@@ -132,7 +132,8 @@ const Login = () => {
                         <Button
                             title="LOGIN"
                             filled
-                            onPress={handleLoginPress}
+                            // onPress={handleLoginPress}
+                            onPress={() => RootNavigation.navigate('HomeTab')}
                             style={{
                                 marginTop: 18,
                                 marginBottom: 4,
@@ -152,10 +153,10 @@ const Login = () => {
                                     height: 52,
                                     width: 250,
                                     borderWidth: 1,
-                                    borderColor: COLORS.grey,
+                                    borderColor: colors.grey,
                                     marginRight: 4,
                                     borderRadius: 10,
-                                    backgroundColor: COLORS.lavendar,
+                                    backgroundColor: colors.lavendar,
                                     alignSelf: 'center'
                                 }}
                             >
@@ -164,12 +165,12 @@ const Login = () => {
                                     style={{ height: 30, width: 30, marginRight: 8 }}
                                     resizeMode="contain"
                                 />
-                                <Text style={{ fontSize: 15, fontWeight: '900', marginVertical: 12, color: COLORS.black }}>SIGN IN WITH GOOGLE</Text>
+                                <Text style={{ fontSize: 15, fontWeight: '900', marginVertical: 12, color: colors.black }}>SIGN IN WITH GOOGLE</Text>
                             </TouchableOpacity>
                         </View>
 
                         <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 22 }}>
-                            <Text style={{ fontSize: 16, color: COLORS.black }}>You don't have an account yet?</Text>
+                            <Text style={{ fontSize: 16, color: colors.black }}>You don't have an account yet?</Text>
                             <Pressable onPress={() => RootNavigation.navigate('SignUp')}>
                                 <Text style={{ fontSize: 16, color: '#FF9228', fontWeight: '900', marginLeft: 6 }}>
                                     Sign up

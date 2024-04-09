@@ -5,17 +5,20 @@ import Welcome from '../screens/Welcome';
 import Banner from '../screens/Banner';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootReducer } from '../redux/store/reducer';
-import HomeScreen from '../screens/HomeScreen';
 import Messages from '../screens/chat/Messages';
 import VideoCall from '../screens/chat/VideoCall';
 import CallActionBox from '../screens/chat/CallActionBox';
 import CallScreen from '../screens/chat/CallScreen';
 import DraggableCameraView from '../screens/chat/DraggableCameraView';
 import { hideTabBar, showTabBar } from '../redux/slice/authSlice';
+import { Home, Description, UploadCV, UploadCVSuccess } from '@/screens/Home';
 import ChatScreen from '../screens/chat/ChatScreen';
 
 const homeScreenStack = {
-    HomeScreen: HomeScreen,
+    Home: Home,
+    Description: Description,
+    UploadCV: UploadCV,
+    UploadCVSuccess: UploadCVSuccess,
 
 }
 
@@ -36,7 +39,7 @@ const HomeStack = ({ navigation, route }: any) => {
 
     useLayoutEffect(() => {
         const routeName = getFocusedRouteNameFromRoute(route);
-        if (routeName === 'HomeScreen' || routeName == undefined) {
+        if (routeName === 'Home' || routeName == undefined) {
             dispatch(showTabBar());
         } else {
             dispatch(hideTabBar());
