@@ -16,7 +16,10 @@ BASE_API.interceptors.request.use(
             (config.headers as AxiosHeaders).set("Authorization", `Bearer ${token}`);
         return config;
     },
-    (error) => Promise.reject(error),
+    (error) => {
+        console.log('Request error: ', error)
+        return Promise.reject(error);
+    },
 );
 
 export {

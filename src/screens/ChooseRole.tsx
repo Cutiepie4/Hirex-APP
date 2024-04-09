@@ -13,7 +13,6 @@ const ChooseRole = ({ route }) => {
 
 
     const { password, phoneNumber, retryPassword } = route.params;
-    const [role, setRole] = useState('')
 
     const toInformation = (selectedRole) => {
         RootNavigation.navigate('Information', {
@@ -44,7 +43,7 @@ const ChooseRole = ({ route }) => {
                                 />
                             </View>
                         </TouchableOpacity>
-                        <Text style={styles.optionText}>Application</Text>
+                        <Text style={styles.optionText}>Applicants</Text>
                     </View>
                     <View style={styles.option}>
                         <TouchableOpacity onPress={() => toInformation(0)}>
