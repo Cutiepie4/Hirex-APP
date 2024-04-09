@@ -1,7 +1,7 @@
 import { StyleSheet, View, Text, Image, Pressable, TextInput, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
 import { SafeAreaView } from "react-native-safe-area-context";
-import COLORS from '../constants/colors';
+import { colors } from '@/theme';
 import { Ionicons } from "@expo/vector-icons";
 import Button from '../components/Button';
 import RootNavigation from '../route/RootNavigation'
@@ -22,7 +22,7 @@ const UpdatePassword = () => {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
             <View style={{ flex: 1, marginHorizontal: 22 }}>
                 <View style={{ marginVertical: 22 }}>
                     <TouchableOpacity onPress={() => RootNavigation.pop()}>
@@ -33,7 +33,7 @@ const UpdatePassword = () => {
                         fontWeight: 'bold',
                         marginVertical: 12,
                         textAlign: 'center',
-                        color: COLORS.black
+                        color: colors.black
                     }}>
                         Thay đổi mật khẩu
                     </Text>
@@ -41,12 +41,12 @@ const UpdatePassword = () => {
 
 
                 <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 16, color: COLORS.black, fontWeight: 'bold', marginBottom: 8 }}>
+                    <Text style={{ fontSize: 16, color: colors.black, fontWeight: 'bold', marginBottom: 8 }}>
                         Mật khẩu cũ
                     </Text>
                     <View style={{
                         height: 48,
-                        borderColor: COLORS.black,
+                        borderColor: colors.black,
                         borderWidth: 1,
                         borderRadius: 8,
                         alignItems: "center",
@@ -59,9 +59,9 @@ const UpdatePassword = () => {
                             style={{ position: 'absolute', right: 12 }}
                         >
                             {isPasswordShown ? (
-                                <Ionicons name="eye-off" size={24} color={COLORS.black} />
+                                <Ionicons name="eye-off" size={24} color={colors.black} />
                             ) : (
-                                <Ionicons name="eye" size={24} color={COLORS.black} />
+                                <Ionicons name="eye" size={24} color={colors.black} />
                             )}
                         </TouchableOpacity>
                     </View>
@@ -70,12 +70,12 @@ const UpdatePassword = () => {
                 </View>
 
                 <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 16, color: COLORS.black, fontWeight: 'bold', marginBottom: 8 }}>
+                    <Text style={{ fontSize: 16, color: colors.black, fontWeight: 'bold', marginBottom: 8 }}>
                         Mật khẩu mới
                     </Text>
                     <View style={{
                         height: 48,
-                        borderColor: COLORS.black,
+                        borderColor: colors.black,
                         borderWidth: 1,
                         borderRadius: 8,
                         alignItems: "center",
@@ -88,9 +88,9 @@ const UpdatePassword = () => {
                             style={{ position: 'absolute', right: 12 }}
                         >
                             {isPasswordShown1 ? (
-                                <Ionicons name="eye-off" size={24} color={COLORS.black} />
+                                <Ionicons name="eye-off" size={24} color={colors.black} />
                             ) : (
-                                <Ionicons name="eye" size={24} color={COLORS.black} />
+                                <Ionicons name="eye" size={24} color={colors.black} />
                             )}
                         </TouchableOpacity>
                     </View>
@@ -99,12 +99,12 @@ const UpdatePassword = () => {
                 </View>
 
                 <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 16, color: COLORS.black, fontWeight: 'bold', marginBottom: 8 }}>
+                    <Text style={{ fontSize: 16, color: colors.black, fontWeight: 'bold', marginBottom: 8 }}>
                         Xác nhận lại
                     </Text>
                     <View style={{
                         height: 48,
-                        borderColor: COLORS.black,
+                        borderColor: colors.black,
                         borderWidth: 1,
                         borderRadius: 8,
                         alignItems: "center",
@@ -117,9 +117,9 @@ const UpdatePassword = () => {
                             style={{ position: 'absolute', right: 12 }}
                         >
                             {isPasswordShown2 ? (
-                                <Ionicons name="eye-off" size={24} color={COLORS.black} />
+                                <Ionicons name="eye-off" size={24} color={colors.black} />
                             ) : (
-                                <Ionicons name="eye" size={24} color={COLORS.black} />
+                                <Ionicons name="eye" size={24} color={colors.black} />
                             )}
                         </TouchableOpacity>
                     </View>

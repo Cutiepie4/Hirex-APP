@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Platform, StyleSheet } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import COLORS from '../constants/colors';
+import { colors } from '@/theme';
 import Button from '../components/Button';
 import RootNavigation from '../route/RootNavigation';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
@@ -51,7 +51,7 @@ const Certification = ({ route, navigation }) => {
         navigation.goBack();
     };
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
             <View style={{ flex: 1, marginHorizontal: 22 }}>
                 <View style={{ marginVertical: 22 }}>
                     <TouchableOpacity onPress={handleBack}>
@@ -62,7 +62,7 @@ const Certification = ({ route, navigation }) => {
                         fontWeight: 'bold',
                         marginVertical: 12,
                         textAlign: 'center',
-                        color: COLORS.black
+                        color: colors.black
                     }}>
                         {typeof certificationIndex === 'number' ? 'Change Certification' : 'Add Certification'}
                     </Text>
@@ -70,7 +70,7 @@ const Certification = ({ route, navigation }) => {
 
 
                 <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>Tên bằng, chứng chỉ</Text>
+                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Tên bằng, chứng chỉ</Text>
                     <TextInput
                         style={styles.input}
                         value={name}
@@ -81,7 +81,7 @@ const Certification = ({ route, navigation }) => {
 
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
                     <View style={{ flex: 1, marginRight: 10 }}>
-                        <Text style={{ fontSize: 12, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>Bắt đầu</Text>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Bắt đầu</Text>
                         <TouchableOpacity onPress={() => setShowStartDatePicker(true)}>
                             <TextInput
                                 style={styles.input}
@@ -99,7 +99,7 @@ const Certification = ({ route, navigation }) => {
 
                 </View>
                 <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>Mô tả</Text>
+                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Mô tả</Text>
                     <TextInput
                         style={styles.input1}
                         value={description}
@@ -130,9 +130,9 @@ const styles = StyleSheet.create({
         height: 48,
         padding: 10,
         marginBottom: 12,
-        backgroundColor: COLORS.white,
+        backgroundColor: colors.white,
         borderWidth: 1,
-        borderColor: COLORS.black,
+        borderColor: colors.black,
         borderRadius: 8,
         color: 'black'
     },
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         textAlignVertical: 'top',
         borderWidth: 1,
-        borderColor: COLORS.black,
+        borderColor: colors.black,
     },
 });
 

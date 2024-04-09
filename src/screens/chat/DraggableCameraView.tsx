@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import Container from '../../components/Container'
-import { RTCView } from 'react-native-webrtc'
+// import { RTCView } from 'react-native-webrtc'
 
 const DraggableCameraView = (props) => {
     return (

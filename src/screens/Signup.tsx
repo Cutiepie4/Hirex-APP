@@ -1,14 +1,14 @@
 import { StyleSheet, View, Text, Image, Pressable, TextInput, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
 import { SafeAreaView } from "react-native-safe-area-context";
-import COLORS from '../constants/colors';
+import { colors } from '@/theme';
 import { Ionicons } from "@expo/vector-icons";
 import Button from '../components/Button';
 import RootNavigation from '../route/RootNavigation'
 import Input from '../components/Input';
 
 
-const Signup = ({ navigation }) => {
+const Signup = () => {
     const [isPasswordShown, setIsPasswordShown] = useState(true);
     const [password, setPassword] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
@@ -24,7 +24,7 @@ const Signup = ({ navigation }) => {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
             <View style={{ flex: 1, marginHorizontal: 22 }}>
                 <View style={{ marginVertical: 22 }}>
                     <TouchableOpacity onPress={() => RootNavigation.pop()}>
@@ -35,25 +35,25 @@ const Signup = ({ navigation }) => {
                         fontWeight: 'bold',
                         marginVertical: 12,
                         textAlign: 'center',
-                        color: COLORS.black
+                        color: colors.black
                     }}>
                         Create An Account
                     </Text>
 
                     <Text style={{
                         fontSize: 16,
-                        color: COLORS.black
+                        color: colors.black
                     }}> Fill your details or continue with social media</Text>
                 </View>
 
                 <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>
+                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>
                         Phone Number
                     </Text>
                     <View style={{
                         width: "100%",
                         height: 48,
-                        borderColor: COLORS.black,
+                        borderColor: colors.black,
                         borderWidth: 1,
                         borderRadius: 8,
                         alignItems: "center",
@@ -66,12 +66,12 @@ const Signup = ({ navigation }) => {
                 </View>
 
                 <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 16, color: COLORS.black, fontWeight: 'bold', marginBottom: 8 }}>
+                    <Text style={{ fontSize: 16, color: colors.black, fontWeight: 'bold', marginBottom: 8 }}>
                         Password
                     </Text>
                     <View style={{
                         height: 48,
-                        borderColor: COLORS.black,
+                        borderColor: colors.black,
                         borderWidth: 1,
                         borderRadius: 8,
                         alignItems: "center",
@@ -84,9 +84,9 @@ const Signup = ({ navigation }) => {
                             style={{ position: 'absolute', right: 12 }}
                         >
                             {isPasswordShown ? (
-                                <Ionicons name="eye-off" size={24} color={COLORS.black} />
+                                <Ionicons name="eye-off" size={24} color={colors.black} />
                             ) : (
-                                <Ionicons name="eye" size={24} color={COLORS.black} />
+                                <Ionicons name="eye" size={24} color={colors.black} />
                             )}
                         </TouchableOpacity>
                     </View>
@@ -130,10 +130,10 @@ const Signup = ({ navigation }) => {
                             height: 52,
                             width: 250,
                             borderWidth: 1,
-                            borderColor: COLORS.grey,
+                            borderColor: colors.grey,
                             marginRight: 4,
                             borderRadius: 10,
-                            backgroundColor: COLORS.lavendar,
+                            backgroundColor: colors.lavendar,
                             alignSelf: 'center'
                         }}
                     >
@@ -142,7 +142,7 @@ const Signup = ({ navigation }) => {
                             style={{ height: 30, width: 30, marginRight: 8 }}
                             resizeMode="contain"
                         />
-                        <Text style={{ fontSize: 15, fontWeight: '900', marginVertical: 12, color: COLORS.black }}>SIGN IN WITH GOOGLE</Text>
+                        <Text style={{ fontSize: 15, fontWeight: '900', marginVertical: 12, color: colors.black }}>SIGN IN WITH GOOGLE</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -151,7 +151,7 @@ const Signup = ({ navigation }) => {
                     justifyContent: "center",
                     marginVertical: 22
                 }}>
-                    <Text style={{ fontSize: 16, color: COLORS.black }}>Already have an account ?</Text>
+                    <Text style={{ fontSize: 16, color: colors.black }}>Already have an account ?</Text>
                     <Pressable
                         onPress={() => RootNavigation.navigate("Login")}
                     >
@@ -175,14 +175,14 @@ const styles = StyleSheet.create({
     },
     label: {
         fontSize: 12,
-        color: COLORS.black,
+        color: colors.black,
         marginBottom: 8,
         fontWeight: '900'
     },
     inputContainer: {
         width: '100%',
         height: 48,
-        borderColor: COLORS.black,
+        borderColor: colors.black,
         borderWidth: 1,
         borderRadius: 8,
         alignItems: 'center',
