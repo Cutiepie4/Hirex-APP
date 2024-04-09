@@ -14,13 +14,13 @@ export const titleFontStyle: TextStyle = {
     fontWeight: '600',
     fontSize: 16,
     color: deepPurple
-}
+};
 
 export const placeholderFontStyle: TextStyle = {
     fontWeight: '500',
     color: '#AAA6B9',
     fontSize: 11
-}
+};
 
 export {
     backgroundColor,
@@ -33,4 +33,4 @@ export {
     purple,
     regularPadding,
     orange
-}
+};

@@ -71,6 +71,7 @@
         "projectId": "b3d1084f-9c20-4437-9344-e4fca10ca0e3"
       }
     },
+    "owner": "hirex-team",
     "experiments": { "tsconfigPaths": true }
   }
 }
