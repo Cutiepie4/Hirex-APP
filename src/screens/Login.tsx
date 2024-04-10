@@ -19,14 +19,15 @@ const Login = () => {
     const dispatch = useDispatch();
 
     const handleLoginPress = async () => {
-        dispatch(showLoading());
+
         try {
+            dispatch(showLoading());
             const response = await BASE_API.post('/users/login', {
                 phoneNumber: phoneNumber,
                 password: password
             });
+            if (response.status == 200 && response.data) {
 
-            if (response && response.data) {
                 const token = response.data.token;
                 const role = response.data.role;
 
@@ -35,17 +36,15 @@ const Login = () => {
 
                 // Dispatch action to update Redux store with token
                 dispatch(login({ role, phoneNumber, access_token: token }));
-
-                // Navigate to HomeTabs screen upon successful login
-                RootNavigation.navigate('HomeTab');
                 Toast.show({
                     type: 'success',
                     props: {
                         title: 'Đăng nhập thành công',
-                        content: 'Chào mừng trở lại!'
+                        content: `Chào mừng ${phoneNumber} trở lại!`
                     },
-                    autoHide: false
-                })
+                });
+                // Navigate to HomeTabs screen upon successful login
+                RootNavigation.navigate('HomeTab');
             } else {
                 console.error('Token not found in response');
             }
@@ -54,6 +53,7 @@ const Login = () => {
         } finally {
             dispatch(hideLoading());
         }
+
     };
 
     return (
@@ -132,8 +132,8 @@ const Login = () => {
                         <Button
                             title="LOGIN"
                             filled
-                            // onPress={handleLoginPress}
-                            onPress={() => RootNavigation.navigate('HomeTab')}
+                            onPress={handleLoginPress}
+                            // onPress={() => RootNavigation.navigate('HomeTab')}
                             style={{
                                 marginTop: 18,
                                 marginBottom: 4,

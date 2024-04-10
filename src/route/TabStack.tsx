@@ -13,8 +13,10 @@ import DraggableCameraView from '../screens/chat/DraggableCameraView';
 import { hideTabBar, showTabBar } from '../redux/slice/authSlice';
 import { Home, Description, UploadCV, UploadCVSuccess } from '@/screens/Home';
 import ChatScreen from '../screens/chat/ChatScreen';
+import HomeScreen from '@/screens/HomeScreen';
 
 const homeScreenStack = {
+    HomeScreen: HomeScreen,
     Home: Home,
     Description: Description,
     UploadCV: UploadCV,
@@ -34,7 +36,6 @@ const chatScreenStack = {
 const Stack = createStackNavigator();
 
 const HomeStack = ({ navigation, route }: any) => {
-
     const dispatch = useDispatch();
 
     useLayoutEffect(() => {
@@ -60,7 +61,6 @@ const HomeStack = ({ navigation, route }: any) => {
 };
 
 const ChatStack = ({ navigation, route }: any) => {
-
     const dispatch = useDispatch();
 
     useLayoutEffect(() => {

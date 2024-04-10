@@ -10,7 +10,7 @@ import { ScrollView } from 'react-native-gesture-handler'
 import { Feather } from '@expo/vector-icons';
 import RootNavigation from '../../route/RootNavigation'
 import { db } from '../../../firebaseConfig'
-import { Timestamp, collection, getDocs, query, where } from 'firebase/firestore'
+import { Timestamp, collection, getDocs, onSnapshot, query, where } from 'firebase/firestore'
 import { useFocusEffect } from '@react-navigation/native'
 import { useDispatch, useSelector } from 'react-redux'
 import { hideLoading, showLoading } from '../../redux/slice/authSlice'
@@ -43,10 +43,10 @@ const Messages = () => {
     useFocusEffect(
         useCallback(() => {
             const initialize = async () => {
-                dispatch(showLoading());
+                // dispatch(showLoading());
                 let tempChatRoom = [];
                 const fetchData = async () => {
-                    const q = query(collection(db, 'conversations_col'), where('participants', 'array-contains', 'user1'));
+                    const q = query(collection(db, 'conversations_col'), where('participants', 'array-contains', phoneNumber));
                     const docs = await getDocs(q);
                     docs.forEach((doc) => {
                         const data = doc.data();
@@ -62,15 +62,17 @@ const Messages = () => {
                     });
                 };
                 await fetchData();
+                // dispatch(hideLoading());
                 dispatch(saveChatRoom(tempChatRoom));
-                dispatch(hideLoading());
             };
             initialize();
         }, [])
     );
 
+
     const formatTimeDifference = (timestamp: Timestamp): string => {
-        const timestampFromFirestore = timestamp.toDate();
+        if (!timestamp) return '-';
+        const timestampFromFirestore = timestamp.toDate?.();
         const currentTimestamp = new Date();
 
         const timeDifference = currentTimestamp.getTime() - timestampFromFirestore.getTime();

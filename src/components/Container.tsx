@@ -1,52 +1,9 @@
 
-import React, { ReactNode, useMemo } from 'react';
-import { Image, View, Text, StyleSheet } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast, { BaseToast, ErrorToast, SuccessToast } from 'react-native-toast-message';
-import TOAST_PASSWORD from '../assets/images/toast_password.png';
+import React, { ReactNode } from 'react';
+import { View, StyleSheet, KeyboardAvoidingView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar, StatusBarStyle } from 'expo-status-bar';
-import { backgroundColor, regularPadding } from '../styles/styles';
-import { AntDesign } from '@expo/vector-icons';
-
-interface ToastProps {
-    title: string;
-    content: string;
-}
-
-const toastConfig = {
-    success: ({ props }: { props: ToastProps }) => {
-        const { title = '', content = '' } = props;
-        return (
-            <View style={[styles.toast,]}>
-                <AntDesign name="circledown" size={30} color="white" />
-                <View style={styles.contentToast}>
-                    <Text style={styles.titleText}>
-                        {title}
-                    </Text>
-                    <Text style={[styles.contentText]}>
-                        {content}
-                    </Text>
-                </View>
-            </View>
-        );
-    },
-    error: ({ props }: { props: ToastProps }) => {
-        const { title = '', content = '' } = props;
-        return (
-            <View style={[styles.toast, { backgroundColor: 'red' }]}>
-                <AntDesign name="closecircle" size={30} color="white" />
-                <View style={styles.contentToast}>
-                    <Text style={styles.titleText}>
-                        {title}
-                    </Text>
-                    <Text style={[styles.contentText]}>
-                        {content}
-                    </Text>
-                </View>
-            </View>
-        );
-    },
-};
+import { regularPadding } from '../styles/styles';
 
 const Container = (props: {
     statusBarColor?: string,
@@ -62,10 +19,6 @@ const Container = (props: {
         statusBarContentColor = 'dark'
     } = props;
 
-    const toastUI = useMemo(() => {
-        return <Toast config={toastConfig} />;
-    }, []);
-
     return (
         <View style={{ flex: 1, backgroundColor: 'transparent' }}>
             <StatusBar
@@ -75,7 +28,6 @@ const Container = (props: {
             <View style={[styles.container, { backgroundColor: backgroundColor }]}>
                 <SafeAreaView style={styles.container}>{props.children}</SafeAreaView>
             </View>
-            {toastUI}
         </View>
     );
 };
