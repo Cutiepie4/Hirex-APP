@@ -35,15 +35,16 @@ const CallActionBox = (props: CallActionProps) => {
         >
             <TouchableOpacity onPress={switchCamera} style={[styles.imageBox, { backgroundColor: 'white' }]}>
                 <Ionicons name="camera-reverse-outline" size={24} color="black" />
-
             </TouchableOpacity>
+
             <TouchableOpacity onPress={toggleCamera} style={[styles.imageBox, { backgroundColor: 'white' }]}>
                 <Octicons name="unmute" size={20} color={deepPurple} />
-
             </TouchableOpacity>
+
             <TouchableOpacity onPress={toggleMute} style={[styles.imageBox, { backgroundColor: 'white' }]}>
                 <Octicons name="unmute" size={20} color={deepPurple} />
             </TouchableOpacity>
+
             <TouchableOpacity onPress={endCall} style={[styles.imageBox, { backgroundColor: 'white' }]}>
                 <Octicons name="unmute" size={20} color={deepPurple} />
 

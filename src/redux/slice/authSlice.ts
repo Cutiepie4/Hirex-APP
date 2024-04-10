@@ -26,11 +26,7 @@ const authSlice = createSlice({
             state.phoneNumber = phoneNumber;
             state.access_token = access_token;
         },
-        logout: (state) => {
-            state.role = '';
-            state.phoneNumber = '';
-            state.access_token = '';
-        },
+        logout: (state) => initialState,
         showLoading: (state) => {
             return { ...state, isLoading: true };
         },

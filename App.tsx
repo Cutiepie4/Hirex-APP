@@ -16,6 +16,8 @@ import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { LogBox } from 'react-native';
 import { RootReducer } from './src/redux/store/reducer';
 import HomeTab from './src/route/HomeTab';
+import LoadingOverlay from './src/components/LoadingOverlay';
+import { loadFonts } from '@/theme';
 
 const Stack = createStackNavigator();
 
@@ -66,13 +68,22 @@ const EntryNavigation = () => {
     }
 };
 
+
 const App = () => {
+    const preload = async () => {
+        await Promise.all([loadFonts()]);
+    }
+    React.useEffect(() => {
+        preload();
+    }, []);
     return (
         <ActionSheetProvider>
             <Provider store={store}>
                 <PersistGate persistor={persistor} loading={null}>
                     <NavigationContainer ref={navigationRef}>
-                        <EntryNavigation />
+                        <LoadingOverlay>
+                            <EntryNavigation />
+                        </LoadingOverlay>
                     </NavigationContainer>
                 </PersistGate>
             </Provider>

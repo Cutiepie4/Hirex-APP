@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, Platform, Alert, Pressable } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
-import COLORS from '../../constants/colors';
+import { colors } from '@/theme';
 import { Ionicons } from "@expo/vector-icons";
 import Button from '../../components/Button';
 import RootNavigation from '../../route/RootNavigation';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from 'axios';
+import { BASE_API } from '../../services/BaseApi';
 import { deepPurple } from '../../styles/styles';
 
 
@@ -36,12 +37,18 @@ const Information = ({ route }) => {
             date_of_birth: date.toISOString().split('T')[0],
             role_id: role,
         };
+        // console.log(phoneNumber)
+        // console.log(password)
+        // console.log(address)
+        // console.log(retryPassword)
+        // console.log(date.toISOString().split('T')[0])
+        // console.log(role)
+        console.log('payload', payload);
 
         try {
-            // const response = await axios.post('http://192.168.1.223:8080/api/v1/users/register', payload);
-            const response = 200
-            if (response === 200) {
-                setModalVisible(true);
+            const response = await BASE_API.post('/users/register', payload);
+            if (response.status === 200) {
+                 setModalVisible(true);
             } else {
                 throw new Error('Failed to register. Please try again.');
             }
@@ -51,7 +58,7 @@ const Information = ({ route }) => {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
             <View style={{ flex: 1, marginHorizontal: 22 }}>
                 <View style={{ marginVertical: 22 }}>
                     <TouchableOpacity onPress={() => RootNavigation.pop()}>
@@ -62,20 +69,20 @@ const Information = ({ route }) => {
                         fontWeight: 'bold',
                         marginVertical: 12,
                         textAlign: 'center',
-                        color: COLORS.black
+                        color: colors.black
                     }}>
                         Thông tin bắt buộc
                     </Text>
                 </View>
 
                 <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>
+                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>
                         Họ và tên
                     </Text>
                     <View style={{
                         width: "100%",
                         height: 48,
-                        borderColor: COLORS.black,
+                        borderColor: colors.black,
                         borderWidth: 1,
                         borderRadius: 8,
                         alignItems: "center",
@@ -84,7 +91,7 @@ const Information = ({ route }) => {
                     }}>
                         <TextInput
                             placeholder='Học và tên'
-                            placeholderTextColor={COLORS.black}
+                            placeholderTextColor={colors.black}
                             value={fullname}
                             onChangeText={setFullname}
                             style={{
@@ -95,12 +102,12 @@ const Information = ({ route }) => {
                 </View>
 
                 <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>Ngày Sinh</Text>
+                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Ngày Sinh</Text>
                     <View style={{
                         flexDirection: 'row',
                         width: '100%',
                         height: 48,
-                        borderColor: COLORS.black,
+                        borderColor: colors.black,
                         borderWidth: 1,
                         borderRadius: 8,
                         alignItems: 'center',
@@ -110,7 +117,7 @@ const Information = ({ route }) => {
                     }}>
                         <Text>{date.toLocaleDateString()}</Text>
                         <TouchableOpacity onPress={() => setShow(true)}>
-                            <Ionicons name="calendar" size={24} color={COLORS.black} />
+                            <Ionicons name="calendar" size={24} color={colors.black} />
                         </TouchableOpacity>
                     </View>
                     {show && (
@@ -125,12 +132,12 @@ const Information = ({ route }) => {
                 </View>
 
                 <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}> Giới tính </Text>
+                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}> Giới tính </Text>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                         <View style={{
                             flexDirection: 'row',
                             alignItems: 'center',
-                            borderColor: COLORS.black,
+                            borderColor: colors.black,
                             borderWidth: 1,
                             borderRadius: 8,
                             padding: 10
@@ -163,7 +170,7 @@ const Information = ({ route }) => {
                         <View style={{
                             flexDirection: 'row',
                             alignItems: 'center',
-                            borderColor: COLORS.black,
+                            borderColor: colors.black,
                             borderWidth: 1,
                             borderRadius: 8,
                             padding: 10
@@ -196,13 +203,13 @@ const Information = ({ route }) => {
                 </View>
 
                 <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>
+                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>
                         Địa chỉ Email
                     </Text>
                     <View style={{
                         width: "100%",
                         height: 48,
-                        borderColor: COLORS.black,
+                        borderColor: colors.black,
                         borderWidth: 1,
                         borderRadius: 8,
                         alignItems: "center",
@@ -211,7 +218,7 @@ const Information = ({ route }) => {
                     }}>
                         <TextInput
                             placeholder='Địa chỉ Email'
-                            placeholderTextColor={COLORS.black}
+                            placeholderTextColor={colors.black}
                             value={email}
                             onChangeText={setEmail}
                             style={{
@@ -222,13 +229,13 @@ const Information = ({ route }) => {
                 </View>
 
                 <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>
+                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>
                         Số điện thoại
                     </Text>
                     <View style={{
                         width: "100%",
                         height: 48,
-                        borderColor: COLORS.black,
+                        borderColor: colors.black,
                         borderWidth: 1,
                         borderRadius: 8,
                         alignItems: "center",
@@ -237,7 +244,7 @@ const Information = ({ route }) => {
                     }}>
                         <TextInput
                             placeholder='Số điện thoại'
-                            placeholderTextColor={COLORS.black}
+                            placeholderTextColor={colors.black}
                             value={phoneNumber}
                             style={{
                                 width: "100%"
@@ -247,13 +254,13 @@ const Information = ({ route }) => {
                 </View>
 
                 <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>
+                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>
                         Địa chỉ
                     </Text>
                     <View style={{
                         width: "100%",
                         height: 48,
-                        borderColor: COLORS.black,
+                        borderColor: colors.black,
                         borderWidth: 1,
                         borderRadius: 8,
                         alignItems: "center",
@@ -262,7 +269,7 @@ const Information = ({ route }) => {
                     }}>
                         <TextInput
                             placeholder='Địa chỉ'
-                            placeholderTextColor={COLORS.black}
+                            placeholderTextColor={colors.black}
                             value={address}
                             onChangeText={setAddress}
                             style={{

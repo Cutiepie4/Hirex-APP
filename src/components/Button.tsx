@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, TouchableOpacity, StyleSheet, StyleProp, ViewStyle } from 'react-native';
-import COLORS from '../constants/colors';
+import { colors } from '@/theme';
 
 interface ButtonProps {
     title: string;
@@ -11,10 +11,10 @@ interface ButtonProps {
 }
 
 const Button = (props: ButtonProps) => {
-    const filledBgColor = props.color || COLORS.grey;
-    const outlinedColor = COLORS.white;
+    const filledBgColor = props.color || colors.primary;
+    const outlinedColor = colors.white;
     const bgColor = props.filled ? filledBgColor : outlinedColor;
-    const textColor = props.filled ? COLORS.white : COLORS.primary;
+    const textColor = props.filled ? colors.white : colors.primary;
 
     return (
       <TouchableOpacity
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     button: {
         paddingBottom: 10,
         paddingVertical: 6,
-        borderColor: COLORS.primary,
+        borderColor: colors.primary,
         borderWidth: 1,
         borderRadius: 8,
         alignItems: 'center',

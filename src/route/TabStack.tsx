@@ -5,14 +5,14 @@ import Welcome from '../screens/welcome/Welcome';
 import Banner from '../screens/welcome/Banner';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootReducer } from '../redux/store/reducer';
-import HomeScreen from '../screens/HomeScreen';
 import Messages from '../screens/chat/Messages';
-import Message from '../screens/chat/Message';
 import VideoCall from '../screens/chat/VideoCall';
 import CallActionBox from '../screens/chat/CallActionBox';
 import CallScreen from '../screens/chat/CallScreen';
 import DraggableCameraView from '../screens/chat/DraggableCameraView';
 import { hideTabBar, showTabBar } from '../redux/slice/authSlice';
+import { Home, Description, UploadCV, UploadCVSuccess } from '@/screens/Home';
+import ChatScreen from '../screens/chat/ChatScreen';
 
 import Setting from '../screens/setting/Setting';
 import { Profile, AboutMeScreen, Experience, Education, Certification, Skill } from '../screens'; 
@@ -21,13 +21,16 @@ import UpdatePassword from '../screens/setting/UpdatePassword';
 import Login from '../screens/login/Login';
 
 const homeScreenStack = {
-    HomeScreen: HomeScreen,
+    Home: Home,
+    Description: Description,
+    UploadCV: UploadCV,
+    UploadCVSuccess: UploadCVSuccess,
 
 }
 
 const chatScreenStack = {
     Messages: Messages,
-    Message: Message,
+    ChatScreen: ChatScreen,
     VideoCall: VideoCall,
     CallActionBox: CallActionBox,
     CallScreen: CallScreen,
@@ -58,7 +61,7 @@ const HomeStack = ({ navigation, route }: any) => {
 
     useLayoutEffect(() => {
         const routeName = getFocusedRouteNameFromRoute(route);
-        if (routeName === 'HomeScreen' || routeName == undefined) {
+        if (routeName === 'Home' || routeName == undefined) {
             dispatch(showTabBar());
         } else {
             dispatch(hideTabBar());
@@ -72,9 +75,7 @@ const HomeStack = ({ navigation, route }: any) => {
             }}
         >
             {Object.entries(homeScreenStack).map(([name, component]) => (
-                <Stack.Screen key={name} name={name} component={component} options={{
-                    title: name
-                }} />
+                <Stack.Screen key={name} name={name} component={component} />
             ))}
         </Stack.Navigator>
     );
@@ -100,9 +101,7 @@ const ChatStack = ({ navigation, route }: any) => {
             }}
         >
             {Object.entries(chatScreenStack).map(([name, component]) => (
-                <Stack.Screen key={name} name={name} component={component} options={{
-                    title: name
-                }} />
+                <Stack.Screen key={name} name={name} component={component} />
             ))}
         </Stack.Navigator>
     );

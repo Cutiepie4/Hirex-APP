@@ -6,7 +6,7 @@ import { useActionSheet } from '@expo/react-native-action-sheet';
 import RootNavigation from '../../route/RootNavigation';
 import Container from '../../components/Container';
 import { deepPurple } from '../../styles/styles'
-import COLORS from '../../constants/colors';
+import { colors } from '@/theme'
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from '../../components/Button';
 import BACKGROUND from '../../assets/images/background.jpg'
@@ -114,7 +114,7 @@ const Account = ({ route }) => {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
             <View style={styles.container}>
                 <View style={styles.header}>
                     <Image source={BACKGROUND} style={{ height: 140, width: '100%', position: 'absolute', top: 0 }}></Image>
@@ -135,13 +135,13 @@ const Account = ({ route }) => {
                 </View>
                 <View style={{ marginHorizontal: 10, paddingTop: 20 }}>
                     <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 13, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>
+                        <Text style={{ fontSize: 13, color: colors.black, marginBottom: 8, fontWeight: '900' }}>
                             Họ và tên
                         </Text>
                         <View style={{
                             width: "100%",
                             height: 48,
-                            borderColor: COLORS.black,
+                            borderColor: colors.black,
                             borderWidth: 1,
                             borderRadius: 8,
                             alignItems: "center",
@@ -153,7 +153,7 @@ const Account = ({ route }) => {
                                 onChangeText={(text) => setUserData({ ...userData, fullName: text })}
                                 placeholder='Họ và tên'
                                 editable={!isEditing}
-                                placeholderTextColor={COLORS.black}
+                                placeholderTextColor={colors.black}
                                 style={{
                                     width: "100%"
                                 }}
@@ -161,12 +161,12 @@ const Account = ({ route }) => {
                         </View>
                     </View>
                     <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 13, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>Ngày Sinh</Text>
+                        <Text style={{ fontSize: 13, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Ngày Sinh</Text>
                         <View style={{
                             flexDirection: 'row',
                             width: '100%',
                             height: 48,
-                            borderColor: COLORS.black,
+                            borderColor: colors.black,
                             borderWidth: 1,
                             borderRadius: 8,
                             alignItems: 'center',
@@ -176,7 +176,7 @@ const Account = ({ route }) => {
                         }}>
                             <Text>{date.toLocaleDateString()}</Text>
                             <TouchableOpacity onPress={() => setShow(true)} disabled={isEditing}>
-                                <Ionicons name="calendar" size={24} color={COLORS.black} />
+                                <Ionicons name="calendar" size={24} color={colors.black} />
                             </TouchableOpacity>
                         </View>
                         {/* {show && (
@@ -191,12 +191,12 @@ const Account = ({ route }) => {
                             )} */}
                     </View>
                     <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 13, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}> Giới tính </Text>
+                        <Text style={{ fontSize: 13, color: colors.black, marginBottom: 8, fontWeight: '900' }}> Giới tính </Text>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                             <View style={{
                                 flexDirection: 'row',
                                 alignItems: 'center',
-                                borderColor: COLORS.black,
+                                borderColor: colors.black,
                                 borderWidth: 1,
                                 borderRadius: 8,
                                 padding: 10
@@ -231,7 +231,7 @@ const Account = ({ route }) => {
                             <View style={{
                                 flexDirection: 'row',
                                 alignItems: 'center',
-                                borderColor: COLORS.black,
+                                borderColor: colors.black,
                                 borderWidth: 1,
                                 borderRadius: 8,
                                 padding: 10
@@ -264,13 +264,13 @@ const Account = ({ route }) => {
                         </View>
                     </View>
                     <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 13, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>
+                        <Text style={{ fontSize: 13, color: colors.black, marginBottom: 8, fontWeight: '900' }}>
                             Email
                         </Text>
                         <View style={{
                             width: "100%",
                             height: 48,
-                            borderColor: COLORS.black,
+                            borderColor: colors.black,
                             borderWidth: 1,
                             borderRadius: 8,
                             alignItems: "center",
@@ -282,19 +282,19 @@ const Account = ({ route }) => {
                                 onChangeText={(text) => setUserData({ ...userData, email: text })}
                                 placeholder='Email'
                                 editable={!isEditing}
-                                placeholderTextColor={COLORS.black}
+                                placeholderTextColor={colors.black}
                                 style={{ width: "100%" }}
                             />
                         </View>
                     </View>
                     <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 13, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>
+                        <Text style={{ fontSize: 13, color: colors.black, marginBottom: 8, fontWeight: '900' }}>
                             Số điện thoại
                         </Text>
                         <View style={{
                             width: "100%",
                             height: 48,
-                            borderColor: COLORS.black,
+                            borderColor: colors.black,
                             borderWidth: 1,
                             borderRadius: 8,
                             alignItems: "center",
@@ -306,19 +306,19 @@ const Account = ({ route }) => {
                                 onChangeText={(text) => setUserData({ ...userData, phoneNumber: text })}
                                 placeholder='Số điện thoại'
                                 editable={!isEditing}
-                                placeholderTextColor={COLORS.black}
+                                placeholderTextColor={colors.black}
                                 style={{ width: "100%" }}
                             />
                         </View>
                     </View>
                     <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 13, color: COLORS.black, marginBottom: 8, fontWeight: '900' }}>
+                        <Text style={{ fontSize: 13, color: colors.black, marginBottom: 8, fontWeight: '900' }}>
                             Địa chỉ
                         </Text>
                         <View style={{
                             width: "100%",
                             height: 48,
-                            borderColor: COLORS.black,
+                            borderColor: colors.black,
                             borderWidth: 1,
                             borderRadius: 8,
                             alignItems: "center",
@@ -330,7 +330,7 @@ const Account = ({ route }) => {
                                 onChangeText={(text) => setUserData({ ...userData, address: text })}
                                 placeholder='Địa chỉ'
                                 editable={!isEditing}
-                                placeholderTextColor={COLORS.black}
+                                placeholderTextColor={colors.black}
                                 style={{ width: "100%" }}
                             />
                         </View>
@@ -417,11 +417,11 @@ const styles = StyleSheet.create({
     input: {
         width: '100%',
         height: 48,
-        borderColor: COLORS.black,
+        borderColor: colors.black,
         borderWidth: 1,
         borderRadius: 8,
         paddingLeft: 22,
-        color: COLORS.black,
+        color: colors.black,
     },
 });
 
