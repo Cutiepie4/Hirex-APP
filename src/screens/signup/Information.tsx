@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, Pressable, TextInput, TouchableOpacity, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, Platform, Alert, Pressable } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from '@/theme';
 import { Ionicons } from "@expo/vector-icons";
-import Button from '../components/Button';
-import RootNavigation from '../route/RootNavigation';
+import Button from '../../components/Button';
+import RootNavigation from '../../route/RootNavigation';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from 'axios';
-import { BASE_API } from '../services/BaseApi';
+import { BASE_API } from '../../services/BaseApi';
+import { deepPurple } from '../../styles/styles';
 
 
 const Information = ({ route }) => {
@@ -18,6 +19,7 @@ const Information = ({ route }) => {
     const [address, setAddress] = useState('');
     const [email, setEmail] = useState('');
     const { password, phoneNumber, retryPassword, role } = route.params;
+    const [modalVisible, setModalVisible] = useState(false);
 
     const onChange = (event, selectedDate) => {
         const currentDate = selectedDate || date;
@@ -46,8 +48,7 @@ const Information = ({ route }) => {
         try {
             const response = await BASE_API.post('/users/register', payload);
             if (response.status === 200) {
-                Alert.alert("Success", "Registration successful");
-                // Navigate to login or another screen
+                 setModalVisible(true);
             } else {
                 throw new Error('Failed to register. Please try again.');
             }
@@ -70,7 +71,7 @@ const Information = ({ route }) => {
                         textAlign: 'center',
                         color: colors.black
                     }}>
-                        Required Information
+                        Thông tin bắt buộc
                     </Text>
                 </View>
 
@@ -218,8 +219,8 @@ const Information = ({ route }) => {
                         <TextInput
                             placeholder='Địa chỉ Email'
                             placeholderTextColor={colors.black}
-                            value={address}
-                            onChangeText={setAddress}
+                            value={email}
+                            onChangeText={setEmail}
                             style={{
                                 width: "100%"
                             }}
@@ -290,9 +291,77 @@ const Information = ({ route }) => {
                         alignSelf: 'center'
                     }}
                 />
+                <Modal
+                    animationType="fade"
+                    transparent={true}
+                    visible={modalVisible}
+                    onRequestClose={() => {
+                        setModalVisible(!modalVisible);
+                    }}
+                >
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.modalText}>Đăng ký thành công</Text>
+                            <Pressable
+                                style={styles.button}
+                                onPress={() => {
+                                    setModalVisible(!modalVisible);
+                                    RootNavigation.navigate('Login');
+                                }}
+                            >
+                                <Text style={styles.textStyle}>OK</Text>
+                            </Pressable>
+                        </View>
+                    </View>
+                </Modal>
             </View>
         </SafeAreaView>
     )
 }
+const styles = StyleSheet.create({
+    // ... (các styles khác của bạn)
 
+    modalOverlay: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)', // This creates the dim effect
+    },
+    centeredView: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        marginTop: 22
+    },
+    modalContent: {
+        margin: 20,
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 35,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    button: {
+        borderRadius: 10,
+        padding: 10,
+        elevation: 2,
+        backgroundColor: deepPurple,
+    },
+    textStyle: {
+        color: "white",
+        fontWeight: "bold",
+        textAlign: "center"
+    },
+    modalText: {
+        marginBottom: 15,
+        textAlign: "center"
+    }
+});
 export default Information;

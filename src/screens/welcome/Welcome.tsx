@@ -1,11 +1,11 @@
 import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native'
 import React from 'react'
-import BANNERTITLE from '../assets/images/banner_title.png'
-import BANNERWELCOME1 from '../assets/images/banner_welcome1.png'
-import BANNERWELCOME from '../assets/images/banner_welcome.png'
-import NEXT from '../assets/images/next.png'
-import RootNavigation from '../route/RootNavigation'
-import Container from '../components/Container'
+import BANNERTITLE from '../../assets/images/banner_title.png'
+import BANNERWELCOME1 from '../../assets/images/banner_welcome1.png'
+import BANNERWELCOME from '../../assets/images/banner_welcome.png'
+import NEXT from '../../assets/images/next.png'
+import RootNavigation from '../../route/RootNavigation'
+import Container from '../../components/Container'
 
 const Welcome = () => {
 

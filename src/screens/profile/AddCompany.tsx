@@ -4,9 +4,9 @@ import { AntDesign, Entypo, MaterialCommunityIcons, FontAwesome5 } from '@expo/v
 import { ScrollView } from 'react-native-gesture-handler';
 import * as ImagePicker from 'expo-image-picker';
 import { useActionSheet } from '@expo/react-native-action-sheet';
-import RootNavigation from '../route/RootNavigation';
-import Container from '../components/Container';
-import { deepPurple } from '../styles/styles'
+import RootNavigation from '../../route/RootNavigation';
+import Container from '../../components/Container';
+import { deepPurple } from '../../styles/styles'
 import BACKGROUND from '../assets/images/background.jpg'
 
 const AddCompany = () => {

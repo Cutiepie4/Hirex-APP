@@ -3,13 +3,15 @@ import { View, Text, Image, TouchableOpacity, Pressable, KeyboardAvoidingView, P
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme';
-import Input from '../components/Input';
-import Button from '../components/Button';
-import Container from '../components/Container';
-import RootNavigation from '../route/RootNavigation'
+import Input from '../../components/Input';
+import Button from '../../components/Button';
+import Container from '../../components/Container';
+import RootNavigation from '../../route/RootNavigation'
 import { useDispatch } from 'react-redux';
-import { hideLoading, login, showLoading } from '../redux/slice/authSlice';
-import { BASE_API } from '../services/BaseApi';
+import { hideLoading, login, showLoading } from '../../redux/slice/authSlice';
+import GOOGLE from '../../assets/images/google_logo.png'
+
+import { BASE_API } from '../../services/BaseApi';
 import Toast from 'react-native-toast-message';
 
 const Login = () => {
@@ -19,7 +21,8 @@ const Login = () => {
     const dispatch = useDispatch();
 
     const handleLoginPress = async () => {
-        dispatch(showLoading());
+        console.log("object");
+        // dispatch(showLoading());
         try {
             const response = await BASE_API.post('/users/login', {
                 phoneNumber: phoneNumber,
@@ -132,8 +135,8 @@ const Login = () => {
                         <Button
                             title="LOGIN"
                             filled
-                            // onPress={handleLoginPress}
-                            onPress={() => RootNavigation.navigate('HomeTab')}
+                            onPress={handleLoginPress}
+                            // onPress={() => RootNavigation.navigate('HomeTab')}
                             style={{
                                 marginTop: 18,
                                 marginBottom: 4,
@@ -161,7 +164,7 @@ const Login = () => {
                                 }}
                             >
                                 <Image
-                                    source={require('../assets/google.png')}
+                                    source={GOOGLE}
                                     style={{ height: 30, width: 30, marginRight: 8 }}
                                     resizeMode="contain"
                                 />

@@ -1,18 +1,19 @@
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native'
 import { useState, useEffect } from 'react'
-import Container from '../components/Container'
-import { colors } from '@/theme'
-import { deepPurple } from '../styles/styles'
-import APPLICATION from '../assets/images/application.png'
-import BUSINESS from '../assets/images/business.png'
+import Container from '../../components/Container'
+import { colors } from '@/theme';
+import { deepPurple } from '../../styles/styles'
+import APPLICATION from '../../assets/images/application.png'
+import BUSINESS from '../../assets/images/business.png'
 import { useNavigation } from '@react-navigation/native';
-import RootNavigation from '../route/RootNavigation'
+import RootNavigation from '../../route/RootNavigation'
 import { Ionicons } from "@expo/vector-icons";
 
 const ChooseRole = ({ route }) => {
 
 
     const { password, phoneNumber, retryPassword } = route.params;
+    const [role, setRole] = useState('')
 
     const toInformation = (selectedRole) => {
         RootNavigation.navigate('Information', {
@@ -43,7 +44,7 @@ const ChooseRole = ({ route }) => {
                                 />
                             </View>
                         </TouchableOpacity>
-                        <Text style={styles.optionText}>Applicants</Text>
+                        <Text style={styles.optionText}>Người xin việc</Text>
                     </View>
                     <View style={styles.option}>
                         <TouchableOpacity onPress={() => toInformation(0)}>
@@ -55,7 +56,7 @@ const ChooseRole = ({ route }) => {
                                 />
                             </View>
                         </TouchableOpacity>
-                        <Text style={styles.optionText}>Business</Text>
+                        <Text style={styles.optionText}>Nhà tuyển dụng</Text>
                     </View>
                 </View>
             </View>
@@ -83,7 +84,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     option: {
-        marginLeft: 10,
+        marginLeft: 30,
         alignItems: 'center',
         justifyContent: 'center',
     },
