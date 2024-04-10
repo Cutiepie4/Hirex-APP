@@ -1,11 +1,11 @@
 import { StyleSheet, View, Text, Image, Pressable, TextInput, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
 import { SafeAreaView } from "react-native-safe-area-context";
-import COLORS from '../constants/colors';
+import COLORS from '../../constants/colors';
 import { Ionicons } from "@expo/vector-icons";
-import Button from '../components/Button';
-import RootNavigation from '../route/RootNavigation'
-import Input from '../components/Input';
+import Button from '../../components/Button';
+import RootNavigation from '../../route/RootNavigation'
+import Input from '../../components/Input';
 
 const UpdatePassword = () => {
     const [isPasswordShown, setIsPasswordShown] = useState(true);

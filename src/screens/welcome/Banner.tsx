@@ -1,13 +1,13 @@
 import { View, Text, Image } from 'react-native'
 import { useEffect } from 'react'
-import Container from '../components/Container'
-import COLORS from '../constants/colors'
-import { deepPurple } from '../styles/styles'
-import BANNER from '../assets/images/banner.png'
+import Container from '../../components/Container'
+import COLORS from '../../constants/colors'
+import { deepPurple } from '../../styles/styles'
+import BANNER from '../../assets/images/banner.png'
 import { useNavigation } from '@react-navigation/native';
-import RootNavigation from '../route/RootNavigation'
+import RootNavigation from '../../route/RootNavigation'
 import { useSelector } from 'react-redux'
-import { RootReducer } from '../redux/store/reducer'
+import { RootReducer } from '../../redux/store/reducer'
 
 
 const Banner = () => {

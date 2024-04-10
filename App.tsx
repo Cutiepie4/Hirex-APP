@@ -6,12 +6,12 @@ import { Provider, useSelector, } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { navigationRef } from './src/route/RootNavigation';
-import Login from './src/screens/Login'
-import Signup from './src/screens/Signup'
-import Banner from './src/screens/Banner';
-import Welcome from './src/screens/Welcome';
-import ChooseRole from './src/screens/ChooseRole';
-import Information from './src/screens/Information';
+import Login from './src/screens/login/Login'
+import Signup from './src/screens/signup/Signup'
+import Banner from './src/screens/welcome/Banner';
+import Welcome from './src/screens/welcome/Welcome';
+import ChooseRole from './src/screens/signup/ChooseRole';
+import Information from './src/screens/signup/Information';
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { LogBox } from 'react-native';
 import { RootReducer } from './src/redux/store/reducer';
@@ -28,7 +28,7 @@ const authScreens = {
     Banner: Banner,
     Welcome: Welcome,
     Login: Login,
-    SignUp: Signup,
+    Signup: Signup,
     ChooseRole: ChooseRole,
     Information: Information,
     HomeTab: HomeTab,

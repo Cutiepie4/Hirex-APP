@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Platform, StyleSheet } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import COLORS from '../constants/colors';
-import Button from '../components/Button';
-import RootNavigation from '../route/RootNavigation';
+import COLORS from '../../constants/colors';
+import Button from '../../components/Button';
+import RootNavigation from '../../route/RootNavigation';
 import { ScrollView } from 'react-native-gesture-handler';
 
 const Company = ({ route, navigation }) => {

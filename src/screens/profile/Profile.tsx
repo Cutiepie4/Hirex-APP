@@ -4,13 +4,12 @@ import { AntDesign, Entypo, MaterialCommunityIcons, FontAwesome5, MaterialIcons 
 import { ScrollView } from 'react-native-gesture-handler';
 import * as ImagePicker from 'expo-image-picker';
 import { useActionSheet } from '@expo/react-native-action-sheet';
-import RootNavigation from '../route/RootNavigation';
-import Container from '../components/Container';
+import RootNavigation from '../../route/RootNavigation';
+import Container from '../../components/Container';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
-import Navbar from '../components/Navbar';
-import BACKGROUND from '../assets/images/background.jpg';
+import BACKGROUND from '../../assets/images/background.jpg';
 
 const Profile = () => {
 
@@ -459,20 +458,18 @@ const Profile = () => {
         <Container statusBarContentColor='light'>
             <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
                 <View style={styles.container}>
-                    <Image source={BACKGROUND} style={{ height: '20%', width: '100%', position: 'absolute', top: 0 }}></Image>
                     <View style={styles.header}>
-                        <View style={{ paddingTop: 10 }}>
+                        <Image source={BACKGROUND} style={{ height: 140, width: '100%', position: 'absolute', top: 0 }}></Image>
+                        <View style={styles.profileContainer}>
                             {image ? (
                                 <Image source={{ uri: image }} style={styles.profileImage} />
                             ) : (
                                 <MaterialCommunityIcons name="account-circle" size={90} color="black" style={{ marginLeft: 15 }} />
                             )}
                         </View>
-                        <View style={styles.cameraIcon}>
-                            <TouchableOpacity onPress={showImagePickerOptions}>
-                                <FontAwesome5 name="camera" size={15} color="white" />
-                            </TouchableOpacity>
-                        </View>
+                        <TouchableOpacity style={styles.cameraIcon} onPress={showImagePickerOptions}>
+                            <FontAwesome5 name="camera" size={15} color="white" />
+                        </TouchableOpacity>
                         <View style={styles.nameRoleContainer}>
                             <Text style={styles.name}>Nguyễn Quân</Text>
                             <Text style={styles.role}>Applicant</Text>
@@ -498,7 +495,12 @@ const Profile = () => {
 }
 
 const styles = StyleSheet.create({
-
+    profileContainer: {
+        // justifyContent: 'center',
+        // alignItems: 'center',
+        position: 'relative',
+        top: 5,
+    },
     skillsContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -566,9 +568,13 @@ const styles = StyleSheet.create({
         backgroundColor: '#f2f2f2',
     },
     header: {
-        paddingTop: 50,
-        height: '20%',
+
+        // flexDirection: 'row',
+        // justifyContent: 'flex-start', // Align items to the start of the container
+        // alignItems: 'center', // Center items vertically
         // backgroundColor: '#6c5ce7',
+        // paddingHorizontal: 50,
+        paddingVertical: 25,
     },
     nameRoleContainer: {
         alignItems: 'center',
@@ -578,16 +584,14 @@ const styles = StyleSheet.create({
         width: 80,
         height: 80,
         borderRadius: 60,
-        marginLeft: 20
     },
     cameraIcon: {
-        position: 'absolute',
-        bottom: 20,
-        right: 280,
         backgroundColor: 'grey',
         borderRadius: 30,
         padding: 10,
-        alignItems: 'center'
+        position: 'absolute', // Position the camera icon absolutely
+        left: 75, // Adjust according to your needs
+        top: 78, // Adjust based on the size of the profile image and header height
     },
     name: {
         fontSize: 24,
@@ -596,8 +600,8 @@ const styles = StyleSheet.create({
     },
     role: {
         fontSize: 16,
-        color: 'red',
-        margin: 10
+        color: 'black',
+        // marginVertical: 10,
     },
     section: {
         marginBottom: 20,

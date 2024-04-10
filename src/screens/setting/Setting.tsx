@@ -2,10 +2,9 @@ import React from 'react';
 import { View, Text, Switch, TouchableOpacity, StyleSheet, Modal, Pressable } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from '@expo/vector-icons';
-import RootNavigation from '../route/RootNavigation';
-import Navbar from '../components/Navbar';
+import RootNavigation from '../../route/RootNavigation';
 import { useDispatch } from 'react-redux';  // Import thêm useDispatch từ redux
-import { logout } from '../redux/slice/authSlice';
+import { logout } from '../../redux/slice/authSlice';
 
 const Setting = () => {
     const [isEnabled, setIsEnabled] = React.useState(false);

@@ -1,8 +1,8 @@
 import React, { useLayoutEffect } from 'react';
 import { NavigationContainer, getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import Welcome from '../screens/Welcome';
-import Banner from '../screens/Banner';
+import Welcome from '../screens/welcome/Welcome';
+import Banner from '../screens/welcome/Banner';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootReducer } from '../redux/store/reducer';
 import HomeScreen from '../screens/HomeScreen';
@@ -14,8 +14,11 @@ import CallScreen from '../screens/chat/CallScreen';
 import DraggableCameraView from '../screens/chat/DraggableCameraView';
 import { hideTabBar, showTabBar } from '../redux/slice/authSlice';
 
-import Setting from '../screens/Setting';
+import Setting from '../screens/setting/Setting';
 import { Profile, AboutMeScreen, Experience, Education, Certification, Skill } from '../screens'; 
+import Account from '../screens/setting/Account';
+import UpdatePassword from '../screens/setting/UpdatePassword';
+import Login from '../screens/login/Login';
 
 const homeScreenStack = {
     HomeScreen: HomeScreen,
@@ -42,6 +45,9 @@ const pofileScreenStack = {
 
 const settingScreenStack = {
     Setting: Setting,
+    Account: Account, 
+    UpdatePassword: UpdatePassword,
+    Login: Login
 }
 
 const Stack = createStackNavigator();

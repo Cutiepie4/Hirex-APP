@@ -1,11 +1,12 @@
 import { StyleSheet, View, Text, Image, Pressable, TextInput, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
 import { SafeAreaView } from "react-native-safe-area-context";
-import COLORS from '../constants/colors';
+import COLORS from '../../constants/colors';
 import { Ionicons } from "@expo/vector-icons";
-import Button from '../components/Button';
-import RootNavigation from '../route/RootNavigation'
-import Input from '../components/Input';
+import Button from '../../components/Button';
+import RootNavigation from '../../route/RootNavigation'
+import Input from '../../components/Input';
+import GOOGLE from '../../assets/images/google_logo.png'
 
 
 const Signup = ({ navigation }) => {
@@ -140,11 +141,11 @@ const Signup = ({ navigation }) => {
                         }}
                     >
                         <Image
-                            source={require('../assets/google.png')}
+                            source={GOOGLE}
                             style={{ height: 30, width: 30, marginRight: 8 }}
                             resizeMode="contain"
                         />
-                        <Text style={{ fontSize: 15, fontWeight: '900', marginVertical: 12, color: COLORS.black }}>SIGN IN WITH GOOGLE</Text>
+                        <Text style={{ fontSize: 15, fontWeight: '900', marginVertical: 12, color: COLORS.black }}>Đăng nhập với Google</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -165,6 +166,7 @@ const Signup = ({ navigation }) => {
                         }}>Đăng nhập</Text>
                     </Pressable>
                 </View>
+                
             </View>
         </SafeAreaView>
     )

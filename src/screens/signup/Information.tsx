@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, Platform, Alert, Pressable } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
-import COLORS from '../constants/colors';
+import COLORS from '../../constants/colors';
 import { Ionicons } from "@expo/vector-icons";
-import Button from '../components/Button';
-import RootNavigation from '../route/RootNavigation';
+import Button from '../../components/Button';
+import RootNavigation from '../../route/RootNavigation';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from 'axios';
-import { deepPurple } from '../styles/styles';
+import { deepPurple } from '../../styles/styles';
 
 
 const Information = ({ route }) => {
