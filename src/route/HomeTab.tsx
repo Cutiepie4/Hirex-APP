@@ -1,6 +1,6 @@
 import React from 'react';
 import { BottomTabBarProps, createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { ChatStack, HomeStack } from './TabStack';
+import { ChatStack, HomeStack, ProfileStack, SettingStack } from './TabStack';
 import { Entypo } from '@expo/vector-icons';
 import { orange, placeholderTextColor } from '../styles/styles';
 import { Feather } from '@expo/vector-icons';
@@ -26,7 +26,7 @@ const HomeTab = () => {
         },
         {
             name: 'Tab2',
-            component: HomeStack,
+            component: ProfileStack,
             icon: <FontAwesome name="id-card" size={iconSize} color="black" />,
         },
         {
@@ -36,7 +36,7 @@ const HomeTab = () => {
         },
         {
             name: 'Tab4',
-            component: HomeStack,
+            component: SettingStack,
             icon: <FontAwesome name="user" size={iconSize} color="black" />,
         },
     ];

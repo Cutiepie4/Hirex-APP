@@ -3,13 +3,15 @@ import { View, Text, Image, TouchableOpacity, Pressable, KeyboardAvoidingView, P
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme';
-import Input from '../components/Input';
-import Button from '../components/Button';
-import Container from '../components/Container';
-import RootNavigation from '../route/RootNavigation'
+import Input from '../../components/Input';
+import Button from '../../components/Button';
+import Container from '../../components/Container';
+import RootNavigation from '../../route/RootNavigation'
 import { useDispatch } from 'react-redux';
-import { hideLoading, login, showLoading } from '../redux/slice/authSlice';
-import { BASE_API } from '../services/BaseApi';
+import { hideLoading, login, showLoading } from '../../redux/slice/authSlice';
+import GOOGLE from '../../assets/images/google_logo.png'
+
+import { BASE_API } from '../../services/BaseApi';
 import Toast from 'react-native-toast-message';
 
 const Login = () => {
@@ -161,7 +163,7 @@ const Login = () => {
                                 }}
                             >
                                 <Image
-                                    source={require('../assets/google.png')}
+                                    source={GOOGLE}
                                     style={{ height: 30, width: 30, marginRight: 8 }}
                                     resizeMode="contain"
                                 />

@@ -3,9 +3,9 @@ import React, { useState } from 'react'
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from '@/theme';
 import { Ionicons } from "@expo/vector-icons";
-import Button from '../components/Button';
-import RootNavigation from '../route/RootNavigation'
-import Input from '../components/Input';
+import Button from '../../components/Button';
+import RootNavigation from '../../route/RootNavigation'
+import Input from '../../components/Input';
 
 const UpdatePassword = () => {
     const [isPasswordShown, setIsPasswordShown] = useState(true);

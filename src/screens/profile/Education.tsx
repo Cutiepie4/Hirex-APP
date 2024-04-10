@@ -3,8 +3,8 @@ import { View, Text, TouchableOpacity, TextInput, Modal, StyleSheet, ScrollView 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from '@/theme';
-import Button from '../components/Button';
-import RootNavigation from '../route/RootNavigation';
+import Button from '../../components/Button';
+import RootNavigation from '../../route/RootNavigation';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 const Education = ({ route, navigation }) => {

@@ -3,52 +3,67 @@ import { View, Text, TouchableOpacity, TextInput, Platform, StyleSheet } from 'r
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from '@/theme';
-import Button from '../components/Button';
-import RootNavigation from '../route/RootNavigation';
+import Button from '../../components/Button';
+import RootNavigation from '../../route/RootNavigation';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
-const Certification = ({ route, navigation }) => {
+const Experience = (props: any) => {
+    const {route} = props;
+    const { experienceData, addNewExperience, updateExperience, experienceIndex } = route.params;
 
-    const { certificationData, addNewCertification, updateCertification, certificationIndex } = route.params;
-
-    const [name, setName] = useState(certificationData?.name ?? '');
-    const [description, setDescription] = useState(certificationData?.description ?? '');
-    const [startDate, setStartDate] = useState(certificationData?.startDate ?? '');
+    const [jobTitle, setJobTitle] = useState(experienceData?.jobTitle ?? '');
+    const [company, setCompany] = useState(experienceData?.company ?? '');
+    const [description, setDescription] = useState(experienceData?.description ?? '');
+    const [startDate, setStartDate] = useState(experienceData?.startDate ?? '');
+    const [endDate, setEndDate] = useState(experienceData?.endDate ?? '');
 
     const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+    const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
 
-    const handleStartDateConfirm = (selectedDate) => {
+    const handleStartDateConfirm = (selectedDate: Date) => {
         setShowStartDatePicker(false);
+        // Lấy tháng và năm từ selectedDate
         const formattedDate = selectedDate.getMonth() + 1 + '/' + selectedDate.getFullYear();
         setStartDate(formattedDate);
     };
 
+    const handleEndDateConfirm = (selectedDate) => {
+        setShowEndDatePicker(false);
+        // Lấy tháng và năm từ selectedDate
+        const formattedDate = selectedDate.getMonth() + 1 + '/' + selectedDate.getFullYear();
+        setEndDate(formattedDate);
+    };
 
+    useEffect(() => {
+        console.log('experienceData', experienceData);
+    }, []);
     const handleSave = () => {
 
-        if (!name.trim() || !description.trim() || !startDate.trim()) {
+        if (!jobTitle.trim() || !company.trim() || !startDate.trim() || !endDate.trim()) {
             alert('Please fill in all required fields.'); // Bạn có thể sử dụng Alert từ 'react-native' để hiển thị thông báo
             return; // Dừng hàm nếu có trường nào đó bỏ trống
         }
-        const newCertification = {
-            name: name.trim(),
+        const newExperience = {
+            jobTitle: jobTitle.trim(),
+            company: company.trim(),
             description: description.trim(), // Không bắt buộc nhưng vẫn nên trim()
             startDate,
+            endDate,
         };
 
         // Check if we are updating an existing experience or adding a new one
-        if (typeof certificationIndex === 'number') {
-            updateCertification(newCertification, certificationIndex);
+        if (typeof experienceIndex === 'number') {
+            updateExperience(newExperience, experienceIndex);
         } else {
-            addNewCertification(newCertification);
+            addNewExperience(newExperience);
         }
 
-        navigation.goBack();
+        RootNavigation.pop();
     };
 
     const handleBack = () => {
-        navigation.goBack();
+        RootNavigation.pop();
     };
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
@@ -64,20 +79,28 @@ const Certification = ({ route, navigation }) => {
                         textAlign: 'center',
                         color: colors.black
                     }}>
-                        {typeof certificationIndex === 'number' ? 'Change Certification' : 'Add Certification'}
+                        {typeof experienceIndex === 'number' ? 'Change work experience' : 'Add work experience'}
                     </Text>
                 </View>
 
 
                 <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Tên bằng, chứng chỉ</Text>
+                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Vị trí</Text>
                     <TextInput
                         style={styles.input}
-                        value={name}
-                        onChangeText={setName}
+                        value={jobTitle}
+                        onChangeText={setJobTitle}
                     />
                 </View>
 
+                <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Tên công ty</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={company}
+                        onChangeText={setCompany}
+                    />
+                </View>
 
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
                     <View style={{ flex: 1, marginRight: 10 }}>
@@ -96,7 +119,22 @@ const Certification = ({ route, navigation }) => {
                             onCancel={() => setShowStartDatePicker(false)}
                         />
                     </View>
-
+                    <View style={{ flex: 1, marginLeft: 10 }}>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Kết thức</Text>
+                        <TouchableOpacity onPress={() => setShowEndDatePicker(true)}>
+                            <TextInput
+                                style={styles.input}
+                                value={endDate.toString()}
+                                editable={false}
+                            />
+                        </TouchableOpacity>
+                        <DateTimePickerModal
+                            isVisible={showEndDatePicker}
+                            mode="date"
+                            onConfirm={handleEndDateConfirm}
+                            onCancel={() => setShowEndDatePicker(false)}
+                        />
+                    </View>
                 </View>
                 <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
                     <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Mô tả</Text>
@@ -148,4 +186,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Certification;
+export default Experience;
