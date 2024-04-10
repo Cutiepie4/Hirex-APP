@@ -28,12 +28,12 @@ const chatSlice = createSlice({
         saveChatRoom: (state, action) => {
             state.chatRoom = action.payload;
         },
-        deleteChatRoom: (state) => initialState,
+        clearChatRoom: (state) => initialState,
     },
     extraReducers(builder) {
 
     },
 });
 
-export const { saveChatRoom, deleteChatRoom } = chatSlice.actions;
+export const { saveChatRoom, clearChatRoom } = chatSlice.actions;
 export default chatSlice.reducer;

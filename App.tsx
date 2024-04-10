@@ -1,5 +1,4 @@
 import React from 'react';
-import 'react-native-gesture-handler';
 import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from './src/redux/store/store';
 import { Provider, useSelector, } from 'react-redux';
@@ -18,6 +17,7 @@ import { RootReducer } from './src/redux/store/reducer';
 import HomeTab from './src/route/HomeTab';
 import LoadingOverlay from './src/components/LoadingOverlay';
 import { loadFonts } from '@/theme';
+import CustomToast from '@/components/CustomToast';
 
 const Stack = createStackNavigator();
 
@@ -68,14 +68,15 @@ const EntryNavigation = () => {
     }
 };
 
-
 const App = () => {
     const preload = async () => {
         await Promise.all([loadFonts()]);
     }
+
     React.useEffect(() => {
         preload();
     }, []);
+
     return (
         <ActionSheetProvider>
             <Provider store={store}>
@@ -84,11 +85,12 @@ const App = () => {
                         <LoadingOverlay>
                             <EntryNavigation />
                         </LoadingOverlay>
+                        <CustomToast />
                     </NavigationContainer>
                 </PersistGate>
             </Provider>
         </ActionSheetProvider>
     );
-}
+};
 
 export default App;

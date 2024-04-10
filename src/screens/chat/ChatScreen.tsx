@@ -17,6 +17,8 @@ import { FontAwesome } from '@expo/vector-icons';
 import { getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
 import { useDispatch, useSelector } from 'react-redux';
 import { hideLoading, showLoading } from '../../redux/slice/authSlice';
+import { RootReducer } from '@/redux/store/reducer';
+import Toast from 'react-native-toast-message';
 
 export interface Message {
     id: string,
@@ -32,14 +34,18 @@ export interface ChatRoom {
 };
 
 const ChatScreen = (props) => {
+    const { phoneNumber } = useSelector((state: RootReducer) => state.authReducer);
     const { messages: initMessages, participants: initParticipants } = props.route.params.data;
-    const [data, setData] = useState<ChatRoom>();
     const [participants, setParticipants] = useState(initParticipants);
     const [messages, setMessages] = useState<IChatMessage[]>(
-        initMessages.map(item => {
+        initMessages?.map((item) => {
             return {
                 ...item,
-                sentAt: Timestamp.fromDate(new Date(item.sentAt))
+                _id: item.id,
+                sentAt: Timestamp.fromDate(new Date(item.sentAt)),
+                user: {
+                    _id: item.sentBy
+                }
             }
         })
     );
@@ -61,56 +67,68 @@ const ChatScreen = (props) => {
         return sortedMessages.map((message: Message) => ({
             _id: message.id ?? '',
             text: message.content ?? '',
-            createdAt: message.sentAt.toDate(),
+            createdAt: message.sentAt?.toDate?.(),
             user: {
                 _id: message.sentBy,
-                name: 'name sender'
+                name: message.sentBy
             },
             image: message.image ?? '',
         }));
     };
 
-    useEffect(() => {
-        data?.messages && setMessages(convertMessageToRender(data));
-        data?.participants && setParticipants(data.participants);
-    }, [data]);
-
-    useEffect(() => {
-        const fetchData = async () => {
+    const fetchData = useCallback(
+        async () => {
             const docRef = doc(db, 'conversations_col', ParseConversationId(participants));
             const unsubscribe = onSnapshot(docRef, (docSnapshot) => {
                 if (docSnapshot.exists()) {
-                    setData(docSnapshot.data() as ChatRoom);
-                } else {
-                    console.log("No such document!");
+                    setParticipants(docSnapshot.data().participants);
+                    setMessages(convertMessageToRender(docSnapshot.data() as ChatRoom));
                 }
             });
             return unsubscribe;
-        };
+        },
+        [participants]
+    );
+
+    useEffect(() => {
         fetchData();
-    }, [participants]);
+    }, []);
 
     const onSend = async (messages: IChatMessage[] = [], image?: string) => {
         setSendLoading(true);
         try {
-            const messageData = convertMessageToSave(image ? [{ user: { _id: 'user1' }, image: image }] : messages);
+            const messageData = convertMessageToSave(image
+                ? [
+                    {
+                        user: {
+                            _id: phoneNumber,
+                        },
+                        image: image
+                    }
+                ]
+                : messages
+            );
             const conversationId = ParseConversationId(participants);
             const conversationRef = doc(db, 'conversations_col', conversationId);
             await runTransaction(db, async (transaction) => {
                 const docSnapshot = await transaction.get(conversationRef);
-                if (!docSnapshot.exists()) {
-                    throw new Error('Conversation document does not exist');
-                }
-
-                const currentMessages: any[] = docSnapshot.data()?.messages || [];
-                const updatedMessages = currentMessages.concat(messageData.map((message) => ({
-                    ...message,
-                    id: doc(collection(db, 'dummy')).id,
-                })));
+                const currentMessages: any[] = docSnapshot?.data()?.messages || [];
+                const updatedMessages = currentMessages.concat(
+                    messageData.map((message) => ({
+                        ...message,
+                        id: doc(collection(db, 'dummy')).id,
+                    }))
+                );
                 transaction.update(conversationRef, { messages: updatedMessages });
             });
         } catch (error) {
-            console.error("Error sending message: ", error);
+            Toast.show({
+                type: 'error',
+                props: {
+                    title: 'Đã có lỗi xảy ra',
+                    content: 'Không thể gửi tin nhắn'
+                }
+            });
         } finally {
             setSendLoading(false);
         }
@@ -194,7 +212,10 @@ const ChatScreen = (props) => {
                 borderRadius: 10,
                 backgroundColor: deepPurple
             }}>
-                {sendLoading ? <ActivityIndicator size={18} /> : <Ionicons name="send" size={18} color={'white'} />}
+                {sendLoading
+                    ? <ActivityIndicator size={18} />
+                    : <Ionicons name="send" size={18} color={'white'} />
+                }
             </View>
         </Send>;
     };
@@ -209,6 +230,17 @@ const ChatScreen = (props) => {
             />
         )
     };
+
+    const renderChatEmpty = () => (
+        <View style={{
+            flex: 1,
+            backgroundColor: 'red',
+            justifyContent: 'center',
+            alignItems: 'center',
+        }}>
+            <Text>Khong co tin nhan</Text>
+        </View>
+    );
 
     const pickDocument = async () => {
         try {
@@ -258,7 +290,7 @@ const ChatScreen = (props) => {
                 leftHeaderComponent={
                     <>
                         <Image source={AVATAR} style={styles.imageBox} />
-                        <Text style={[titleFontStyle, { fontSize: 16 }]}>Orion</Text>
+                        <Text style={[titleFontStyle, { fontSize: 16 }]}>{phoneNumber}</Text>
                     </>
                 }
                 backArrow
@@ -269,26 +301,35 @@ const ChatScreen = (props) => {
                 }}
             />
 
-            <GiftedChat
-                messages={messages}
-                onSend={messages => onSend(messages)}
-                user={{
-                    _id: 'user2',
-                    name: 'Jonash',
+            <TouchableOpacity
+                style={{
+                    flex: 1
                 }}
-                messagesContainerStyle={{
-                    backgroundColor: '#f8f8f8'
-                }}
-                isCustomViewBottom={true}
-                textInputProps={{
-                    placeholder: "Enter your message...",
-                }}
-                alwaysShowSend
-                renderBubble={renderBubble}
-                renderInputToolbar={renderInputToolbar}
-                renderSend={renderSend}
-                renderMessageImage={renderMessageImage}
-            />
+                activeOpacity={1}
+                onPress={Keyboard.dismiss}
+            >
+                <GiftedChat
+                    messages={messages}
+                    onSend={messages => onSend(messages)}
+                    user={{
+                        _id: phoneNumber,
+                        name: phoneNumber,
+                    }}
+                    messagesContainerStyle={{
+                        backgroundColor: '#f8f8f8'
+                    }}
+                    isCustomViewBottom={true}
+                    textInputProps={{
+                        placeholder: "Enter your message...",
+                    }}
+                    alwaysShowSend
+                    renderBubble={renderBubble}
+                    renderInputToolbar={renderInputToolbar}
+                    renderSend={renderSend}
+                    renderMessageImage={renderMessageImage}
+                    renderChatEmpty={renderChatEmpty}
+                />
+            </TouchableOpacity>
         </Container >
     )
 }

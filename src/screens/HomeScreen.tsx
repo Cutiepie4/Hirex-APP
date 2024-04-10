@@ -8,6 +8,7 @@ import { logout } from '../redux/slice/authSlice'
 import { regularPadding } from '../styles/styles'
 import RootNavigation from '../route/RootNavigation'
 import Toast from 'react-native-toast-message'
+import { clearChatRoom } from '@/redux/slice/chatSlice'
 
 const HomeScreen = () => {
     const dispatch = useDispatch();
@@ -34,6 +35,7 @@ const HomeScreen = () => {
                             },
                         });
                         dispatch(logout());
+                        dispatch(clearChatRoom());
                     }}
                     filled
                 />
@@ -43,5 +45,3 @@ const HomeScreen = () => {
 }
 
 export default HomeScreen
-
-const styles = StyleSheet.create({})
