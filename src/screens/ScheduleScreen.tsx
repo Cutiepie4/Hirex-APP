@@ -1,13 +1,14 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, StyleSheet, Text, View, TouchableOpacity, Modal, Button, SafeAreaView, Animated, I18nManager } from 'react-native';
 import { Agenda, DateData, AgendaEntry, AgendaSchedule } from 'react-native-calendars';
 import { GestureHandlerRootView, RectButton, Swipeable } from 'react-native-gesture-handler';
 import { Ionicons, EvilIcons, AntDesign } from '@expo/vector-icons';
-import ModalItems from '../components/ModalItems';
 import moment from 'moment';
 import ItemsDetail from '../components/ItemsDetail';
+import scheduleService from '../service/ScheduleService';
 
 export type ExtendedAgendaEntry = AgendaEntry & {
+  id: number,
   notes: string,
   start: string;
   end: string;
@@ -27,16 +28,41 @@ const AgendaScreen: React.FC = () => {
   const [isNew, setIsNew] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [reservationPick, setReservationPick] = useState<ExtendedAgendaEntry>(undefined);
-  const [submit, setSubmit] = useState<boolean>(false);
-
+  const [submit, setSubmit] = useState<boolean>(true);
+  const [workIds, setWorkIds] = useState({});
   const handleAddOrUpdateItem = () => {
     // setRefreshing(true);
     setItems(prevItems => {
       const newItems = { ...prevItems };
       const dayItems = newItems[dayPick] ? [...newItems[dayPick]] : [];
+      const item = {
+        date: reservationPick.day,
+        work_id: workIds[reservationPick.day],
+        items:{
+          startTime: reservationPick.start,
+          endTime: reservationPick.end,
+          title: reservationPick.title,
+          type: reservationPick.type,
+          notes: reservationPick.notes
+        }
+      }
       if (isNew) {
+        scheduleService.addItem(item).then(data => {
+          console.log('Schedule added:', data);
+          const newWorkIds = { ...workIds };
+          newWorkIds[dayPick] = data.work_id;
+          setWorkIds(newWorkIds);
+        }).catch(error => {
+          console.error('Error adding item:', error);
+        });
         dayItems.push(reservationPick);
       } else {
+        scheduleService.updateItem(reservationPick.id, item).then(data => {
+          console.log('Item updated:', data);
+          // Handle the updated list of items
+        }).catch(error => {
+          console.error('Error updating item:', error);
+        });
         const itemIndex = dayItems.findIndex(item => item.name === reservationPick.name);
         if (itemIndex > -1) {
           dayItems[itemIndex] = reservationPick;
@@ -47,10 +73,16 @@ const AgendaScreen: React.FC = () => {
       newItems[dayPick] = dayItems;
       return newItems;
     });
+    setSubmit(true)
     setShowItemsDetail(false);
   };
 
   const handleDeleteItem = useCallback((reservation: ExtendedAgendaEntry) => {
+    scheduleService.deleteItem(reservation.id).then(data => {
+      console.log('Item delete:', data);
+    }).catch(error => {
+      console.error('Error delete item:', error);
+    });
     setItems(prevItems => {
       const updatedItems = { ...prevItems };
       if (updatedItems[reservation.day]) {
@@ -58,42 +90,56 @@ const AgendaScreen: React.FC = () => {
       }
       return updatedItems;
     });
-    setRefreshing(false);
+  }, []);
+  const formatDate = (dateArray: number[]): string => {
+    const [year, month, day] = dateArray;
+    return moment({ year, month: month - 1, day }).format('YYYY-MM-DD');
+  };
+  const convertToMoment = (timeArray: number[]): string=> {
+    const [hour, minute] = timeArray;
+    return moment({ hour, minute }).format('HH:mm');
+  };
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const response = await scheduleService.fetchItems();
+        const newWorkIds = {};
+        const newItems = {};
+
+        response.forEach(item => {
+          const dateStr = formatDate(item.date);
+          newWorkIds[dateStr] = item.work_id;
+          newItems[dateStr] = (item.items || []).map(subItem => ({
+            id: subItem.id.toString(),
+            name: subItem.id.toString(),
+            notes: subItem.notes,
+            height: 100,
+            day: dateStr,
+            start: convertToMoment(subItem.startTime),
+            end: convertToMoment(subItem.endTime),
+            title: subItem.title,
+            type: subItem.type
+          }));
+        });
+
+        setWorkIds(prevWorkIds => ({
+          ...prevWorkIds,
+          ...newWorkIds
+        }));
+        setItems(prevItems => ({
+          ...prevItems,
+          ...newItems
+        }));
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchItems();
   }, []);
 
   const loadItems = (day: DateData) => {
-    const tempItems = items || {};
 
-    setTimeout(() => {
-      for (let i = 0; i < 6; i++) {
-        const time = day.timestamp + i * 24 * 60 * 60 * 1000;
-        const strTime = timeToString(time);
-
-        if (!tempItems[strTime]) {
-          tempItems[strTime] = [];
-          const type = Math.random() < 0.5 ? 'personal' : 'working';
-          const numItems = Math.floor(Math.random() * 3 + 1);
-          for (let j = 0; j < numItems; j++) {
-            tempItems[strTime].push({
-              notes: 'Item for ' + strTime + ' #' + j,
-              name: generateRandomId(),
-              height: Math.max(50, Math.floor(Math.random() * 150)),
-              day: strTime,
-              start: '08:00',
-              end: '10:00',
-              title: 'Meeting',
-              type: type,
-            } as ExtendedAgendaEntry);
-          }
-        }
-      }
-
-      const newItems: AgendaSchedule = {};
-      Object.keys(tempItems).forEach(key => {
-        newItems[key] = tempItems[key];
-      });
-      setItems(newItems);
-    }, 1000);
   };
   const handleSetValue = useCallback((isShow: boolean, isNew: boolean, day: string, reservation: ExtendedAgendaEntry) => {
     setReservationPick({ ...reservation })
@@ -102,16 +148,6 @@ const AgendaScreen: React.FC = () => {
     setIsNew(isNew)
   }, [items, setItems]);
   const renderItem = useCallback((reservation: ExtendedAgendaEntry, isFirst: boolean) => {
-    // const inputRange = [-1, 0, 60 * index, 60 * (index + 0.5)];
-    // const opacityInputRange = [-1, 0, 60 * index, 60 * (index + 1)];
-    // const scale = scrolly.interpolate({
-    //   inputRange,
-    //   outputRange: [1, 1, 1, 0]
-    // });
-    // const opacity = scrolly.interpolate({
-    //   opacityInputRange,
-    //   outputRange: [1, 1, 1, 0]
-    // });
     const height = new Animated.Value(70)
     const animatedDelete = () => {
       Animated.timing(height, {
@@ -230,13 +266,13 @@ const AgendaScreen: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <Agenda
           items={items}
-          loadItemsForMonth={loadItems}
+          // loadItemsForMonth={loadItems}
           renderItem={renderItem}
           renderEmptyDate={renderEmptyDate}
           // rowHasChanged={rowHasChanged}
           showClosingKnob={true}
-          // minDate={'2024-03-20'}
-          // maxDate={'2024-03-28'}
+          minDate={moment().startOf('month').format('YYYY-MM-DD')}
+          maxDate={moment().endOf('month').format('YYYY-MM-DD')}
           onRefresh={() => {
             console.log('refresh')
           }}
@@ -246,7 +282,7 @@ const AgendaScreen: React.FC = () => {
           onDayPress={day => {
             setDayPick(day.dateString);
           }}
-          refreshing={refreshing}
+          refreshing={false}
           // renderDay={renderDay}
         // markedDates={{
         //   '2024-02-06': {marked: true, dotColor: 'red' },
@@ -256,6 +292,7 @@ const AgendaScreen: React.FC = () => {
         <TouchableOpacity
           style={styles.viewTask}
           onPress={() => handleSetValue(true, true, dayPick, {
+            id: -1,
             notes: '',
             name: generateRandomId(),
             height: Math.max(50, Math.floor(Math.random() * 150)),
@@ -286,7 +323,13 @@ const AgendaScreen: React.FC = () => {
                 setIsShow={setShowItemsDetail}
                 setSubmit={setSubmit}
               />
-              <TouchableOpacity onPress={() => setShowItemsDetail(false)} style={styles.closeButton} >
+              <TouchableOpacity
+                onPress={() => {
+                  setShowItemsDetail(false);
+                  setSubmit(true);
+                }}
+                style={styles.closeButton}
+              >
                 <EvilIcons name="close-o" size={30} color="black" />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleAddOrUpdateItem()} style={styles.saveButton} disabled={submit}>

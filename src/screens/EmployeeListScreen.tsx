@@ -1,27 +1,27 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, Alert, Modal, FlatList, SafeAreaView, StatusBar, Image, Animated } from 'react-native';
 import { Ionicons, AntDesign, Feather } from '@expo/vector-icons';
+import scheduleService from '../service/ScheduleService';
 
 const EmployeeListScreen = ({ navigation, route }) => {
-    const [closeRequest, setCloseRequest] = useState<boolean>(false);
-    const [selectedEmployee, setSelectedEmployee] = useState(null);
+    const reservation = route.params?.reservation;
+    const [leaveList, setLeaveList] = useState();
     const [leaveStatus, setLeaveStatus] = useState({});
     const scrollY = React.useRef(new Animated.Value(0)).current;
     const handleGoBack = () => {
         navigation.goBack();
     }
-    const employees = [
-        { id: 1, name: 'Lê Mạnh Quyết', task: 'Working on A', position: 'Developer', department: 'IT', email: 'emp1@company.com' },
-        { id: 2, name: 'Nguyễn Thế Thành', task: 'Designing UI/UX', position: 'Designer', department: 'Design', email: 'emp2@company.com' },
-        { id: 3, name: 'Trương Quốc Việt', task: 'Market analysis', position: 'Analyst', department: 'Marketing', email: 'emp3@company.com' },
-        { id: 4, name: 'Nguyễn Phúc Quân', task: null, leaveReason: 'Đi chơi', position: 'Sales', department: 'Sales', email: 'emp4@company.com' },
-        { id: 5, name: 'Ngô Minh Quang', task: 'Customer support', position: 'Support', department: 'Customer Service', email: 'emp5@company.com' },
-        { id: 6, name: 'Nguyễn Thế Thành', task: 'Designing UI/UX', position: 'Designer', department: 'Design', email: 'emp2@company.com' },
-        { id: 7, name: 'Trương Quốc Việt', task: 'Market analysis', position: 'Analyst', department: 'Marketing', email: 'emp3@company.com' },
-        { id: 8, name: 'Nguyễn Phúc Quân', task: null, leaveReason: 'Uống rượu mệt', position: 'Sales', department: 'Sales', email: 'emp4@company.com' },
-        { id: 9, name: 'Ngô Minh Quang', task: 'Customer support', position: 'Support', department: 'Customer Service', email: 'emp5@company.com' },
-    ];
-    const employeesAtWork = employees.filter(employee => employee.task !== null).length;
+    useEffect(() => {
+        scheduleService.getLeaveReasonByItem(route.params?.reservation?.id)
+            .then((response) => {
+                // Assuming the response contains the array directly
+                setLeaveList(response);
+            }).catch((error) => {
+                console.error('Error fetching leave reasons:', error);
+                Alert.alert('Error', 'Unable to fetch leave reasons');
+            });
+    }, [route.params?.reservation]);
+    // const employeesAtWork = employees.filter(employee => employee.task !== null).length;
     const handleAcceptLeave = (id) => {
         setLeaveStatus(prevStatus => ({ ...prevStatus, [id]: 'accepted' }));
     }
@@ -30,7 +30,7 @@ const EmployeeListScreen = ({ navigation, route }) => {
         setLeaveStatus(prevStatus => ({ ...prevStatus, [id]: 'rejected' }));
     }
     const renderEmployee = ({ item, index }) => {
-        const backgroundColor = item.task === null ? leaveStatus[item.id] === 'accepted' ? 'green' : leaveStatus[item.id] === 'rejected' ? 'red' : 'white' : 'white';
+        const backgroundColor = item.isAccept === null ? leaveStatus[item.id] === 'true' ? 'green' : leaveStatus[item.id] === 'false' ? 'red' : 'white' : 'white';
         const inputRange = [-1, 0, 150 * index, 150 * (index + 2)]
         const opacityInputRange = [-1, 0, 150 * index, 150 * (index + 1)]
         const scale = scrollY.interpolate({
@@ -64,25 +64,25 @@ const EmployeeListScreen = ({ navigation, route }) => {
                     justifyContent: 'space-between',
                 }}
                 >
-                    <Text style={{ fontSize: 22, fontWeight: '700' }}>{item.name}</Text>
-                    {!leaveStatus[item.id] && item.leaveReason && <TouchableOpacity onPress={() => handleAcceptLeave(item.id)} >
+                    <Text style={{ fontSize: 22, fontWeight: '700' }}>{item.employee.firstName} {item.employee.lastName}</Text>
+                    {!leaveStatus[item.id] && item.reason && <TouchableOpacity onPress={() => handleAcceptLeave(item.id)} >
                         <AntDesign name="check" size={24} color="green" />
                     </TouchableOpacity>}
 
                 </View>
-                <Text style={{ fontSize: 18, opacity: .7 }}>{item.position} - {item.department}</Text>
+                <Text style={{ fontSize: 18, opacity: .7 }}>Địa chỉ: {item.employee.address}</Text>
                 <View style={{
                     flexDirection: 'row',
                     justifyContent: 'space-between',
                 }}
                 >
-                    <Text style={{ fontSize: 12, opacity: .8, color: '#0099cc' }}>{item.email}</Text>
-                    {!leaveStatus[item.id] && item.leaveReason && <TouchableOpacity onPress={() => handleRejectLeave(item.id)}>
+                    <Text style={{ fontSize: 12, opacity: .8, color: '#0099cc' }}>{item.employee.email}</Text>
+                    {!leaveStatus[item.id] && item.reason && <TouchableOpacity onPress={() => handleRejectLeave(item.id)}>
                         <Feather name="x" size={24} color="red" />
                     </TouchableOpacity>}
                 </View>
                 <Text style={{ fontSize: 16 }}>
-                    {item.leaveReason && `Lý do: ${item.leaveReason}`}
+                    {item.reason && `Lý do: ${item.reason}`}
                 </Text>
             </Animated.View>
         );
@@ -97,12 +97,12 @@ const EmployeeListScreen = ({ navigation, route }) => {
             /> */}
 
             <Animated.FlatList
-                data={employees}
+                data={leaveList}
                 onScroll={Animated.event(
                     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
                     { useNativeDriver: true }
                 )}
-                keyExtractor={(item) => item.id.toString()}
+                keyExtractor={(leave) => leave.id.toString()}
                 renderItem={renderEmployee}
                 contentContainerStyle={{
                     padding: 20,

@@ -4,6 +4,7 @@ import TimePicker from './TimePicker';
 import { ExtendedAgendaEntry } from '../screens/ScheduleScreen';
 import TakeOffModal from './TakeOffModal';
 import debounce from 'lodash.debounce';
+import scheduleService from '../service/ScheduleService';
 
 
 const ItemsDetail = (props: any) => {
@@ -27,10 +28,20 @@ const ItemsDetail = (props: any) => {
     };
 
     const handleHideTakeOffModal = () => {
+        
         setShowTakeOffModal(false);
     };
 
     const handleTakeOff = (reason: string) => {
+        const leave = {
+            leaveReason: reason,
+            itemId: props.reservationPick.id,
+        }
+        scheduleService.createLeave(leave).then(data => {
+            console.log('Item added:', data);
+        }).catch(error => {
+            console.error('Error adding item:', error);
+        });
         handleHideTakeOffModal();
     };
 
@@ -43,59 +54,21 @@ const ItemsDetail = (props: any) => {
         // ...
         setShowOptions(false);
     };
-
-    // const CustomTextInput = ({ value, onChangeText, editable, multiline, placeholder, style }) => {
-    //     const [text, setText] = useState(value);
-    //     const inputRef = useRef(null);
-
-    //     const debouncedOnChangeText = useCallback(debounce((value) => {
-    //         onChangeText(value);
-    //     }, 700), [onChangeText]);
-
-    //     useEffect(() => {
-    //         // Cập nhật text mà không tự động đặt lại focus vào input
-    //         setText(value);
-    //     }, [value]);
-
-    //     // Đảm bảo hủy debounce khi component bị unmount
-    //     useEffect(() => {
-    //         return () => {
-    //             debouncedOnChangeText.cancel();
-    //         };
-    //     }, [debouncedOnChangeText]);
-
-    //     const handleChangeText = (newText) => {
-    //         setText(newText);
-    //         debouncedOnChangeText(newText);
-    //     };
-
-    //     return (
-    //         <TextInput
-    //             ref={inputRef}
-    //             style={style}
-    //             placeholder={placeholder}
-    //             value={text}
-    //             onChangeText={handleChangeText}
-    //             editable={editable}
-    //             multiline={multiline}
-    //         />
-    //     );
-    // };
-    const debouncedOnTitleChange = useCallback(
-        debounce((value) => {
-            props.setReservationPick({ ...props.reservationPick, title: value });
+    const debouncedOnChange = useCallback(
+        debounce((key, value) => {
+            props.setReservationPick((prev) => ({ ...prev, [key]: value }));
             props.setSubmit(false);
         }, 500),
-        [props.reservationPick, props.setReservationPick, props.setSubmit]
+        []
     );
 
-    const debouncedOnNotesChange = useCallback(
-        debounce((value) => {
-            props.setReservationPick({ ...props.reservationPick, notes: value });
-            props.setSubmit(false);
-        }, 500),
-        [props.reservationPick, props.setReservationPick, props.setSubmit]
-    );
+    const onTitleChange = (value) => {
+        debouncedOnChange('title', value);
+    };
+
+    const onNotesChange = (value) => {
+        debouncedOnChange('notes', value);
+    };
     return (
         <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
             <View style={styles.taskContainer}>
@@ -107,7 +80,7 @@ const ItemsDetail = (props: any) => {
                     onChangeText={(value) => {
                         setTitle(value)
                         props.setSubmit(true)
-                        debouncedOnTitleChange(value)
+                        onTitleChange(value)
 
                     }}
                     editable={props.reservationPick.type !== 'working'}
@@ -166,7 +139,7 @@ const ItemsDetail = (props: any) => {
                         onChangeText={(value) => {
                             setNotes(value)
                             props.setSubmit(true)
-                            debouncedOnNotesChange(value)
+                            onNotesChange(value)
 
                         }}
                         editable={props.reservationPick.type !== 'working'}

@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, StyleSheet, Text, View, TouchableOpacity, Modal, Button, SafeAreaView, Animated, I18nManager } from 'react-native';
 import { Agenda, DateData, AgendaEntry, AgendaSchedule } from 'react-native-calendars';
 import { GestureHandlerRootView, RectButton, Swipeable } from 'react-native-gesture-handler';
 import { Ionicons, EvilIcons, AntDesign } from '@expo/vector-icons';
-import ModalItems from '../components/ModalItems';
 import moment from 'moment';
+import ItemsDetail from '../components/ItemsDetail';
+import scheduleService from '../service/ScheduleService';
 import { ExtendedAgendaEntry } from './ScheduleScreen';
 import { useNavigation } from '@react-navigation/native';
 
@@ -22,11 +23,61 @@ const ScheduleEmployerScreen: React.FC = () => {
     const [isNew, setIsNew] = useState<boolean>(false);
     const [refreshing, setRefreshing] = useState<boolean>(false);
     const [reservationPick, setReservationPick] = useState<ExtendedAgendaEntry>(undefined);
-    useEffect(() => {
-        // console.log(items)
-    }, [items])
+    const [submit, setSubmit] = useState<boolean>(true);
+    const [workIds, setWorkIds] = useState({});
+    const handleAddOrUpdateItem = () => {
+        // setRefreshing(true);
+        setItems(prevItems => {
+            const newItems = { ...prevItems };
+            const dayItems = newItems[dayPick] ? [...newItems[dayPick]] : [];
+            const item = {
+                date: reservationPick.day,
+                work_id: workIds[reservationPick.day],
+                items: {
+                    startTime: reservationPick.start,
+                    endTime: reservationPick.end,
+                    title: reservationPick.title,
+                    type: reservationPick.type,
+                    notes: reservationPick.notes
+                }
+            }
+            if (isNew) {
+                scheduleService.addItem(item).then(data => {
+                    console.log('Schedule added:', data);
+                    const newWorkIds = { ...workIds };
+                    newWorkIds[dayPick] = data.work_id;
+                    setWorkIds(newWorkIds);
+                }).catch(error => {
+                    console.error('Error adding item:', error);
+                });
+                dayItems.push(reservationPick);
+            } else {
+                scheduleService.updateItem(reservationPick.id, item).then(data => {
+                    console.log('Item updated:', data);
+                    // Handle the updated list of items
+                }).catch(error => {
+                    console.error('Error updating item:', error);
+                });
+                const itemIndex = dayItems.findIndex(item => item.name === reservationPick.name);
+                if (itemIndex > -1) {
+                    dayItems[itemIndex] = reservationPick;
+                } else {
+                }
+            }
+            // console.log(dayItems)
+            newItems[dayPick] = dayItems;
+            return newItems;
+        });
+        setSubmit(true)
+        setShowItemsDetail(false);
+    };
 
     const handleDeleteItem = useCallback((reservation: ExtendedAgendaEntry) => {
+        scheduleService.deleteItem(reservation.id).then(data => {
+            console.log('Item delete:', data);
+        }).catch(error => {
+            console.error('Error delete item:', error);
+        });
         setItems(prevItems => {
             const updatedItems = { ...prevItems };
             if (updatedItems[reservation.day]) {
@@ -34,60 +85,64 @@ const ScheduleEmployerScreen: React.FC = () => {
             }
             return updatedItems;
         });
-        setRefreshing(false);
+    }, []);
+    const formatDate = (dateArray: number[]): string => {
+        const [year, month, day] = dateArray;
+        return moment({ year, month: month - 1, day }).format('YYYY-MM-DD');
+    };
+    const convertToMoment = (timeArray: number[]): string => {
+        const [hour, minute] = timeArray;
+        return moment({ hour, minute }).format('HH:mm');
+    };
+    useEffect(() => {
+        const fetchItems = async () => {
+            try {
+                const response = await scheduleService.fetchItems();
+                const newWorkIds = {};
+                const newItems = {};
+
+                response.forEach(item => {
+                    const dateStr = formatDate(item.date);
+                    newWorkIds[dateStr] = item.work_id;
+                    newItems[dateStr] = (item.items || []).map(subItem => ({
+                        id: subItem.id.toString(),
+                        name: subItem.id.toString(),
+                        notes: subItem.notes,
+                        height: 100,
+                        day: dateStr,
+                        start: convertToMoment(subItem.startTime),
+                        end: convertToMoment(subItem.endTime),
+                        title: subItem.title,
+                        type: subItem.type
+                    }));
+                });
+
+                setWorkIds(prevWorkIds => ({
+                    ...prevWorkIds,
+                    ...newWorkIds
+                }));
+                setItems(prevItems => ({
+                    ...prevItems,
+                    ...newItems
+                }));
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        };
+
+        fetchItems();
     }, []);
 
     const loadItems = (day: DateData) => {
-        const tempItems = items || {};
 
-        setTimeout(() => {
-            for (let i = 0; i < 6; i++) {
-                const time = day.timestamp + i * 24 * 60 * 60 * 1000;
-                const strTime = timeToString(time);
-
-                if (!tempItems[strTime]) {
-                    tempItems[strTime] = [];
-                    const type = Math.random() < 0.5 ? 'personal' : 'working';
-                    const numItems = Math.floor(Math.random() * 3 + 1);
-                    for (let j = 0; j < numItems; j++) {
-                        tempItems[strTime].push({
-                            notes: 'Item for ' + strTime + ' #' + j,
-                            name: generateRandomId(),
-                            height: Math.max(50, Math.floor(Math.random() * 150)),
-                            day: strTime,
-                            start: '08:00',
-                            end: '10:00',
-                            title: 'Meeting',
-                            type: type,
-                        } as ExtendedAgendaEntry);
-                    }
-                }
-            }
-
-            const newItems: AgendaSchedule = {};
-            Object.keys(tempItems).forEach(key => {
-                newItems[key] = tempItems[key];
-            });
-            setItems(newItems);
-        }, 1000);
     };
     const handleSetValue = useCallback((isShow: boolean, isNew: boolean, day: string, reservation: ExtendedAgendaEntry) => {
         setReservationPick({ ...reservation })
         setDayPick(day)
         setShowItemsDetail(isShow);
         setIsNew(isNew)
-    }, []);
+    }, [items, setItems]);
     const renderItem = useCallback((reservation: ExtendedAgendaEntry, isFirst: boolean) => {
-        // const inputRange = [-1, 0, 60 * index, 60 * (index + 0.5)];
-        // const opacityInputRange = [-1, 0, 60 * index, 60 * (index + 1)];
-        // const scale = scrolly.interpolate({
-        //   inputRange,
-        //   outputRange: [1, 1, 1, 0]
-        // });
-        // const opacity = scrolly.interpolate({
-        //   opacityInputRange,
-        //   outputRange: [1, 1, 1, 0]
-        // });
         const height = new Animated.Value(70)
         const animatedDelete = () => {
             Animated.timing(height, {
@@ -134,123 +189,182 @@ const ScheduleEmployerScreen: React.FC = () => {
                 <View>
                     <TouchableOpacity
                         style={[styles.item]}
-                        onPress={reservation.type === 'personal' ? () => handleSetValue(true, false, reservation.day, reservation) : () => navigation.navigate('EmployeeList')}
-                    // onPress={}
+                        onPress={
+                            reservation.type === 'personal'
+                                ? () => handleSetValue(true, false, reservation.day, reservation)
+                                : () => navigation.navigate('EmployeeList', { reservation: reservation })
+                        }
                     >
-                    <View style={styles.textContainer}>
-                        <Text style={[styles.timeText]}>
-                            {reservation.start} - {reservation.end}
-                        </Text>
-                        <Text style={[styles.titleText]}>
-                            {reservation.title}
-                        </Text>
-                        <Text style={[styles.nameText]}>
-                            {reservation.notes}
-                        </Text>
-                    </View>
-                    <View style={styles.coloredBar} />
-                    <View
-                        style={{
-                            position: 'absolute',
-                            top: 10,
-                            right: 10,
-                        }}
-                    >
-                        <Text style={{
-                            fontFamily: 'mon',
-                            color: reservation.type === 'personal' ? '#a45eff' : '#00c94d',
-                            backgroundColor: reservation.type === 'personal' ? 'rgba(128,128,128,0.1)' : 'rgba(128,128,128,0.1)',
-                            padding: 5,
-                        }}>
-                            {reservation.type}
-                        </Text>
-                    </View>
-                    <View
-                        style={{
-                            position: 'absolute',
-                            bottom: 10,
-                            right: 10,
-                        }}
-                    >
-                        <Ionicons name="notifications-outline" size={24} color="black" />
-                    </View>
-                </TouchableOpacity>
+                        <View style={styles.textContainer}>
+                            <Text style={[styles.timeText]}>
+                                {reservation.start} - {reservation.end}
+                            </Text>
+                            <Text style={[styles.titleText]}>
+                                {reservation.title}
+                            </Text>
+                            <Text style={[styles.nameText]}>
+                                {reservation.notes}
+                            </Text>
+                        </View>
+                        <View style={styles.coloredBar} />
+                        <View
+                            style={{
+                                position: 'absolute',
+                                top: 10,
+                                right: 10,
+                            }}
+                        >
+                            <Text style={{
+                                fontFamily: 'mon',
+                                color: reservation.type === 'personal' ? '#a45eff' : '#00c94d',
+                                backgroundColor: reservation.type === 'personal' ? 'rgba(128,128,128,0.1)' : 'rgba(128,128,128,0.1)',
+                                padding: 5,
+                            }}>
+                                {reservation.type}
+                            </Text>
+                        </View>
+                        <View
+                            style={{
+                                position: 'absolute',
+                                bottom: 10,
+                                right: 10,
+                            }}
+                        >
+                            <Ionicons name="notifications-outline" size={24} color="black" />
+                        </View>
+                    </TouchableOpacity>
 
-            </View>
+                </View>
             </Swipeable >
         );
     }, [reservationPick]);
 
-const renderEmptyDate = () => {
+    const renderEmptyDate = () => {
+        return (
+            <View style={styles.emptyDate}>
+                <Text>This is empty date!</Text>
+            </View>
+        );
+    };
+
+    const renderDay = (day) => {
+        if (day) {
+            return <Text style={styles.customDay}>{day.getDay()}</Text>;
+        }
+        return <View style={styles.dayItem} />;
+    };
+
+    const rowHasChanged = (r1: AgendaEntry, r2: AgendaEntry) => {
+        return r1.name === r2.name;
+    };
+
+
     return (
-        <View style={styles.emptyDate}>
-            <Text>This is empty date!</Text>
-        </View>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+            <SafeAreaView style={styles.container}>
+                <Agenda
+                    items={items}
+                    // loadItemsForMonth={loadItems}
+                    renderItem={renderItem}
+                    renderEmptyDate={renderEmptyDate}
+                    // rowHasChanged={rowHasChanged}
+                    showClosingKnob={true}
+                    minDate={moment().startOf('month').format('YYYY-MM-DD')}
+                    maxDate={moment().endOf('month').format('YYYY-MM-DD')}
+                    onRefresh={() => {
+                        console.log('refresh')
+                    }}
+                    onDayChange={day => {
+                        setDayPick(day.dateString);
+                    }}
+                    onDayPress={day => {
+                        setDayPick(day.dateString);
+                    }}
+                    refreshing={false}
+                // renderDay={renderDay}
+                // markedDates={{
+                //   '2024-02-06': {marked: true, dotColor: 'red' },
+                // }}
+                />
+
+                <TouchableOpacity
+                    style={styles.viewTask}
+                    onPress={() => handleSetValue(true, true, dayPick, {
+                        id: -1,
+                        notes: '',
+                        name: generateRandomId(),
+                        height: Math.max(50, Math.floor(Math.random() * 150)),
+                        day: dayPick,
+                        start: '08:00',
+                        end: '10:00',
+                        title: '',
+                        type: 'personal',
+                    })}
+                >
+                    <Ionicons name="add-circle-outline" size={60} color="#50C7C7" />
+                </TouchableOpacity>
+                <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={showItemsDetail}
+                >
+                    <View style={styles.modalContainer} >
+                        <View style={styles.modalContent}>
+                            <ItemsDetail
+                                reservationPick={reservationPick}
+                                setReservationPick={setReservationPick}
+                                isNew={isNew}
+                                dayPick={dayPick}
+                                items={items}
+                                setItems={setItems}
+                                setRefreshing={setRefreshing}
+                                setIsShow={setShowItemsDetail}
+                                setSubmit={setSubmit}
+                            />
+                            <TouchableOpacity
+                                onPress={() => {
+                                    setShowItemsDetail(false);
+                                    setSubmit(true);
+                                }}
+                                style={styles.closeButton}
+                            >
+                                <EvilIcons name="close-o" size={30} color="black" />
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => handleAddOrUpdateItem()} style={styles.saveButton} disabled={submit}>
+                                <Text
+                                    style={{
+                                        color: submit ? '#999999' : '#2c7cf5',
+                                        fontSize: 19,
+                                        fontWeight: '600'
+                                    }}
+                                >Save</Text>
+                            </TouchableOpacity>
+                            <Text style={{
+                                position: 'absolute',
+                                top: 10,
+                                left: '30%',
+                                fontSize: 16,
+                                fontFamily: 'mon-m',
+                            }}>
+                                {dayPick}
+                            </Text>
+                        </View>
+                    </View>
+                </Modal>
+                {/* <ModalItems
+          reservationPick={reservationPick}
+          setReservationPick={setReservationPick}
+          isNew={isNew}
+          isShow={showItemsDetail}
+          setIsShow={setShowItemsDetail}
+          dayPick={dayPick}
+          items={items}
+          setItems={setItems}
+          setRefreshing={setRefreshing}
+        /> */}
+            </SafeAreaView>
+        </GestureHandlerRootView>
     );
-};
-
-const rowHasChanged = (r1: AgendaEntry, r2: AgendaEntry) => {
-    console.log(r1.name + ':' + r2.name)
-    return r1.name !== r2.name;
-};
-
-
-return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaView style={styles.container}>
-            <Agenda
-                items={items}
-                loadItemsForMonth={loadItems}
-                renderItem={renderItem}
-                renderEmptyDate={renderEmptyDate}
-                // rowHasChanged={rowHasChanged}
-                showClosingKnob={true}
-                // minDate={'2024-03-20'}
-                // maxDate={'2024-03-28'}
-                onRefresh={() => {
-                    console.log('refresh')
-                }}
-                onDayChange={day => {
-                    setDayPick(day.dateString);
-                }}
-                onDayPress={day => {
-                    setDayPick(day.dateString);
-                }}
-                refreshing={refreshing}
-            // markedDates={{
-            //   '2024-02-06': {marked: true, dotColor: 'red' },
-            // }}
-            />
-
-            <TouchableOpacity
-                style={styles.viewTask}
-                onPress={() => handleSetValue(true, true, dayPick, {
-                    notes: '',
-                    name: generateRandomId(),
-                    height: Math.max(50, Math.floor(Math.random() * 150)),
-                    day: dayPick,
-                    start: '08:00',
-                    end: '10:00',
-                    title: '',
-                    type: 'personal',
-                })}
-            >
-                <Ionicons name="add-circle-outline" size={60} color="#50C7C7" />
-            </TouchableOpacity>
-            <ModalItems
-                reservationPick={reservationPick}
-                setReservationPick={setReservationPick}
-                isNew={isNew}
-                isShow={showItemsDetail}
-                setIsShow={setShowItemsDetail}
-                dayPick={dayPick}
-                items={items}
-                setItems={setItems}
-                setRefreshing={setRefreshing}
-            />
-        </SafeAreaView>
-    </GestureHandlerRootView>
-);
 }
 
 const styles = StyleSheet.create({
@@ -338,16 +452,26 @@ const styles = StyleSheet.create({
         // backgroundColor: 'plum',
         // height: 30,
     },
-    // deleteButton: {
-    //   flex: 1,
-    //   backgroundColor: 'red',
-    //   alignItems: 'center',
-    //   justifyContent: 'center',
-    //   marginTop: 17,
-    //   width: 60,
-    //   height: 100,
-    //   borderRadius: 25,
-    // },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        borderRadius: 10,
+        elevation: 5,
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+    },
+    saveButton: {
+        position: 'absolute',
+        top: 10,
+        left: 10,
+    },
 });
 
 export default React.memo(ScheduleEmployerScreen);
