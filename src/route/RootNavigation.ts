@@ -27,10 +27,10 @@ function push(name: string, params: any = {}) {
     }
 }
 
-function pop() {
+function pop(count?: number) {
     if (navigationRef.isReady()) {
         // Perform navigation if the react navigation is ready to handle actions
-        navigationRef.dispatch(StackActions.pop());
+        navigationRef.dispatch(StackActions.pop(count));
     } else {
         // You can decide what to do if react navigation is not ready
         // You can ignore this, or add these actions to a queue you can call later

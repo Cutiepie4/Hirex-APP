@@ -11,7 +11,7 @@ import { useDispatch } from 'react-redux';
 import { hideLoading, login, showLoading } from '../../redux/slice/authSlice';
 import GOOGLE from '../../assets/images/google_logo.png'
 
-import { BASE_API } from '../../services/BaseApi';
+import { BASE_API } from '../../services/baseapi';
 import Toast from 'react-native-toast-message';
 
 const Login = () => {

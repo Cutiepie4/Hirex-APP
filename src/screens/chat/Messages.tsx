@@ -18,6 +18,8 @@ import { RootReducer } from '../../redux/store/reducer'
 import { SimpleLineIcons } from '@expo/vector-icons';
 import { saveChatRoom } from '../../redux/slice/chatSlice'
 import { ChatRoom } from './ChatScreen'
+import Toast from 'react-native-toast-message'
+import RNCallKit from 'react-native-callkeep'
 
 const Messages = () => {
     const dispatch = useDispatch();
@@ -25,6 +27,32 @@ const Messages = () => {
     const [chatRoom, setChatRoom] = useState<ChatRoom[]>([]);
     const { phoneNumber, isLoading } = useSelector((state: RootReducer) => state.authReducer);
     const width = useWindowDimensions().width;
+
+    useEffect(
+        useCallback(
+            () => {
+                const colRef = collection(db, 'call_requests', phoneNumber, 'list_calls');
+                const q = query(colRef);
+                onSnapshot(q, (snapshot) => {
+                    snapshot.docChanges().forEach((change) => {
+                        if (change.type === 'added') {
+                            const incommingCallData = change.doc.data();
+                            console.log('new call data', incommingCallData)
+
+                            RNCallKit.displayIncomingCall('callid', incommingCallData.caller, 'callername', 'generic', true)
+                            RNCallKit.addEventListener('endCall', () =>
+                                console.log('refuse')
+                            )
+                            RNCallKit.addEventListener('answerCall', () =>
+                                console.log('answer')
+                            )
+                        }
+                    });
+                });
+            },
+            []),
+        []
+    );
 
     useEffect(() => {
         setChatRoom(initChatRoom.map(item => {
@@ -41,60 +69,54 @@ const Messages = () => {
     }, [initChatRoom]);
 
     useFocusEffect(
-        useCallback(() => {
-            const initialize = async () => {
-                // dispatch(showLoading());
-                let tempChatRoom = [];
-                const fetchData = async () => {
-                    const q = query(collection(db, 'conversations_col'), where('participants', 'array-contains', phoneNumber));
-                    const docs = await getDocs(q);
-                    docs.forEach((doc) => {
-                        const data = doc.data();
-                        tempChatRoom = [
-                            ...tempChatRoom,
-                            {
-                                ...data,
-                                messages: data.messages.map(item => {
-                                    return { ...item, sentAt: item.sentAt.toDate().toISOString() }
-                                })
-                            }
-                        ];
-                    });
-                };
-                await fetchData();
-                // dispatch(hideLoading());
-                dispatch(saveChatRoom(tempChatRoom));
+        useCallback(() => async () => {
+            // dispatch(showLoading());
+            let tempChatRoom = [];
+            const fetchData = async () => {
+                const q = query(collection(db, 'conversations_col'), where('participants', 'array-contains', phoneNumber));
+                const docs = await getDocs(q);
+                docs.forEach((doc) => {
+                    const data = doc.data();
+                    tempChatRoom = [
+                        ...tempChatRoom,
+                        {
+                            ...data,
+                            messages: data.messages.map(item => {
+                                return { ...item, sentAt: item.sentAt.toDate().toISOString() }
+                            })
+                        }
+                    ];
+                });
             };
-            initialize();
+            await fetchData();
+            // dispatch(hideLoading());
+            dispatch(saveChatRoom(tempChatRoom));
         }, [])
     );
-
 
     const formatTimeDifference = (timestamp: Timestamp): string => {
         if (!timestamp) return '-';
         const timestampFromFirestore = timestamp.toDate?.();
         const currentTimestamp = new Date();
-
         const timeDifference = currentTimestamp.getTime() - timestampFromFirestore.getTime();
         const timeDifferenceInSeconds = Math.floor(timeDifference / 1000);
-
         if (timeDifferenceInSeconds < 60) {
-            return `${timeDifferenceInSeconds} seconds ago`;
+            return `${timeDifferenceInSeconds} giây`;
         } else if (timeDifferenceInSeconds < 3600) {
             const minutes = Math.floor(timeDifferenceInSeconds / 60);
-            return `${minutes} minutes ago`;
+            return `${minutes} phút`;
         } else if (timeDifferenceInSeconds < 86400) {
             const hours = Math.floor(timeDifferenceInSeconds / 3600);
-            return `${hours} hours ago`;
+            return `${hours} giờ`;
         } else {
             const days = Math.floor(timeDifferenceInSeconds / 86400);
-            return `${days} days ago`;
+            return `${days} ngày`;
         }
     };
 
     const renderItem = ({ item, index }) => {
         const messages = item.messages;
-        const chatFriend = item.participants.filter(item => item != phoneNumber)[0];
+        const chatFriendPhone = item.participants.filter(item => item != phoneNumber)[0];
 
         return (
             <ScrollView
@@ -107,7 +129,7 @@ const Messages = () => {
                     flexDirection: 'row',
                 }}>
                     <TouchableOpacity
-                        onPress={() => RootNavigation.navigate('ChatScreen', { data: item })}
+                        onPress={() => RootNavigation.navigate('ChatScreen', { data: { ...item, chatFriendPhone } })}
                         style={{
                             flexDirection: 'row',
                             paddingVertical: 16,
@@ -137,7 +159,7 @@ const Messages = () => {
                         <View style={[styles.inbox]}>
                             <View style={[styles.row]}>
                                 <Text style={[titleFontStyle]}>
-                                    {chatFriend}
+                                    {chatFriendPhone}
                                 </Text>
                                 <Text style={{
                                     fontSize: 12,
@@ -189,7 +211,7 @@ const Messages = () => {
     return (
         <Container backgroundColor={'#f9f9f9'}>
             <Header
-                title='Messages'
+                title='Trò chuyện'
                 rightHeaderComponent={<SimpleLineIcons name="options-vertical" size={16} color="black" />}
             />
 
@@ -202,7 +224,7 @@ const Messages = () => {
                 ListHeaderComponent={
                     <View style={[styles.container]}>
                         <SearchInput
-                            placeholder="Search name..."
+                            placeholder="Tìm kiếm"
                             onChangeText={(text) => console.log(text)}
                             style={{
                                 borderWidth: 0,
@@ -221,13 +243,13 @@ const Messages = () => {
                         alignItems: 'center'
                     }}>
                         <Image source={NO_MESSAGES} />
-                        <Text style={[titleFontStyle, { fontSize: 20 }]}>No messages</Text>
+                        <Text style={[titleFontStyle, { fontSize: 20 }]}>Không có tin nhắn</Text>
                         <Text style={{
                             marginTop: 20,
                             maxWidth: '70%',
                             textAlign: 'center',
                             marginBottom: 100
-                        }}>You currently have no incoming messages thank you</Text>
+                        }}>Hãy kết nối với mọi người tại đây</Text>
                     </View>
                 }
             />

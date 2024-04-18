@@ -40,7 +40,7 @@ const ToHomeScreen = () => {
 
     const Stack = createStackNavigator();
     LogBox.ignoreLogs([
-      'Non-serializable values were found in the navigation state',
+        'Non-serializable values were found in the navigation state',
     ]);
 
     return (

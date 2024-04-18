@@ -35,7 +35,7 @@ export interface ChatRoom {
 
 const ChatScreen = (props) => {
     const { phoneNumber } = useSelector((state: RootReducer) => state.authReducer);
-    const { messages: initMessages, participants: initParticipants } = props.route.params.data;
+    const { messages: initMessages, participants: initParticipants, chatFriendPhone } = props.route.params.data;
     const [participants, setParticipants] = useState(initParticipants);
     const [messages, setMessages] = useState<IChatMessage[]>(
         initMessages?.map((item) => {
@@ -290,12 +290,12 @@ const ChatScreen = (props) => {
                 leftHeaderComponent={
                     <>
                         <Image source={AVATAR} style={styles.imageBox} />
-                        <Text style={[titleFontStyle, { fontSize: 16 }]}>{phoneNumber}</Text>
+                        <Text style={[titleFontStyle, { fontSize: 16 }]}>{chatFriendPhone}</Text>
                     </>
                 }
                 backArrow
                 rightHeaderComponent={< Feather name="video" size={24} color={orange} />}
-                rightHeaderCallback={() => RootNavigation.navigate('VideoCall')}
+                rightHeaderCallback={() => RootNavigation.navigate('CallScreen', { calleePhone: chatFriendPhone })}
                 style={{
                     backgroundColor: 'white'
                 }}
