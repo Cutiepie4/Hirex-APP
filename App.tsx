@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from './src/redux/store/store';
-import { Provider, useSelector, } from 'react-redux';
+import { Provider, useDispatch, useSelector, } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { navigationRef } from './src/route/RootNavigation';
@@ -12,12 +12,14 @@ import Welcome from './src/screens/welcome/Welcome';
 import ChooseRole from './src/screens/signup/ChooseRole';
 import Information from './src/screens/signup/Information';
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
-import { LogBox } from 'react-native';
+import { Alert, LogBox, View, Text } from 'react-native';
 import { RootReducer } from './src/redux/store/reducer';
 import HomeTab from './src/route/HomeTab';
 import LoadingOverlay from './src/components/LoadingOverlay';
 import { loadFonts } from '@/theme';
 import CustomToast from '@/components/CustomToast';
+import messaging from '@react-native-firebase/messaging'
+import { saveDeviceToken } from '@/redux/slice/authSlice';
 
 const Stack = createStackNavigator();
 
@@ -54,6 +56,45 @@ const ToHomeScreen = () => {
 
 const EntryNavigation = () => {
     const { access_token } = useSelector((state: RootReducer) => state.authReducer);
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        const requestUserPermissions = async () => {
+            const authStatus = await messaging().requestPermission();
+            const enabled =
+                authStatus === messaging.AuthorizationStatus.AUTHORIZED || authStatus === messaging.AuthorizationStatus.PROVISIONAL
+            if (enabled) {
+                console.log('Authorized status: ', authStatus);
+            }
+        };
+
+        if (requestUserPermissions()) {
+            messaging().getToken().then(token => { dispatch(saveDeviceToken(token)) })
+        }
+        else {
+            console.log('Permission messaging not granted: ');
+        }
+
+        messaging().getInitialNotification().then(async (remoteMessage) => {
+            if (remoteMessage) {
+                console.log('Notification caused app to open from quit state:', remoteMessage.notification)
+            }
+        })
+
+        messaging().onNotificationOpenedApp((remoteMessage) => {
+            console.log('Notification caused app to oopen from background state: , ', remoteMessage.notification)
+        })
+
+        messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+            console.log('message handled in background, ', remoteMessage)
+        })
+
+        const unsubcribe = messaging().onMessage(async (remoteMessage) => {
+            Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage))
+        })
+
+        return unsubcribe;
+    }, [])
 
     if (access_token) {
         return <ToHomeScreen />;
@@ -67,6 +108,18 @@ const EntryNavigation = () => {
         );
     }
 };
+
+const Test = () => (
+    <View style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+    }}>
+        <Text>
+            Testing
+        </Text>
+    </View>
+)
 
 const App = () => {
     const preload = async () => {
@@ -84,6 +137,7 @@ const App = () => {
                     <NavigationContainer ref={navigationRef}>
                         <LoadingOverlay>
                             <EntryNavigation />
+                            {/* <Test /> */}
                         </LoadingOverlay>
                         <CustomToast />
                     </NavigationContainer>

@@ -9,17 +9,6 @@ import {
     RTCSessionDescription,
     MediaStream,
 } from "react-native-webrtc";
-import { db } from "../../../firebaseConfig";
-import {
-    addDoc,
-    collection,
-    doc,
-    setDoc,
-    getDoc,
-    updateDoc,
-    onSnapshot,
-    deleteField,
-} from "firebase/firestore";
 import CallActionBox from "./CallActionBox";
 import Draggable from '@ngenux/react-native-draggable-view';
 import { deepPurple } from "@/styles/styles";
@@ -27,6 +16,8 @@ import { MaterialIcons } from '@expo/vector-icons';
 import Container from "@/components/Container";
 import CAT from '../../assets/ccat.jpg'
 import RootNavigation from "@/route/RootNavigation";
+
+import firestore from '@react-native-firebase/firestore';
 
 const configuration = {
     iceServers: [
@@ -40,8 +31,8 @@ const configuration = {
 const JoinScreen = ({ route }) => {
     const { roomId } = route.params;
     const draggableRef = useRef();
-    const [localStream, setLocalStream] = useState();
-    const [remoteStream, setRemoteStream] = useState();
+    const [localStream, setLocalStream] = useState<MediaStream>();
+    const [remoteStream, setRemoteStream] = useState<MediaStream>();
     const [cachedLocalPC, setCachedLocalPC] = useState();
     const [isMuted, setIsMuted] = useState(false);
     const [isOffCam, setIsOffCam] = useState(false);
@@ -55,7 +46,7 @@ const JoinScreen = ({ route }) => {
         localStream && joinCall(roomId);
     }, [localStream]);
 
-    async function endCall() {
+    async function endCall(roomId, cachedLocalPC, setLocalStream, setRemoteStream, setCachedLocalPC) {
         if (cachedLocalPC) {
             const senders = cachedLocalPC.getSenders();
             senders.forEach((sender) => {
@@ -64,8 +55,8 @@ const JoinScreen = ({ route }) => {
             cachedLocalPC.close();
         }
 
-        const roomRef = doc(db, "room", roomId);
-        await updateDoc(roomRef, { answer: deleteField(), connected: false });
+        const roomRef = firestore().collection('room').doc(roomId);
+        await roomRef.update({ answer: firestore.FieldValue.delete(), connected: false });
 
         setLocalStream(null);
         setRemoteStream(null);
@@ -92,29 +83,30 @@ const JoinScreen = ({ route }) => {
                 optional: videoSourceId ? [{ sourceId: videoSourceId }] : [],
             },
         };
-        const newStream = await mediaDevices.getUserMedia(constraints);
+        const newStream: MediaStream = await mediaDevices.getUserMedia(constraints);
         setLocalStream(newStream);
     };
 
     const joinCall = async (id) => {
-        const roomRef = doc(db, "room", id);
-        const roomSnapshot = await getDoc(roomRef);
+        const roomRef = firestore().collection('room').doc(id);
+        const roomSnapshot = await roomRef.get();
 
         if (!roomSnapshot.exists) return;
+
         const localPC = new RTCPeerConnection(configuration);
         localStream.getTracks().forEach((track) => {
             localPC.addTrack(track, localStream);
         });
 
-        const callerCandidatesCollection = collection(roomRef, "callerCandidates");
-        const calleeCandidatesCollection = collection(roomRef, "calleeCandidates");
+        const callerCandidatesCollection = roomRef.collection('callerCandidates');
+        const calleeCandidatesCollection = roomRef.collection('calleeCandidates');
 
         localPC.addEventListener("icecandidate", (e) => {
             if (!e.candidate) {
                 console.log("Got final candidate!");
                 return;
             }
-            addDoc(calleeCandidatesCollection, e.candidate.toJSON());
+            calleeCandidatesCollection.add(e.candidate.toJSON());
         });
 
         localPC.ontrack = (e) => {
@@ -131,9 +123,9 @@ const JoinScreen = ({ route }) => {
         const answer = await localPC.createAnswer();
         await localPC.setLocalDescription(answer);
 
-        await updateDoc(roomRef, { answer, connected: true }, { merge: true });
+        await roomRef.update({ answer, connected: true });
 
-        onSnapshot(callerCandidatesCollection, (snapshot) => {
+        const unsubscribe = callerCandidatesCollection.onSnapshot((snapshot) => {
             snapshot.docChanges().forEach((change) => {
                 if (change.type === "added") {
                     let data = change.doc.data();
@@ -142,7 +134,7 @@ const JoinScreen = ({ route }) => {
             });
         });
 
-        onSnapshot(roomRef, (doc) => {
+        const unsubscribeRoom = roomRef.onSnapshot((doc) => {
             const data = doc.data();
             if (!data.answer) {
                 RootNavigation.pop();
@@ -150,6 +142,8 @@ const JoinScreen = ({ route }) => {
         });
 
         setCachedLocalPC(localPC);
+
+        return { unsubscribe, unsubscribeRoom };
     };
 
     const switchCamera = () => {

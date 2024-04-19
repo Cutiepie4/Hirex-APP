@@ -9,18 +9,6 @@ import {
   RTCSessionDescription,
   MediaStream,
 } from "react-native-webrtc";
-import { db } from "../../../firebaseConfig";
-import {
-  addDoc,
-  collection,
-  doc,
-  setDoc,
-  getDoc,
-  updateDoc,
-  onSnapshot,
-  deleteField,
-  Timestamp,
-} from "firebase/firestore";
 import CAT from '../../assets/ccat.jpg'
 import CallActionBox from "./CallActionBox";
 import Container from "@/components/Container";
@@ -30,7 +18,9 @@ import Draggable from '@ngenux/react-native-draggable-view';
 import RootNavigation from "@/route/RootNavigation";
 import { useSelector } from "react-redux";
 import { RootReducer } from "@/redux/store/reducer";
-import uuid from 'react-native-uuid';
+import uuid from 'react-native-uuid'
+
+import firestore from '@react-native-firebase/firestore';
 
 const configuration = {
   iceServers: [
@@ -72,8 +62,8 @@ const CallScreen = ({ route }) => {
       cachedLocalPC.close();
     }
 
-    const roomRef = doc(db, "room", roomId);
-    await updateDoc(roomRef, { answer: deleteField() });
+    const roomRef = firestore().collection('room').doc(roomId);
+    await roomRef.update({ answer: firestore.FieldValue.delete() });
 
     setLocalStream(null);
     setRemoteStream(null);
@@ -111,16 +101,16 @@ const CallScreen = ({ route }) => {
       localPC.addTrack(track, localStream);
     });
 
-    const roomRef = doc(db, "room", id);
-    const callerCandidatesCollection = collection(roomRef, "callerCandidates");
-    const calleeCandidatesCollection = collection(roomRef, "calleeCandidates");
+    const roomRef = firestore().collection('room').doc(id);
+    const callerCandidatesCollection = roomRef.collection('callerCandidates');
+    const calleeCandidatesCollection = roomRef.collection('calleeCandidates');
 
-    localPC.addEventListener("icecandidate", (e) => {
+    localPC.addEventListener("icecandidate", async (e) => {
       if (!e.candidate) {
         console.log("Got final candidate!");
         return;
       }
-      addDoc(callerCandidatesCollection, e.candidate.toJSON());
+      await callerCandidatesCollection.add(e.candidate.toJSON());
     });
 
     localPC.ontrack = (e) => {
@@ -134,10 +124,10 @@ const CallScreen = ({ route }) => {
     const offer = await localPC.createOffer();
     await localPC.setLocalDescription(offer);
 
-    await setDoc(roomRef, { offer, connected: false }, { merge: true });
+    await roomRef.set({ offer, connected: false }, { merge: true });
 
     // Listen for remote answer
-    onSnapshot(roomRef, (doc) => {
+    roomRef.onSnapshot((doc) => {
       const data = doc.data();
       if (!localPC.currentRemoteDescription && data.answer) {
         const rtcSessionDescription = new RTCSessionDescription(data.answer);
@@ -147,8 +137,8 @@ const CallScreen = ({ route }) => {
       }
     });
 
-    // when answered, add candidate to peer connection
-    onSnapshot(calleeCandidatesCollection, (snapshot) => {
+    // When answered, add candidate to peer connection
+    calleeCandidatesCollection.onSnapshot((snapshot) => {
       snapshot.docChanges().forEach((change) => {
         if (change.type === "added") {
           let data = change.doc.data();
@@ -159,14 +149,12 @@ const CallScreen = ({ route }) => {
 
     setCachedLocalPC(localPC);
 
-    const colRef = collection(db, "call_requests", calleePhone, 'list_calls');
-    await addDoc(colRef,
-      {
-        caller: phoneNumber,
-        callAt: Timestamp.now(),
-        roomId
-      }
-    );
+    const colRef = firestore().collection('call_requests').doc(calleePhone).collection('list_calls');
+    await colRef.add({
+      caller: phoneNumber,
+      callAt: firestore.Timestamp.now(),
+      roomId: id
+    });
   };
 
   const switchCamera = () => {

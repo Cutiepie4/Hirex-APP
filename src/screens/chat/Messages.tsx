@@ -1,4 +1,4 @@
-import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
+import { FlatList, Image, Modal, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
 import React, { useCallback, useEffect, useState } from 'react'
 import Container from '../../components/Container'
 import Header from '../../components/Header'
@@ -9,8 +9,6 @@ import NO_MESSAGES from '../../assets/images/no_messages.png'
 import { ScrollView } from 'react-native-gesture-handler'
 import { Feather } from '@expo/vector-icons';
 import RootNavigation from '../../route/RootNavigation'
-import { db } from '../../../firebaseConfig'
-import { Timestamp, collection, getDocs, onSnapshot, query, where } from 'firebase/firestore'
 import { useFocusEffect } from '@react-navigation/native'
 import { useDispatch, useSelector } from 'react-redux'
 import { hideLoading, showLoading } from '../../redux/slice/authSlice'
@@ -19,7 +17,8 @@ import { SimpleLineIcons } from '@expo/vector-icons';
 import { saveChatRoom } from '../../redux/slice/chatSlice'
 import { ChatRoom } from './ChatScreen'
 import Toast from 'react-native-toast-message'
-import RNCallKit from 'react-native-callkeep'
+
+import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore'
 
 const Messages = () => {
     const dispatch = useDispatch();
@@ -28,40 +27,15 @@ const Messages = () => {
     const { phoneNumber, isLoading } = useSelector((state: RootReducer) => state.authReducer);
     const width = useWindowDimensions().width;
 
-    useEffect(
-        useCallback(
-            () => {
-                const colRef = collection(db, 'call_requests', phoneNumber, 'list_calls');
-                const q = query(colRef);
-                onSnapshot(q, (snapshot) => {
-                    snapshot.docChanges().forEach((change) => {
-                        if (change.type === 'added') {
-                            const incommingCallData = change.doc.data();
-                            console.log('new call data', incommingCallData)
-
-                            RNCallKit.displayIncomingCall('callid', incommingCallData.caller, 'callername', 'generic', true)
-                            RNCallKit.addEventListener('endCall', () =>
-                                console.log('refuse')
-                            )
-                            RNCallKit.addEventListener('answerCall', () =>
-                                console.log('answer')
-                            )
-                        }
-                    });
-                });
-            },
-            []),
-        []
-    );
 
     useEffect(() => {
-        setChatRoom(initChatRoom.map(item => {
+        setChatRoom(initChatRoom?.map(item => {
             return {
                 ...item,
                 messages: item.messages.map(message => {
                     return {
                         ...message,
-                        sentAt: Timestamp.fromDate(new Date(message.sentAt))
+                        sentAt: FirebaseFirestoreTypes.Timestamp.fromDate(new Date(message.sentAt))
                     }
                 })
             }
@@ -69,13 +43,14 @@ const Messages = () => {
     }, [initChatRoom]);
 
     useFocusEffect(
-        useCallback(() => async () => {
-            // dispatch(showLoading());
-            let tempChatRoom = [];
+        useCallback(() => {
             const fetchData = async () => {
-                const q = query(collection(db, 'conversations_col'), where('participants', 'array-contains', phoneNumber));
-                const docs = await getDocs(q);
-                docs.forEach((doc) => {
+                // dispatch(showLoading());
+                let tempChatRoom = [];
+                const q = firestore().collection('conversations_col').where('participants', 'array-contains', phoneNumber);
+                const querySnapshot = await q.get();
+                console.log('querysnapshot', querySnapshot)
+                querySnapshot.forEach((doc) => {
                     const data = doc.data();
                     tempChatRoom = [
                         ...tempChatRoom,
@@ -87,14 +62,14 @@ const Messages = () => {
                         }
                     ];
                 });
+                // dispatch(hideLoading());
+                dispatch(saveChatRoom(tempChatRoom));
             };
-            await fetchData();
-            // dispatch(hideLoading());
-            dispatch(saveChatRoom(tempChatRoom));
-        }, [])
+            fetchData();
+        }, [dispatch, phoneNumber])
     );
 
-    const formatTimeDifference = (timestamp: Timestamp): string => {
+    const formatTimeDifference = (timestamp: FirebaseFirestoreTypes.Timestamp): string => {
         if (!timestamp) return '-';
         const timestampFromFirestore = timestamp.toDate?.();
         const currentTimestamp = new Date();
@@ -253,6 +228,7 @@ const Messages = () => {
                     </View>
                 }
             />
+
         </Container >
     )
 };

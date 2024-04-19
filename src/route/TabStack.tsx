@@ -8,7 +8,6 @@ import { RootReducer } from '../redux/store/reducer';
 import Messages from '../screens/chat/Messages';
 import CallActionBox from '../screens/chat/CallActionBox';
 import CallScreen from '../screens/chat/CallScreen';
-import DraggableCameraView from '../screens/chat/DraggableCameraView';
 import { hideTabBar, showTabBar } from '../redux/slice/authSlice';
 import { Home, Description, UploadCV, UploadCVSuccess } from '@/screens/Home';
 import ChatScreen from '../screens/chat/ChatScreen';
@@ -36,7 +35,6 @@ const chatScreenStack = {
     ChatScreen: ChatScreen,
     CallActionBox: CallActionBox,
     CallScreen: CallScreen,
-    DraggableCameraView: DraggableCameraView,
     IncomingCall: IncomingCall,
     JoinScreen: JoinScreen
 }
