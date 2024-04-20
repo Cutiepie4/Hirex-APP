@@ -103,7 +103,7 @@ const JoinScreen = ({ route }) => {
 
         localPC.addEventListener("icecandidate", (e) => {
             if (!e.candidate) {
-                console.log("Got final candidate!");
+                // console.log("Got final candidate!");
                 return;
             }
             calleeCandidatesCollection.add(e.candidate.toJSON());

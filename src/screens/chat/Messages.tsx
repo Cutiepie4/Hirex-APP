@@ -27,7 +27,6 @@ const Messages = () => {
     const { phoneNumber, isLoading } = useSelector((state: RootReducer) => state.authReducer);
     const width = useWindowDimensions().width;
 
-
     useEffect(() => {
         setChatRoom(initChatRoom?.map(item => {
             return {
@@ -35,11 +34,11 @@ const Messages = () => {
                 messages: item.messages.map(message => {
                     return {
                         ...message,
-                        sentAt: FirebaseFirestoreTypes.Timestamp.fromDate(new Date(message.sentAt))
+                        sentAt: firestore.Timestamp.fromDate(new Date(message?.sentAt))
                     }
                 })
             }
-        }));
+        }) || []);
     }, [initChatRoom]);
 
     useFocusEffect(
@@ -49,7 +48,6 @@ const Messages = () => {
                 let tempChatRoom = [];
                 const q = firestore().collection('conversations_col').where('participants', 'array-contains', phoneNumber);
                 const querySnapshot = await q.get();
-                console.log('querysnapshot', querySnapshot)
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
                     tempChatRoom = [
@@ -66,12 +64,12 @@ const Messages = () => {
                 dispatch(saveChatRoom(tempChatRoom));
             };
             fetchData();
-        }, [dispatch, phoneNumber])
+        }, [phoneNumber])
     );
 
     const formatTimeDifference = (timestamp: FirebaseFirestoreTypes.Timestamp): string => {
         if (!timestamp) return '-';
-        const timestampFromFirestore = timestamp.toDate?.();
+        const timestampFromFirestore = timestamp?.toDate?.();
         const currentTimestamp = new Date();
         const timeDifference = currentTimestamp.getTime() - timestampFromFirestore.getTime();
         const timeDifferenceInSeconds = Math.floor(timeDifference / 1000);
@@ -89,7 +87,7 @@ const Messages = () => {
         }
     };
 
-    const renderItem = ({ item, index }) => {
+    const renderItem = ({ item }: { item: ChatRoom }) => {
         const messages = item.messages;
         const chatFriendPhone = item.participants.filter(item => item != phoneNumber)[0];
 

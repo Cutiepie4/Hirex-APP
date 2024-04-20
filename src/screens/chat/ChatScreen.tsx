@@ -2,7 +2,6 @@ import { SafeAreaView, Text, View, FlatList, StyleSheet, Image, TextInput, Keybo
 import React, { useCallback, useEffect, useState } from 'react'
 import Container from '../../components/Container'
 import { deepPurple, orange, regularPadding, titleFontStyle } from '../../styles/styles'
-import { Timestamp, collection, doc, getDoc, getDocs, getFirestore, onSnapshot, runTransaction } from "firebase/firestore";
 import { Bubble, Composer, ComposerProps, GiftedChat, IChatMessage, InputToolbar, MessageImage, Send, TEST_ID } from 'react-native-gifted-chat'
 import Header from '../../components/Header';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,11 +19,12 @@ import Toast from 'react-native-toast-message';
 
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
+import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 
 export interface Message {
     id: string,
     content: string,
-    sentAt: Timestamp,
+    sentAt: FirebaseFirestoreTypes.Timestamp,
     sentBy: string,
     image?: string,
 };
@@ -43,12 +43,12 @@ const ChatScreen = (props) => {
             return {
                 ...item,
                 _id: item.id,
-                sentAt: Timestamp.fromDate(new Date(item.sentAt)),
+                sentAt: item.sentAt,
                 user: {
                     _id: item.sentBy
                 }
             }
-        })
+        }) || []
     );
     const dispatch = useDispatch();
     const [sendLoading, setSendLoading] = useState(false);
@@ -56,7 +56,7 @@ const ChatScreen = (props) => {
     const convertMessageToSave = (array: IChatMessage[] | [{ user: { _id: string }, image: string }]) => {
         return array.map(message => ({
             content: message.text ?? '',
-            sentAt: Timestamp.fromDate(new Date()),
+            sentAt: firestore.Timestamp.fromDate(new Date()),
             sentBy: message.user._id,
             image: message.image ?? ''
         }));
@@ -84,14 +84,14 @@ const ChatScreen = (props) => {
             .onSnapshot((docSnapshot) => {
                 if (docSnapshot.exists) {
                     setParticipants(docSnapshot.data().participants);
-                    setMessages(convertMessageToRender(docSnapshot.data()));
+                    setMessages(convertMessageToRender(docSnapshot.data() as ChatRoom));
                 }
             });
 
         return () => {
             unsubscribe();
         };
-    }, [participants]);
+    }, []);
 
     useEffect(() => {
         const unsubscribe = fetchData();
@@ -269,7 +269,7 @@ const ChatScreen = (props) => {
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.All,
-            quality: 1,
+            quality: 0.3,
         });
 
         if (!result.canceled) {
@@ -277,14 +277,14 @@ const ChatScreen = (props) => {
         }
     };
 
-    const uploadImage = async (uri) => {
+    const uploadImage = async (uri: string) => {
         setSendLoading(true);
         try {
             const response = await fetch(uri);
             const blob = await response.blob();
             const storageRef = storage().ref(`images/${new Date().getTime()}`);
-            const snapshot = await storageRef.put(blob);
-            const downloadURL = await snapshot.ref.getDownloadURL();
+            await storageRef.put(blob);
+            const downloadURL = await storageRef.getDownloadURL();
             await onSend([], downloadURL);
         } catch (error) {
             console.error('Error uploading image:', error);

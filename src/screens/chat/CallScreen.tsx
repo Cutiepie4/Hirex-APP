@@ -107,7 +107,7 @@ const CallScreen = ({ route }) => {
 
     localPC.addEventListener("icecandidate", async (e) => {
       if (!e.candidate) {
-        console.log("Got final candidate!");
+        // console.log("Got final candidate!");
         return;
       }
       await callerCandidatesCollection.add(e.candidate.toJSON());
