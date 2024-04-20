@@ -144,7 +144,7 @@ const Messages = () => {
                             <View style={[styles.row, { marginTop: 8 }]}>
                                 <View>
                                     <Text>
-                                        {messages.length > 0 && messages[messages.length - 1].content}
+                                        {messages.length > 0 && messages[messages.length - 1].content || 'Da gui mot anh'}
                                     </Text>
                                 </View>
                                 <View style={{

@@ -18,7 +18,7 @@ import HomeTab from './src/route/HomeTab';
 import LoadingOverlay from './src/components/LoadingOverlay';
 import { loadFonts } from '@/theme';
 import CustomToast from '@/components/CustomToast';
-import messaging from '@react-native-firebase/messaging'
+import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging'
 import { saveDeviceToken } from '@/redux/slice/authSlice';
 
 const Stack = createStackNavigator();
@@ -69,32 +69,34 @@ const EntryNavigation = () => {
         };
 
         if (requestUserPermissions()) {
-            messaging().getToken().then(token => { dispatch(saveDeviceToken(token)) })
+            messaging().getToken().then(token => { dispatch(saveDeviceToken(token)); console.log('devicetoken: ', token) })
         }
         else {
             console.log('Permission messaging not granted: ');
-        }
+        };
 
-        messaging().getInitialNotification().then(async (remoteMessage) => {
+        messaging().getInitialNotification().then(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
             if (remoteMessage) {
                 console.log('Notification caused app to open from quit state:', remoteMessage.notification)
             }
-        })
+        });
 
-        messaging().onNotificationOpenedApp((remoteMessage) => {
+        messaging().onNotificationOpenedApp((remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
             console.log('Notification caused app to oopen from background state: , ', remoteMessage.notification)
         })
 
-        messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+        messaging().setBackgroundMessageHandler(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
             console.log('message handled in background, ', remoteMessage)
-        })
+        });
 
-        const unsubcribe = messaging().onMessage(async (remoteMessage) => {
-            Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage))
-        })
+        messaging().onTokenRefresh((token) => {
+            dispatch(saveDeviceToken(token));
+        });
 
-        return unsubcribe;
-    }, [])
+        messaging().onMessage(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
+            Alert.alert('A new FCM message arrived!', remoteMessage.notification.title + ' ' + remoteMessage.notification.body)
+        });
+    }, []);
 
     if (access_token) {
         return <ToHomeScreen />;
