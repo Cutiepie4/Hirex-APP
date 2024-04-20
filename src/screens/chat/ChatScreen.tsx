@@ -2,8 +2,6 @@ import { SafeAreaView, Text, View, FlatList, StyleSheet, Image, TextInput, Keybo
 import React, { useCallback, useEffect, useState } from 'react'
 import Container from '../../components/Container'
 import { deepPurple, orange, regularPadding, titleFontStyle } from '../../styles/styles'
-import { Timestamp, collection, doc, getDoc, getDocs, getFirestore, onSnapshot, runTransaction } from "firebase/firestore";
-import { db, storage } from '../../../firebaseConfig'
 import { Bubble, Composer, ComposerProps, GiftedChat, IChatMessage, InputToolbar, MessageImage, Send, TEST_ID } from 'react-native-gifted-chat'
 import Header from '../../components/Header';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,16 +12,19 @@ import { ParseConversationId } from '../../utils/utils';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { FontAwesome } from '@expo/vector-icons';
-import { getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
 import { useDispatch, useSelector } from 'react-redux';
 import { hideLoading, showLoading } from '../../redux/slice/authSlice';
 import { RootReducer } from '@/redux/store/reducer';
 import Toast from 'react-native-toast-message';
 
+import firestore from '@react-native-firebase/firestore';
+import storage from '@react-native-firebase/storage';
+import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
+
 export interface Message {
     id: string,
     content: string,
-    sentAt: Timestamp,
+    sentAt: FirebaseFirestoreTypes.Timestamp,
     sentBy: string,
     image?: string,
 };
@@ -35,19 +36,19 @@ export interface ChatRoom {
 
 const ChatScreen = (props) => {
     const { phoneNumber } = useSelector((state: RootReducer) => state.authReducer);
-    const { messages: initMessages, participants: initParticipants } = props.route.params.data;
+    const { messages: initMessages, participants: initParticipants, chatFriendPhone } = props.route.params.data;
     const [participants, setParticipants] = useState(initParticipants);
     const [messages, setMessages] = useState<IChatMessage[]>(
         initMessages?.map((item) => {
             return {
                 ...item,
                 _id: item.id,
-                sentAt: Timestamp.fromDate(new Date(item.sentAt)),
+                sentAt: item.sentAt,
                 user: {
                     _id: item.sentBy
                 }
             }
-        })
+        }) || []
     );
     const dispatch = useDispatch();
     const [sendLoading, setSendLoading] = useState(false);
@@ -55,7 +56,7 @@ const ChatScreen = (props) => {
     const convertMessageToSave = (array: IChatMessage[] | [{ user: { _id: string }, image: string }]) => {
         return array.map(message => ({
             content: message.text ?? '',
-            sentAt: Timestamp.fromDate(new Date()),
+            sentAt: firestore.Timestamp.fromDate(new Date()),
             sentBy: message.user._id,
             image: message.image ?? ''
         }));
@@ -76,23 +77,28 @@ const ChatScreen = (props) => {
         }));
     };
 
-    const fetchData = useCallback(
-        async () => {
-            const docRef = doc(db, 'conversations_col', ParseConversationId(participants));
-            const unsubscribe = onSnapshot(docRef, (docSnapshot) => {
-                if (docSnapshot.exists()) {
+    const fetchData = useCallback(() => {
+        const unsubscribe = firestore()
+            .collection('conversations_col')
+            .doc(ParseConversationId(participants))
+            .onSnapshot((docSnapshot) => {
+                if (docSnapshot.exists) {
                     setParticipants(docSnapshot.data().participants);
                     setMessages(convertMessageToRender(docSnapshot.data() as ChatRoom));
                 }
             });
-            return unsubscribe;
-        },
-        [participants]
-    );
+
+        return () => {
+            unsubscribe();
+        };
+    }, []);
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        const unsubscribe = fetchData();
+        return () => {
+            unsubscribe();
+        };
+    }, [fetchData]);
 
     const onSend = async (messages: IChatMessage[] = [], image?: string) => {
         setSendLoading(true);
@@ -103,20 +109,21 @@ const ChatScreen = (props) => {
                         user: {
                             _id: phoneNumber,
                         },
-                        image: image
-                    }
+                        image: image,
+                    },
                 ]
                 : messages
             );
             const conversationId = ParseConversationId(participants);
-            const conversationRef = doc(db, 'conversations_col', conversationId);
-            await runTransaction(db, async (transaction) => {
+            const conversationRef = firestore().collection('conversations_col').doc(conversationId);
+
+            await firestore().runTransaction(async (transaction) => {
                 const docSnapshot = await transaction.get(conversationRef);
                 const currentMessages: any[] = docSnapshot?.data()?.messages || [];
                 const updatedMessages = currentMessages.concat(
                     messageData.map((message) => ({
                         ...message,
-                        id: doc(collection(db, 'dummy')).id,
+                        id: firestore().collection('dummy').doc().id,
                     }))
                 );
                 transaction.update(conversationRef, { messages: updatedMessages });
@@ -126,8 +133,8 @@ const ChatScreen = (props) => {
                 type: 'error',
                 props: {
                     title: 'Đã có lỗi xảy ra',
-                    content: 'Không thể gửi tin nhắn'
-                }
+                    content: 'Không thể gửi tin nhắn',
+                },
             });
         } finally {
             setSendLoading(false);
@@ -262,7 +269,7 @@ const ChatScreen = (props) => {
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.All,
-            quality: 1,
+            quality: 0.3,
         });
 
         if (!result.canceled) {
@@ -270,14 +277,20 @@ const ChatScreen = (props) => {
         }
     };
 
-    const uploadImage = async (uri) => {
+    const uploadImage = async (uri: string) => {
         setSendLoading(true);
-        const response = await fetch(uri);
-        const blob = await response.blob();
-        const storageRef = ref(storage, `images/${new Date().getTime()}`);
-        const snapshot = await uploadBytes(storageRef, blob);
-        const downloadURL = await getDownloadURL(snapshot.ref);
-        await onSend([], downloadURL);
+        try {
+            const response = await fetch(uri);
+            const blob = await response.blob();
+            const storageRef = storage().ref(`images/${new Date().getTime()}`);
+            await storageRef.put(blob);
+            const downloadURL = await storageRef.getDownloadURL();
+            await onSend([], downloadURL);
+        } catch (error) {
+            console.error('Error uploading image:', error);
+        } finally {
+            setSendLoading(false);
+        }
     };
 
     return (
@@ -290,12 +303,12 @@ const ChatScreen = (props) => {
                 leftHeaderComponent={
                     <>
                         <Image source={AVATAR} style={styles.imageBox} />
-                        <Text style={[titleFontStyle, { fontSize: 16 }]}>{phoneNumber}</Text>
+                        <Text style={[titleFontStyle, { fontSize: 16 }]}>{chatFriendPhone}</Text>
                     </>
                 }
                 backArrow
                 rightHeaderComponent={< Feather name="video" size={24} color={orange} />}
-                rightHeaderCallback={() => RootNavigation.navigate('VideoCall')}
+                rightHeaderCallback={() => RootNavigation.navigate('CallScreen', { calleePhone: chatFriendPhone })}
                 style={{
                     backgroundColor: 'white'
                 }}

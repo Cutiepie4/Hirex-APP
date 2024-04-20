@@ -6,6 +6,7 @@ export interface AuthState {
     role: string,
     isLoading: boolean,
     showTabBar: boolean,
+    deviceToken: string,
 };
 
 const initialState: AuthState = {
@@ -14,6 +15,7 @@ const initialState: AuthState = {
     role: '',
     isLoading: false,
     showTabBar: false,
+    deviceToken: '',
 };
 
 const authSlice = createSlice({
@@ -38,6 +40,9 @@ const authSlice = createSlice({
         },
         hideTabBar: (state) => {
             return { ...state, showTabBar: false };
+        },
+        saveDeviceToken: (state, action) => {
+            return { ...state, deviceToken: action.payload }
         }
     },
     extraReducers(builder) {
@@ -45,5 +50,5 @@ const authSlice = createSlice({
     },
 });
 
-export const { login, showLoading, hideLoading, logout, showTabBar, hideTabBar } = authSlice.actions;
+export const { login, showLoading, hideLoading, logout, showTabBar, hideTabBar, saveDeviceToken } = authSlice.actions;
 export default authSlice.reducer;
