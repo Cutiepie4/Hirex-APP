@@ -11,10 +11,19 @@ const ItemsDetail = (props: any) => {
     const [showOptions, setShowOptions] = useState<boolean>(false);
     const [selectedOption, setSelectedOption] = useState<any>('Không có');
     const [showTakeOffModal, setShowTakeOffModal] = useState<boolean>(false);
-    const [takeOffReason, setTakeOffReason] = useState<string>('');
     const [title, setTitle] = useState<string>(props.reservationPick.title);
     const [notes, setNotes] = useState<string>(props.reservationPick.notes);
+    const [isShowTakeOff, setIsShowTakeOff] = useState<boolean>(true);
 
+    useEffect(() =>{
+        scheduleService.getCheckExistReason(props.id).then(res => {
+            if (res.status == 200){
+                setIsShowTakeOff(false)
+            }
+        }).catch(error => {
+            console.error('Error check item:', error);
+        });
+    },[])
     const options = {
         'Không có': false,
         'Vào lúc diễn ra sự kiện': 0,
@@ -209,9 +218,12 @@ const ItemsDetail = (props: any) => {
                             }}
                         >
                             <TouchableOpacity
-                                disabled={props.isNew == true}
-                                style={styles.updateButton}
-                                onPress={handleShowTakeOffModal} // Gọi hàm khi nhấn nút TAKE OFF
+                                disabled={!isShowTakeOff}
+                                style={[
+                                    styles.updateButton,
+                                    { backgroundColor: isShowTakeOff ? '#60a3bc' : '#ccc' } 
+                                ]}
+                                onPress={handleShowTakeOffModal}
                             >
                                 <Text
                                     style={{

@@ -70,6 +70,15 @@ const scheduleService = {
             throw error;
         }
     },
+    getCheckExistReason: async (itemId) => {
+        try {
+            const response = await axios.get(`${baseUrl}/api/v1/leave/checkItemExist/${itemId}`, axiosConfig);
+            return response;
+        } catch (error) {
+            console.error('Error get leave reason:', error);
+            throw error;
+        }
+    },
 };
 
 export default scheduleService;
