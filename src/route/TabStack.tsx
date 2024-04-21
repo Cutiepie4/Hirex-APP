@@ -11,8 +11,6 @@ import CallScreen from '../screens/chat/CallScreen';
 import { hideTabBar, showTabBar } from '../redux/slice/authSlice';
 import { Home, Description, UploadCV, UploadCVSuccess } from '@/screens/Home';
 import ChatScreen from '../screens/chat/ChatScreen';
-import HomeScreen from '@/screens/HomeScreen';
-
 import Setting from '../screens/setting/Setting';
 import { Profile, AboutMeScreen, Experience, Education, Certification, Skill } from '../screens';
 import Account from '../screens/setting/Account';
@@ -23,7 +21,6 @@ import JoinScreen from '@/screens/chat/JoinScreen';
 
 const homeScreenStack = {
     Home: Home,
-    HomeScreen: HomeScreen,
     Description: Description,
     UploadCV: UploadCV,
     UploadCVSuccess: UploadCVSuccess,

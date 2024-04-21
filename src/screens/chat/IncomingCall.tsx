@@ -1,19 +1,19 @@
-import { StyleSheet, Text, View, Image } from 'react-native'
+import { StyleSheet, Text, View, Image, Modal, TouchableOpacity } from 'react-native'
 import React from 'react'
 import Container from '@/components/Container'
 import CAT from '../../assets/ccat.jpg';
 import { Feather } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { useDispatch, useSelector } from 'react-redux';
+import { hideIncommingCall } from '@/redux/slice/chatSlice';
+import { RootReducer } from '@/redux/store/reducer';
 
-interface Props {
-    hangUp: () => void;
-    join: () => void;
-}
+const IncomingCall = () => {
+    const dispatch = useDispatch();
+    const { incommingCallShow } = useSelector((state: RootReducer) => state.chatReducer);
 
-const IncomingCall = (props: Props) => {
     return (
-        <Container>
+        <Modal visible={incommingCallShow}>
             <Image
                 source={CAT}
                 resizeMode='cover'
@@ -35,10 +35,12 @@ const IncomingCall = (props: Props) => {
                 </TouchableOpacity>
 
                 <TouchableOpacity style={[styles.circle]}>
-                    <MaterialCommunityIcons name="phone-hangup" size={28} color="white" />
+                    <MaterialCommunityIcons name="phone-hangup" size={28} color="white" onPress={() => {
+                        dispatch(hideIncommingCall());
+                    }} />
                 </TouchableOpacity>
             </View>
-        </Container>
+        </Modal>
     )
 }
 
@@ -47,8 +49,8 @@ export default IncomingCall
 const styles = StyleSheet.create({
     circle: {
         backgroundColor: 'red',
-        paddingVertical: 12,
-        paddingHorizontal: 12,
+        paddingVertical: 14,
+        paddingHorizontal: 14,
         borderRadius: 20
     }
 })

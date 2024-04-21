@@ -1,4 +1,4 @@
-import { FlatList, Image, Modal, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
+import { FlatList, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
 import React, { useCallback, useEffect, useState } from 'react'
 import Container from '../../components/Container'
 import Header from '../../components/Header'
@@ -6,7 +6,6 @@ import SearchInput from '../../components/SearchInput'
 import { backgroundColor, orange, placeholderTextColor, regularPadding, titleFontStyle } from '../../styles/styles'
 import AVATAR from '../../assets/images/avt.png'
 import NO_MESSAGES from '../../assets/images/no_messages.png'
-import { ScrollView } from 'react-native-gesture-handler'
 import { Feather } from '@expo/vector-icons';
 import RootNavigation from '../../route/RootNavigation'
 import { useFocusEffect } from '@react-navigation/native'

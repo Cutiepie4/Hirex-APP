@@ -21,6 +21,7 @@ import { RootReducer } from "@/redux/store/reducer";
 import uuid from 'react-native-uuid'
 
 import firestore from '@react-native-firebase/firestore';
+import { BASE_API } from "@/services/BaseApi";
 
 const configuration = {
   iceServers: [
@@ -95,7 +96,18 @@ const CallScreen = ({ route }) => {
     setLocalStream(newStream);
   };
 
+  const sendVideoCallRequest = async () => {
+    const response = await BASE_API.post(
+      `/notification`,
+      {
+
+      }
+    )
+  }
+
   const startCall = async (id) => {
+
+
     const localPC = new RTCPeerConnection(configuration);
     localStream.getTracks().forEach((track) => {
       localPC.addTrack(track, localStream);
@@ -148,13 +160,6 @@ const CallScreen = ({ route }) => {
     });
 
     setCachedLocalPC(localPC);
-
-    const colRef = firestore().collection('call_requests').doc(calleePhone).collection('list_calls');
-    await colRef.add({
-      caller: phoneNumber,
-      callAt: firestore.Timestamp.now(),
-      roomId: id
-    });
   };
 
   const switchCamera = () => {

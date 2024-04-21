@@ -12,7 +12,7 @@ import Welcome from './src/screens/welcome/Welcome';
 import ChooseRole from './src/screens/signup/ChooseRole';
 import Information from './src/screens/signup/Information';
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
-import { Alert, LogBox, View, Text } from 'react-native';
+import { Alert, LogBox, View, Text, Modal } from 'react-native';
 import { RootReducer } from './src/redux/store/reducer';
 import HomeTab from './src/route/HomeTab';
 import LoadingOverlay from './src/components/LoadingOverlay';
@@ -20,6 +20,9 @@ import { loadFonts } from '@/theme';
 import CustomToast from '@/components/CustomToast';
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging'
 import { saveDeviceToken } from '@/redux/slice/authSlice';
+import { BASE_API } from '@/services/BaseApi';
+import { hideIncommingCall, showIncommingCall } from '@/redux/slice/chatSlice';
+import IncomingCall from '@/screens/chat/IncomingCall';
 
 const Stack = createStackNavigator();
 
@@ -55,10 +58,11 @@ const ToHomeScreen = () => {
 }
 
 const EntryNavigation = () => {
-    const { access_token } = useSelector((state: RootReducer) => state.authReducer);
+    const { access_token, phoneNumber, deviceToken } = useSelector((state: RootReducer) => state.authReducer);
     const dispatch = useDispatch();
 
     useEffect(() => {
+        dispatch(hideIncommingCall());
         const requestUserPermissions = async () => {
             const authStatus = await messaging().requestPermission();
             const enabled =
@@ -81,7 +85,7 @@ const EntryNavigation = () => {
             }
         });
 
-        messaging().onNotificationOpenedApp((remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
+        messaging().onNotificationOpenedApp(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
             console.log('Notification caused app to oopen from background state: , ', remoteMessage.notification)
         })
 
@@ -89,39 +93,34 @@ const EntryNavigation = () => {
             console.log('message handled in background, ', remoteMessage)
         });
 
-        messaging().onTokenRefresh((token) => {
+        messaging().onTokenRefresh(async (token) => {
             dispatch(saveDeviceToken(token));
         });
 
         messaging().onMessage(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-            Alert.alert('A new FCM message arrived!', remoteMessage.notification.title + ' ' + remoteMessage.notification.body)
+            dispatch(showIncommingCall());
+            // Alert.alert('A new FCM message arrived!', remoteMessage.notification.title + ' ' + remoteMessage.notification.body)
         });
     }, []);
 
-    if (access_token) {
-        return <ToHomeScreen />;
-    } else {
-        return (
-            <Stack.Navigator screenOptions={{ headerShown: false }}>
+    useEffect(() => {
+        phoneNumber && deviceToken && BASE_API.post(`/save-device-token`, {
+            phoneNumber,
+            deviceToken
+        }).then(response => console.log(response.data)).catch(error => console.log(error.response))
+    }, [phoneNumber, deviceToken]);
+
+    return <>
+        {access_token
+            ? <ToHomeScreen />
+            : <Stack.Navigator screenOptions={{ headerShown: false }}>
                 {Object.entries(authScreens).map(([name, component]) => (
                     <Stack.Screen key={name} name={name} component={component} />
                 ))}
             </Stack.Navigator>
-        );
-    }
+        }
+    </>
 };
-
-const Test = () => (
-    <View style={{
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center'
-    }}>
-        <Text>
-            Testing
-        </Text>
-    </View>
-)
 
 const App = () => {
     const preload = async () => {
@@ -139,9 +138,9 @@ const App = () => {
                     <NavigationContainer ref={navigationRef}>
                         <LoadingOverlay>
                             <EntryNavigation />
-                            {/* <Test /> */}
                         </LoadingOverlay>
                         <CustomToast />
+                        <IncomingCall />
                     </NavigationContainer>
                 </PersistGate>
             </Provider>
