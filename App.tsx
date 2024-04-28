@@ -96,11 +96,6 @@ const EntryNavigation = () => {
         messaging().onTokenRefresh(async (token) => {
             dispatch(saveDeviceToken(token));
         });
-
-        messaging().onMessage(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-            dispatch(showIncommingCall());
-            // Alert.alert('A new FCM message arrived!', remoteMessage.notification.title + ' ' + remoteMessage.notification.body)
-        });
     }, []);
 
     useEffect(() => {

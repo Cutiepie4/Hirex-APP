@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 
 export interface AuthState {
+    fullname: string,
     phoneNumber: string,
     access_token: string,
     role: string,
@@ -10,6 +11,7 @@ export interface AuthState {
 };
 
 const initialState: AuthState = {
+    fullname: '',
     phoneNumber: '',
     access_token: '',
     role: '',
@@ -22,11 +24,12 @@ const authSlice = createSlice({
     name: 'authReducer',
     initialState,
     reducers: {
-        login: (state, action: PayloadAction<{ role: string, phoneNumber: string, access_token: string }>) => {
-            const { role, phoneNumber, access_token } = action.payload;
+        login: (state, action: PayloadAction<{ role: string, phoneNumber: string, access_token: string, fullname: string }>) => {
+            const { role, phoneNumber, access_token, fullname } = action.payload;
             state.role = role;
             state.phoneNumber = phoneNumber;
             state.access_token = access_token;
+            state.fullname = fullname;
         },
         logout: (state) => initialState,
         showLoading: (state) => {
