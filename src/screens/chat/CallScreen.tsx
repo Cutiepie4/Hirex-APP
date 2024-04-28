@@ -33,7 +33,7 @@ const configuration = {
 };
 
 const CallScreen = ({ route }) => {
-  const { phoneNumber } = useSelector((state: RootReducer) => state.authReducer);
+  const { phoneNumber, fullname } = useSelector((state: RootReducer) => state.authReducer);
   const { calleePhone } = route.params;
   const draggableRef = useRef();
   const [localStream, setLocalStream] = useState<MediaStream>();
@@ -55,6 +55,7 @@ const CallScreen = ({ route }) => {
   }, [localStream]);
 
   async function endCall() {
+    RootNavigation.pop();
     if (cachedLocalPC) {
       const senders = cachedLocalPC.getSenders();
       senders.forEach((sender) => {
@@ -69,7 +70,6 @@ const CallScreen = ({ route }) => {
     setLocalStream(null);
     setRemoteStream(null);
     setCachedLocalPC(null);
-    RootNavigation.pop();
   }
 
   const startLocalStream = async () => {
@@ -96,18 +96,20 @@ const CallScreen = ({ route }) => {
     setLocalStream(newStream);
   };
 
-  const sendVideoCallRequest = async () => {
-    const response = await BASE_API.post(
+  const sendVideoCallRequest = () => {
+    BASE_API.post(
       `/notification`,
       {
-
+        type: 'VIDEO_CALL',
+        phoneNumber: calleePhone,
+        title: fullname,
+        content: roomId
       }
-    )
-  }
+    ).then(response => { console.log('sendvideocall', response.data) })
+      .catch(error => { console.log(error.response) });
+  };
 
   const startCall = async (id) => {
-
-
     const localPC = new RTCPeerConnection(configuration);
     localStream.getTracks().forEach((track) => {
       localPC.addTrack(track, localStream);
@@ -160,6 +162,7 @@ const CallScreen = ({ route }) => {
     });
 
     setCachedLocalPC(localPC);
+    sendVideoCallRequest();
   };
 
   const switchCamera = () => {

@@ -28,8 +28,8 @@ const configuration = {
     iceCandidatePoolSize: 2,
 };
 
-const JoinScreen = ({ route }) => {
-    const { roomId } = route.params;
+const JoinScreen = (props) => {
+    const { roomId, refuseCall } = props;
     const draggableRef = useRef();
     const [localStream, setLocalStream] = useState<MediaStream>();
     const [remoteStream, setRemoteStream] = useState<MediaStream>();
@@ -46,7 +46,7 @@ const JoinScreen = ({ route }) => {
         localStream && joinCall(roomId);
     }, [localStream]);
 
-    async function endCall(roomId, cachedLocalPC, setLocalStream, setRemoteStream, setCachedLocalPC) {
+    async function endCall() {
         if (cachedLocalPC) {
             const senders = cachedLocalPC.getSenders();
             senders.forEach((sender) => {
@@ -61,7 +61,7 @@ const JoinScreen = ({ route }) => {
         setLocalStream(null);
         setRemoteStream(null);
         setCachedLocalPC(null);
-        RootNavigation.pop();
+        refuseCall();
     }
 
     const startLocalStream = async () => {
