@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from './src/redux/store/store';
 import { Provider, useDispatch, useSelector, } from 'react-redux';
@@ -26,35 +26,13 @@ import IncomingCall from '@/screens/chat/IncomingCall';
 
 const Stack = createStackNavigator();
 
-const toHomeScreens = {
-    Banner: Banner,
-    HomeTab: HomeTab,
-}
-
 const authScreens = {
-    Banner: Banner,
     Welcome: Welcome,
     Login: Login,
     Signup: Signup,
     ChooseRole: ChooseRole,
     Information: Information,
     HomeTab: HomeTab,
-}
-
-const ToHomeScreen = () => {
-
-    const Stack = createStackNavigator();
-    LogBox.ignoreLogs([
-        'Non-serializable values were found in the navigation state',
-    ]);
-
-    return (
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-            {Object.entries(toHomeScreens).map(([name, component]) => (
-                <Stack.Screen key={name} name={name} component={component} />
-            ))}
-        </Stack.Navigator>
-    );
 }
 
 const EntryNavigation = () => {
@@ -107,7 +85,7 @@ const EntryNavigation = () => {
 
     return <>
         {access_token
-            ? <ToHomeScreen />
+            ? <HomeTab />
             : <Stack.Navigator screenOptions={{ headerShown: false }}>
                 {Object.entries(authScreens).map(([name, component]) => (
                     <Stack.Screen key={name} name={name} component={component} />
@@ -118,6 +96,15 @@ const EntryNavigation = () => {
 };
 
 const App = () => {
+    const [showBanner, setShowBanner] = useState(true);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setShowBanner(false);
+        }, 2000);
+        return () => clearTimeout(timer);
+    }, []);
+
     const preload = async () => {
         await Promise.all([loadFonts()]);
     }
@@ -132,7 +119,7 @@ const App = () => {
                 <PersistGate persistor={persistor} loading={null}>
                     <NavigationContainer ref={navigationRef}>
                         <LoadingOverlay>
-                            <EntryNavigation />
+                            {showBanner ? <Banner /> : <EntryNavigation />}
                         </LoadingOverlay>
                         <CustomToast />
                         <IncomingCall />

@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, Image, Modal, TouchableOpacity } from 'react-native'
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import Container from '@/components/Container'
 import CAT from '../../assets/ccat.jpg';
 import { Feather } from '@expo/vector-icons';
@@ -12,9 +12,39 @@ import { deepPurple, titleFontStyle } from '@/styles/styles';
 import { StatusBar } from 'expo-status-bar';
 import RootNavigation from '@/route/RootNavigation';
 import JoinScreen from './JoinScreen';
+import { Audio } from 'expo-av';
 
 const IncomingCallScreen = (props) => {
     const { caller, acceptCall, refuseCall } = props;
+
+    const [soundObject, setSoundObject] = useState(null);
+
+    useEffect(() => {
+        startPhoneRing();
+    }, []);
+
+    const startPhoneRing = async () => {
+        const sound = new Audio.Sound();
+        try {
+            await sound.loadAsync(require('@/assets/sounds/ringtune.mp3'));
+            await sound.playAsync();
+            setSoundObject(sound);
+        } catch (error) {
+            console.log('Failed to load the sound', error);
+        }
+    };
+
+    const stopPhoneRing = async () => {
+        if (soundObject) {
+            try {
+                await soundObject.stopAsync();
+                await soundObject.unloadAsync();
+            } catch (error) {
+                console.log('Failed to stop the sound', error);
+            }
+            setSoundObject(null);
+        }
+    };
 
     return (
         <>
@@ -59,12 +89,12 @@ const IncomingCallScreen = (props) => {
                 flexDirection: 'row',
                 justifyContent: 'space-between',
             }}>
-                <TouchableOpacity style={[styles.circle, { backgroundColor: 'green' }]} onPress={acceptCall}>
+                <TouchableOpacity style={[styles.circle, { backgroundColor: 'green' }]} onPress={() => { acceptCall(); stopPhoneRing(); }}>
                     <Feather name="phone" size={28} color="white" />
                 </TouchableOpacity>
 
                 <TouchableOpacity style={[styles.circle]}>
-                    <MaterialCommunityIcons name="phone-hangup" size={28} color="white" onPress={refuseCall} />
+                    <MaterialCommunityIcons name="phone-hangup" size={28} color="white" onPress={() => { refuseCall(); stopPhoneRing(); }} />
                 </TouchableOpacity>
             </View>
         </>
@@ -96,7 +126,7 @@ const IncomingCall = () => {
     return (
         <Modal visible={incommingCallShow}>
             <StatusBar backgroundColor={deepPurple} style='light' />
-            {showJoinScreen
+            {showJoinScreen && incommingCallShow
                 ? <JoinScreen roomId={roomId} refuseCall={refuseCall} />
                 : <IncomingCallScreen caller={caller} acceptCall={acceptCall} refuseCall={refuseCall} />}
         </Modal>

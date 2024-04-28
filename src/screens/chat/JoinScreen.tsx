@@ -47,6 +47,7 @@ const JoinScreen = (props) => {
     }, [localStream]);
 
     async function endCall() {
+        refuseCall();
         if (cachedLocalPC) {
             const senders = cachedLocalPC.getSenders();
             senders.forEach((sender) => {
@@ -61,7 +62,6 @@ const JoinScreen = (props) => {
         setLocalStream(null);
         setRemoteStream(null);
         setCachedLocalPC(null);
-        refuseCall();
     }
 
     const startLocalStream = async () => {
@@ -137,7 +137,8 @@ const JoinScreen = (props) => {
         const unsubscribeRoom = roomRef.onSnapshot((doc) => {
             const data = doc.data();
             if (!data.answer) {
-                RootNavigation.pop();
+                console.log('join endcall')
+                endCall();
             }
         });
 

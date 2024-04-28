@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,7 +21,6 @@ const Login = () => {
     const dispatch = useDispatch();
 
     const handleLoginPress = async () => {
-
         try {
             dispatch(showLoading());
             const response = await BASE_API.post('/users/login', {
@@ -32,21 +31,21 @@ const Login = () => {
 
                 const token = response.data.token;
                 const role = response.data.role;
+                const fullname = response.data.fullname;
 
                 console.log('Token:', token);
                 console.log('Role:', role);
 
                 // Dispatch action to update Redux store with token
-                dispatch(login({ role, phoneNumber, access_token: token }));
+                dispatch(login({ role, phoneNumber, access_token: token, fullname }));
                 Toast.show({
                     type: 'success',
                     props: {
                         title: 'Đăng nhập thành công',
-                        content: `Chào mừng ${phoneNumber} trở lại!`
+                        content: `Chào mừng ${fullname || 'Invalid name'} trở lại!`
                     },
                 });
-                // Navigate to HomeTabs screen upon successful login
-                RootNavigation.navigate('HomeTab');
+
             } else {
                 console.error('Token not found in response');
             }
@@ -135,7 +134,6 @@ const Login = () => {
                             title="LOGIN"
                             filled
                             onPress={handleLoginPress}
-                            // onPress={() => RootNavigation.navigate('HomeTab')}
                             style={{
                                 marginTop: 18,
                                 marginBottom: 4,
