@@ -38,7 +38,7 @@ const CallScreen = ({ route }) => {
   const draggableRef = useRef();
   const [localStream, setLocalStream] = useState<MediaStream>();
   const [remoteStream, setRemoteStream] = useState<MediaStream>();
-  const [cachedLocalPC, setCachedLocalPC] = useState();
+  const [cachedLocalPC, setCachedLocalPC] = useState<RTCPeerConnection>();
   const [isMuted, setIsMuted] = useState(false);
   const [isOffCam, setIsOffCam] = useState(false);
   const [isFront, setIsFront] = useState(true);
@@ -56,7 +56,31 @@ const CallScreen = ({ route }) => {
 
   async function endCall() {
     RootNavigation.pop();
+
+    if (localStream) {
+      localStream.getTracks().forEach(track => {
+        track.removeEventListener("mute");
+        track.removeEventListener("unmute");
+        track.removeEventListener("ended");
+        track.release();
+        track.stop();
+      });
+    }
+
+    if (remoteStream) {
+      remoteStream.getTracks().forEach(track => {
+        track.removeEventListener("mute");
+        track.removeEventListener("unmute");
+        track.removeEventListener("ended");
+        track.release();
+        track.stop();
+      });
+    }
+
     if (cachedLocalPC) {
+      cachedLocalPC.getTransceivers().forEach((transceiver) => {
+        transceiver.stop();
+      });
       const senders = cachedLocalPC.getSenders();
       senders.forEach((sender) => {
         cachedLocalPC.removeTrack(sender);
@@ -65,7 +89,7 @@ const CallScreen = ({ route }) => {
     }
 
     const roomRef = firestore().collection('room').doc(roomId);
-    await roomRef.update({ answer: firestore.FieldValue.delete() });
+    await roomRef.update({ answer: firestore.FieldValue.delete(), connected: false });
 
     setLocalStream(null);
     setRemoteStream(null);
@@ -73,12 +97,10 @@ const CallScreen = ({ route }) => {
   }
 
   const startLocalStream = async () => {
-    // isFront will determine if the initial camera should face user or environment
-    const facing = isFront ? "front" : "environment";
     const facingMode = isFront ? "user" : "environment";
-    const devices = await mediaDevices.enumerateDevices();
+    const devices: MediaDeviceInfo[] = await mediaDevices.enumerateDevices();
     const videoSourceId = devices.find(
-      (device) => device.kind === "videoinput" && device.facing === facing
+      (device) => device.kind === "videoinput"
     );
     const constraints = {
       audio: true,
@@ -143,7 +165,7 @@ const CallScreen = ({ route }) => {
     // Listen for remote answer
     roomRef.onSnapshot((doc) => {
       const data = doc.data();
-      if (!localPC.currentRemoteDescription && data.answer) {
+      if (!localPC.remoteDescription && data.answer) {
         const rtcSessionDescription = new RTCSessionDescription(data.answer);
         localPC.setRemoteDescription(rtcSessionDescription);
       } else {

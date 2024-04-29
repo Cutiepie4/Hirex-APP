@@ -1,5 +1,5 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
 import Container from '../../components/Container';
 import { Octicons } from '@expo/vector-icons';
 import { deepPurple } from '../../styles/styles';
@@ -15,7 +15,8 @@ interface CallActionProps {
 }
 
 const CallActionBox = (props: CallActionProps) => {
-
+    const [muted, setMuted] = useState(true);
+    const [camOn, setCamOn] = useState(true);
     const { switchCamera, toggleCamera, toggleMute, endCall, isMuted } = props;
 
     return (
@@ -34,29 +35,32 @@ const CallActionBox = (props: CallActionProps) => {
                 justifyContent: 'space-between',
             }}
         >
-            {/* <TouchableOpacity onPress={switchCamera} style={[styles.imageBox, { backgroundColor: 'white' }]}>
-                <Ionicons name="camera-reverse-outline" size={24} color="black" />
-            </TouchableOpacity> */}
-
-            <TouchableOpacity onPress={toggleCamera} style={[styles.imageBox, { backgroundColor: 'white' }]}>
-                <Feather name="camera-off" size={20} color="black" />
-                {/* <Feather name="camera" size={24} color="black" /> */}
+            <TouchableOpacity
+                onPress={() => {
+                    toggleCamera();
+                    setCamOn(prev => !prev);
+                }}
+                style={[styles.imageBox, camOn ? styles.inactive : styles.active]}>
+                <Feather name="camera-off" size={20} color={camOn ? 'white' : 'black'} />
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={toggleMute} style={[styles.imageBox, styles.inactive]}>
-                {/* <Feather name="volume-2" size={20} color="black" /> */}
-                <Feather name="volume-x" size={20} color={`white`} />
+            <TouchableOpacity
+                onPress={() => {
+                    toggleMute();
+                    setMuted(prev => !prev);
+                }}
+                style={[styles.imageBox, muted ? styles.inactive : styles.active]}>
+                <Feather name="volume-x" size={20} color={muted ? 'white' : 'black'} />
             </TouchableOpacity>
 
             <TouchableOpacity onPress={endCall} style={[styles.imageBox, { backgroundColor: 'red' }]}>
                 <MaterialIcons name="call-end" size={20} color={'white'} />
-
             </TouchableOpacity>
         </View>
     )
 }
 
-export default CallActionBox
+export default CallActionBox;
 
 const styles = StyleSheet.create({
     imageBox: {
