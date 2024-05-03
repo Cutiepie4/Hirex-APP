@@ -6,15 +6,11 @@ import Banner from '../screens/welcome/Banner';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootReducer } from '../redux/store/reducer';
 import Messages from '../screens/chat/Messages';
-import VideoCall from '../screens/chat/VideoCall';
 import CallActionBox from '../screens/chat/CallActionBox';
 import CallScreen from '../screens/chat/CallScreen';
-import DraggableCameraView from '../screens/chat/DraggableCameraView';
 import { hideTabBar, showTabBar } from '../redux/slice/authSlice';
 import { Home, Description, UploadCV, UploadCVSuccess } from '@/screens/Home';
 import ChatScreen from '../screens/chat/ChatScreen';
-import HomeScreen from '@/screens/HomeScreen';
-
 import Setting from '../screens/setting/Setting';
 import { Profile, AboutMeScreen, Experience, Education, Certification, Skill } from '../screens';
 import Account from '../screens/setting/Account';
@@ -23,9 +19,10 @@ import Login from '../screens/login/Login';
 import ScheduleScreen from '@/screens/ScheduleScreen';
 import ScheduleEmployerScreen from '@/screens/ScheduleEmployerScreen';
 import ReasonListScreen from '@/screens/ReasonListScreen';
+import IncomingCall from '@/screens/chat/IncomingCall';
+import JoinScreen from '@/screens/chat/JoinScreen';
 
 const homeScreenStack = {
-    HomeScreen: HomeScreen,
     Home: Home,
     Description: Description,
     UploadCV: UploadCV,
@@ -36,10 +33,10 @@ const homeScreenStack = {
 const chatScreenStack = {
     Messages: Messages,
     ChatScreen: ChatScreen,
-    VideoCall: VideoCall,
     CallActionBox: CallActionBox,
     CallScreen: CallScreen,
-    DraggableCameraView: DraggableCameraView,
+    IncomingCall: IncomingCall,
+    JoinScreen: JoinScreen
 }
 
 const pofileScreenStack = {

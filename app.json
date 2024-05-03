@@ -34,7 +34,8 @@
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.SYSTEM_ALERT_WINDOW",
         "android.permission.WAKE_LOCK"
-      ]
+      ],
+      "googleServicesFile": "google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -65,6 +66,18 @@
       ],
       [
         "@config-plugins/react-native-webrtc"
+      ],
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging",
+      "@react-native-firebase/auth",
+      "@react-native-firebase/crashlytics",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
       ]
     ],
     "extra": {
@@ -73,6 +86,8 @@
       }
     },
     "owner": "hirex-team",
-    "experiments": { "tsconfigPaths": true }
+    "experiments": {
+      "tsconfigPaths": true
+    }
   }
 }

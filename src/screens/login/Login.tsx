@@ -173,7 +173,7 @@ const Login = () => {
 
                         <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 22 }}>
                             <Text style={{ fontSize: 16, color: colors.black }}>You don't have an account yet?</Text>
-                            <Pressable onPress={() => RootNavigation.navigate('SignUp')}>
+                            <Pressable onPress={() => RootNavigation.navigate('Signup')}>
                                 <Text style={{ fontSize: 16, color: '#FF9228', fontWeight: '900', marginLeft: 6 }}>
                                     Sign up
                                 </Text>
