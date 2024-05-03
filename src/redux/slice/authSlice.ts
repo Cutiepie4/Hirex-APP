@@ -1,42 +1,49 @@
-import { createSlice } from "@reduxjs/toolkit"
+import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 
 export interface AuthState {
-    username: string,
+    phoneNumber: string,
     access_token: string,
     role: string,
     isLoading: boolean,
-    count: number
-}
+    showTabBar: boolean,
+};
 
 const initialState: AuthState = {
-    username: '',
+    phoneNumber: '',
     access_token: '',
     role: '',
     isLoading: false,
-    count: 0
-}
+    showTabBar: false,
+};
 
 const authSlice = createSlice({
     name: 'authReducer',
     initialState,
     reducers: {
-        login: (state) => {
-
+        login: (state, action: PayloadAction<{ role: string, phoneNumber: string, access_token: string }>) => {
+            const { role, phoneNumber, access_token } = action.payload;
+            state.role = role;
+            state.phoneNumber = phoneNumber;
+            state.access_token = access_token;
         },
-        increase: (state) => {
-            return { ...state, count: state.count + 1 };
-        },
+        logout: (state) => initialState,
         showLoading: (state) => {
             return { ...state, isLoading: true };
         },
         hideLoading: (state) => {
             return { ...state, isLoading: false };
+        },
+        showTabBar: (state) => {
+            return { ...state, showTabBar: true };
+        },
+        hideTabBar: (state) => {
+            return { ...state, showTabBar: false };
         }
     },
     extraReducers(builder) {
 
     },
-})
+});
 
-export const { login, increase } = authSlice.actions;
-export default authSlice.reducer
+export const { login, showLoading, hideLoading, logout, showTabBar, hideTabBar } = authSlice.actions;
+export default authSlice.reducer;

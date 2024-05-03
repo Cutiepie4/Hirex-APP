@@ -1,0 +1,166 @@
+import React, { useLayoutEffect } from 'react';
+import { NavigationContainer, getFocusedRouteNameFromRoute } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import Welcome from '../screens/welcome/Welcome';
+import Banner from '../screens/welcome/Banner';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootReducer } from '../redux/store/reducer';
+import Messages from '../screens/chat/Messages';
+import VideoCall from '../screens/chat/VideoCall';
+import CallActionBox from '../screens/chat/CallActionBox';
+import CallScreen from '../screens/chat/CallScreen';
+import DraggableCameraView from '../screens/chat/DraggableCameraView';
+import { hideTabBar, showTabBar } from '../redux/slice/authSlice';
+import { Home, Description, UploadCV, UploadCVSuccess } from '@/screens/Home';
+import ChatScreen from '../screens/chat/ChatScreen';
+import HomeScreen from '@/screens/HomeScreen';
+
+import Setting from '../screens/setting/Setting';
+import { Profile, AboutMeScreen, Experience, Education, Certification, Skill } from '../screens';
+import Account from '../screens/setting/Account';
+import UpdatePassword from '../screens/setting/UpdatePassword';
+import Login from '../screens/login/Login';
+import ScheduleScreen from '@/screens/ScheduleScreen';
+import ScheduleEmployerScreen from '@/screens/ScheduleEmployerScreen';
+import ReasonListScreen from '@/screens/ReasonListScreen';
+
+const homeScreenStack = {
+    HomeScreen: HomeScreen,
+    Home: Home,
+    Description: Description,
+    UploadCV: UploadCV,
+    UploadCVSuccess: UploadCVSuccess,
+
+}
+
+const chatScreenStack = {
+    Messages: Messages,
+    ChatScreen: ChatScreen,
+    VideoCall: VideoCall,
+    CallActionBox: CallActionBox,
+    CallScreen: CallScreen,
+    DraggableCameraView: DraggableCameraView,
+}
+
+const pofileScreenStack = {
+    Profile,
+    AboutMeScreen,
+    Experience,
+    Education,
+    Certification,
+    Skill
+}
+
+const settingScreenStack = {
+    Setting: Setting,
+    Account: Account,
+    UpdatePassword: UpdatePassword,
+    Login: Login
+}
+
+const scheduleScreenStack = {
+    ScheduleEmployerScreen: ScheduleEmployerScreen,
+    ScheduleScreen: ScheduleScreen,
+    ReasonListScreen: ReasonListScreen,
+}
+
+const Stack = createStackNavigator();
+
+const HomeStack = ({ navigation, route }: any) => {
+    const dispatch = useDispatch();
+
+    useLayoutEffect(() => {
+        const routeName = getFocusedRouteNameFromRoute(route);
+        if (routeName === 'Home' || routeName == undefined) {
+            dispatch(showTabBar());
+        } else {
+            dispatch(hideTabBar());
+        }
+    }, [navigation, route]);
+
+    return (
+        <Stack.Navigator
+            screenOptions={{
+                headerShown: false,
+            }}
+        >
+            {Object.entries(homeScreenStack).map(([name, component]) => (
+                <Stack.Screen key={name} name={name} component={component} />
+            ))}
+        </Stack.Navigator>
+    );
+};
+
+const ChatStack = ({ navigation, route }: any) => {
+    const dispatch = useDispatch();
+
+    useLayoutEffect(() => {
+        const routeName = getFocusedRouteNameFromRoute(route);
+        if (routeName === 'Messages' || routeName == undefined) {
+            dispatch(showTabBar());
+        } else {
+            dispatch(hideTabBar());
+        }
+    }, [navigation, route]);
+
+    return (
+        <Stack.Navigator
+            screenOptions={{
+                headerShown: false,
+            }}
+        >
+            {Object.entries(chatScreenStack).map(([name, component]) => (
+                <Stack.Screen key={name} name={name} component={component} />
+            ))}
+        </Stack.Navigator>
+    );
+
+};
+
+
+const ProfileStack = () => {
+    return (
+        <Stack.Navigator
+            screenOptions={{
+                headerShown: false,
+            }}
+        >
+            {Object.entries(pofileScreenStack).map(([name, component]) => (
+                <Stack.Screen key={name} name={name} component={component} />
+            ))}
+        </Stack.Navigator>
+    );
+};
+
+const SettingStack = () => {
+    return (
+        <Stack.Navigator
+            screenOptions={{
+                headerShown: false,
+            }}
+        >
+            {Object.entries(settingScreenStack).map(([name, component]) => (
+                <Stack.Screen key={name} name={name} component={component} />
+            ))}
+        </Stack.Navigator>
+    );
+};
+const ScheduleStack = () => {
+    const dispatch = useDispatch();
+    const { phoneNumber, role } = useSelector((state: RootReducer) => state.authReducer);
+    const initialRouteName = role === 'ADMIN' ? 'ScheduleEmployerScreen' : 'ScheduleScreen';
+
+    return (
+        <Stack.Navigator
+            screenOptions={{
+                headerShown: false,
+            }}
+            initialRouteName={initialRouteName}
+        >
+            {Object.entries(scheduleScreenStack).map(([name, component]) => (
+                <Stack.Screen key={name} name={name} component={component} />
+            ))}
+        </Stack.Navigator>
+    );
+};
+export { HomeStack, ChatStack, ProfileStack, SettingStack, ScheduleStack }

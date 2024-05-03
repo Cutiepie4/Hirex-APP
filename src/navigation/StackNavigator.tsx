@@ -4,14 +4,13 @@ import React, { useEffect } from 'react'
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import HomeScreen from '../components/HomeScreen';
 import MessageScreen from '../screens/MessageScreen';
 import ScheduleScreen from '../screens/ScheduleScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import SettingScreen from '../screens/SettingScreen';
 import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from 'expo-font';
-import EmployeeListScreen from '../screens/EmployeeListScreen';
+import EmployeeListScreen from '../screens/ReasonListScreen';
 import ScheduleEmployerScreen from '../screens/ScheduleEmployerScreen';
 
 const StackNavigator = () => {
@@ -48,7 +47,7 @@ const StackNavigator = () => {
                 }}
 
             >
-                {tabScreen("Home", "home-outline", HomeScreen)}
+                {/* {tabScreen("Home", "home-outline", HomeScreen)} */}
                 {tabScreen("Message", "chatbox-ellipses-outline", MessageScreen)}
                 {tabScreen("Schedule", "calendar-outline", ScheduleScreen)}
                 {tabScreen("ScheduleEmployer", "calendar-outline", ScheduleEmployerScreen)}
@@ -77,7 +76,7 @@ const StackNavigator = () => {
         <NavigationContainer>
             <Stack.Navigator>
                 <Stack.Screen name="Main" component={BottomTabs} options={{ headerShown: false }} />
-                <Stack.Screen name="Login" component={HomeScreen} options={{ headerShown: false }} />
+                {/* <Stack.Screen name="Login" component={HomeScreen} options={{ headerShown: false }} /> */}
                 <Stack.Screen name="Register" component={MessageScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="EmployeeList" component={EmployeeListScreen} options={{ headerShown: false }} />
             </Stack.Navigator>

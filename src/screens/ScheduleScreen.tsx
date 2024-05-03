@@ -5,7 +5,11 @@ import { GestureHandlerRootView, RectButton, Swipeable } from 'react-native-gest
 import { Ionicons, EvilIcons, AntDesign } from '@expo/vector-icons';
 import moment from 'moment';
 import ItemsDetail from '../components/ItemsDetail';
-import scheduleService from '../service/ScheduleService';
+import scheduleService from '../services/ScheduleService';
+import Toast from 'react-native-toast-message';
+import { useDispatch, useSelector } from 'react-redux';
+import { hideLoading, showLoading } from '@/redux/slice/authSlice';
+import { RootReducer } from '@/redux/store/reducer';
 
 export type ExtendedAgendaEntry = AgendaEntry & {
   id: number,
@@ -22,6 +26,7 @@ const timeToString = (time: number) => {
   return date.toISOString().split('T')[0];
 };
 const AgendaScreen: React.FC = () => {
+  const dispatch = useDispatch();
   const [items, setItems] = useState<AgendaSchedule | undefined>(undefined);
   const [showItemsDetail, setShowItemsDetail] = useState<boolean>(false);
   const [dayPick, setDayPick] = useState<any>(moment().format('YYYY-MM-DD'));
@@ -30,83 +35,128 @@ const AgendaScreen: React.FC = () => {
   const [reservationPick, setReservationPick] = useState<ExtendedAgendaEntry>(undefined);
   const [submit, setSubmit] = useState<boolean>(true);
   const [workIds, setWorkIds] = useState({});
-  const handleAddOrUpdateItem = () => {
-    // setRefreshing(true);
-    setItems(prevItems => {
-      const newItems = { ...prevItems };
-      const dayItems = newItems[dayPick] ? [...newItems[dayPick]] : [];
+  const { phoneNumber, role } = useSelector((state: RootReducer) => state.authReducer);
+  // cập nhật hoặc xóa các sự kiện
+  const handleAddOrUpdateItem = async () => {
+    try {
+      setShowItemsDetail(false);
+      dispatch(showLoading());
+      const dayItems = items[dayPick] ? [...items[dayPick]] : [];
       const item = {
         date: reservationPick.day,
         work_id: workIds[reservationPick.day],
-        items:{
+        items: {
           startTime: reservationPick.start,
           endTime: reservationPick.end,
           title: reservationPick.title,
           type: reservationPick.type,
-          notes: reservationPick.notes
-        }
-      }
+          notes: reservationPick.notes,
+        },
+      };
+
+      let response;
       if (isNew) {
-        scheduleService.addItem(item).then(data => {
-          console.log('Schedule added:', data);
-          const newWorkIds = { ...workIds };
-          newWorkIds[dayPick] = data.work_id;
-          setWorkIds(newWorkIds);
-        }).catch(error => {
-          console.error('Error adding item:', error);
-        });
+        response = await scheduleService.addItem(item);
+        updateWorkIds(dayPick, response.data.work_id);
         dayItems.push(reservationPick);
-      } else {
-        scheduleService.updateItem(reservationPick.id, item).then(data => {
-          console.log('Item updated:', data);
-          // Handle the updated list of items
-        }).catch(error => {
-          console.error('Error updating item:', error);
+        Toast.show({
+          type: 'success',
+          props: {
+            title: 'Thành công',
+            content: 'Thêm sự kiện thành công',
+          },
         });
-        const itemIndex = dayItems.findIndex(item => item.name === reservationPick.name);
-        if (itemIndex > -1) {
-          dayItems[itemIndex] = reservationPick;
-        } else {
-        }
+      } else {
+        response = await scheduleService.updateItem(reservationPick.id, item);
+        updateDayItems(dayItems, reservationPick);
+        Toast.show({
+          type: 'success',
+          props: {
+            title: 'Thành công',
+            content: 'Cập nhật sự kiện thành công',
+          },
+        });
       }
-      // console.log(dayItems)
-      newItems[dayPick] = dayItems;
-      return newItems;
-    });
-    setSubmit(true)
-    setShowItemsDetail(false);
+      setItems(prevItems => ({ ...prevItems, [dayPick]: dayItems }));
+    } catch (error) {
+      if (error.response) {
+        const errorMessage = error.response.data;
+        Toast.show({
+          type: 'error',
+          props: {
+            title: 'Lỗi',
+            content: errorMessage,
+          },
+        });
+      } else {
+        Toast.show({
+          type: 'error',
+          props: {
+            title: 'Lỗi',
+            content: 'Lỗi không xác định. Vui lòng thử lại.',
+          },
+        });
+      }
+    } finally {
+      setSubmit(true);
+      dispatch(hideLoading());
+    }
   };
 
-  const handleDeleteItem = useCallback((reservation: ExtendedAgendaEntry) => {
-    scheduleService.deleteItem(reservation.id).then(data => {
-      console.log('Item delete:', data);
-    }).catch(error => {
-      console.error('Error delete item:', error);
-    });
-    setItems(prevItems => {
-      const updatedItems = { ...prevItems };
-      if (updatedItems[reservation.day]) {
-        updatedItems[reservation.day] = updatedItems[reservation.day].filter(item => item.name !== reservation.name);
-      }
-      return updatedItems;
-    });
+  const updateWorkIds = (dayPick, workId) => {
+    const newWorkIds = { ...workIds, [dayPick]: workId };
+    setWorkIds(newWorkIds);
+  };
+
+  const updateDayItems = (dayItems, reservationPick) => {
+    const itemIndex = dayItems.findIndex(item => item.name === reservationPick.name);
+    if (itemIndex > -1) {
+      dayItems[itemIndex] = reservationPick;
+    }
+  };
+
+  // xóa sự kiện
+  const handleDeleteItem = useCallback(async (reservation: ExtendedAgendaEntry) => {
+    try {
+      const response = await scheduleService.deleteItem(reservation.id);
+      console.log('Item deleted:', response.data);
+
+      setItems(prevItems => {
+        const updatedItems = { ...prevItems };
+        if (updatedItems[reservation.day]) {
+          updatedItems[reservation.day] = updatedItems[reservation.day].filter(item => item.name !== reservation.name);
+        }
+        return updatedItems;
+      });
+
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        props: {
+          title: 'Lỗi',
+          content: 'Lỗi không thể xóa',
+        },
+      });
+    }
   }, []);
   const formatDate = (dateArray: number[]): string => {
     const [year, month, day] = dateArray;
     return moment({ year, month: month - 1, day }).format('YYYY-MM-DD');
   };
-  const convertToMoment = (timeArray: number[]): string=> {
+  const convertToMoment = (timeArray: number[]): string => {
     const [hour, minute] = timeArray;
     return moment({ hour, minute }).format('HH:mm');
   };
+
+  // Lấy danh sách sự kiện
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const response = await scheduleService.fetchItems();
+        const response = await scheduleService.fetchItemsByUser(phoneNumber);
         const newWorkIds = {};
         const newItems = {};
 
-        response.forEach(item => {
+        response.data.forEach(item => {
           const dateStr = formatDate(item.date);
           newWorkIds[dateStr] = item.work_id;
           newItems[dateStr] = (item.items || []).map(subItem => ({
@@ -131,22 +181,25 @@ const AgendaScreen: React.FC = () => {
           ...newItems
         }));
       } catch (error) {
-        console.error('Error fetching data:', error);
+        Toast.show({
+          type: 'error',
+          props: {
+            title: 'Lỗi',
+            content: 'Lỗi không thể lấy danh sách sự kiện',
+          },
+        });
       }
     };
-
     fetchItems();
   }, []);
-
-  const loadItems = (day: DateData) => {
-
-  };
   const handleSetValue = useCallback((isShow: boolean, isNew: boolean, day: string, reservation: ExtendedAgendaEntry) => {
     setReservationPick({ ...reservation })
     setDayPick(day)
     setShowItemsDetail(isShow);
     setIsNew(isNew)
   }, [items, setItems]);
+
+  // Hàm render ra sự kiện
   const renderItem = useCallback((reservation: ExtendedAgendaEntry, isFirst: boolean) => {
     const height = new Animated.Value(70)
     const animatedDelete = () => {
@@ -217,7 +270,7 @@ const AgendaScreen: React.FC = () => {
               }}
             >
               <Text style={{
-                fontFamily: 'mon',
+                // fontFamily: 'mon',
                 color: reservation.type === 'personal' ? '#a45eff' : '#00c94d',
                 backgroundColor: reservation.type === 'personal' ? 'rgba(128,128,128,0.1)' : 'rgba(128,128,128,0.1)',
                 padding: 5,
@@ -283,7 +336,7 @@ const AgendaScreen: React.FC = () => {
             setDayPick(day.dateString);
           }}
           refreshing={false}
-          // renderDay={renderDay}
+        // renderDay={renderDay}
         // markedDates={{
         //   '2024-02-06': {marked: true, dotColor: 'red' },
         // }}
@@ -346,7 +399,7 @@ const AgendaScreen: React.FC = () => {
                 top: 10,
                 left: '30%',
                 fontSize: 16,
-                fontFamily: 'mon-m',
+                // fontFamily: 'mon-m',
               }}>
                 {dayPick}
               </Text>
@@ -411,18 +464,18 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontSize: 16,
-    fontFamily: 'mon-b',
+    // fontFamily: 'mon-b',
     marginBottom: 5,
   },
   titleText: {
     fontSize: 16,
-    fontFamily: 'mon-sb',
-    // fontWeight: 'bold',
+    // fontFamily: 'mon-sb',
+    fontWeight: 'bold',
     marginBottom: 5,
   },
   nameText: {
     fontSize: 14,
-    fontFamily: 'mon',
+    // fontFamily: 'mon',
     // fontStyle: 'italic',
   },
   coloredBar: {

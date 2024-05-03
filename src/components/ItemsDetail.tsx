@@ -4,7 +4,7 @@ import TimePicker from './TimePicker';
 import { ExtendedAgendaEntry } from '../screens/ScheduleScreen';
 import TakeOffModal from './TakeOffModal';
 import debounce from 'lodash.debounce';
-import scheduleService from '../service/ScheduleService';
+import scheduleService from '../services/ScheduleService';
 
 
 const ItemsDetail = (props: any) => {
@@ -13,17 +13,20 @@ const ItemsDetail = (props: any) => {
     const [showTakeOffModal, setShowTakeOffModal] = useState<boolean>(false);
     const [title, setTitle] = useState<string>(props.reservationPick.title);
     const [notes, setNotes] = useState<string>(props.reservationPick.notes);
-    const [isShowTakeOff, setIsShowTakeOff] = useState<boolean>(true);
+    const [isShowTakeOff, setIsShowTakeOff] = useState<boolean>(false);
 
-    useEffect(() =>{
-        scheduleService.getCheckExistReason(props.id).then(res => {
-            if (res.status == 200){
+    useEffect(() => {
+        scheduleService.getCheckExistReason(props.reservationPick.id).then(res => {
+            if (res.data === true) {
                 setIsShowTakeOff(false)
+            }
+            else {
+                setIsShowTakeOff(true)
             }
         }).catch(error => {
             console.error('Error check item:', error);
         });
-    },[])
+    }, [])
     const options = {
         'Không có': false,
         'Vào lúc diễn ra sự kiện': 0,
@@ -37,7 +40,7 @@ const ItemsDetail = (props: any) => {
     };
 
     const handleHideTakeOffModal = () => {
-        
+
         setShowTakeOffModal(false);
     };
 
@@ -46,8 +49,8 @@ const ItemsDetail = (props: any) => {
             leaveReason: reason,
             itemId: props.reservationPick.id,
         }
-        scheduleService.createLeave(leave).then(data => {
-            console.log('Item added:', data);
+        scheduleService.createLeave(leave).then(res => {
+            console.log('Item added:', res.data);
         }).catch(error => {
             console.error('Error adding item:', error);
         });
@@ -221,7 +224,7 @@ const ItemsDetail = (props: any) => {
                                 disabled={!isShowTakeOff}
                                 style={[
                                     styles.updateButton,
-                                    { backgroundColor: isShowTakeOff ? '#60a3bc' : '#ccc' } 
+                                    { backgroundColor: isShowTakeOff ? '#60a3bc' : '#ccc' }
                                 ]}
                                 onPress={handleShowTakeOffModal}
                             >
@@ -389,8 +392,8 @@ const styles = StyleSheet.create({
         padding: 22
     },
     selectedOption: {
-        fontFamily: 'mon-m',
-        // color: 'black',
+        // fontFamily: 'mon-m',
+        color: 'black',
         fontSize: 16,
         fontWeight: '600'
     },
@@ -429,7 +432,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#ffffff',
     },
     optionText: {
-        fontFamily: 'mon',
+        // fontFamily: 'mon',
         fontSize: 18,
         color: '#333',
     },
@@ -439,6 +442,6 @@ const styles = StyleSheet.create({
         padding: 10,
         height: 90,
         fontSize: 16,
-        fontFamily: 'mon',
+        // fontFamily: 'mon',
     },
 })

@@ -5,9 +5,14 @@ import { GestureHandlerRootView, RectButton, Swipeable } from 'react-native-gest
 import { Ionicons, EvilIcons, AntDesign } from '@expo/vector-icons';
 import moment from 'moment';
 import ItemsDetail from '../components/ItemsDetail';
-import scheduleService from '../service/ScheduleService';
+import scheduleService from '../services/ScheduleService';
 import { ExtendedAgendaEntry } from './ScheduleScreen';
 import { useNavigation } from '@react-navigation/native';
+import { hideLoading, showLoading } from '@/redux/slice/authSlice';
+import Toast from 'react-native-toast-message';
+import RootNavigation from '@/route/RootNavigation';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootReducer } from '@/redux/store/reducer';
 
 const generateRandomId = () => `newId_${Math.random().toString(36).substring(2, 9)}`;
 
@@ -16,7 +21,7 @@ const timeToString = (time: number) => {
     return date.toISOString().split('T')[0];
 };
 const ScheduleEmployerScreen: React.FC = () => {
-    const navigation = useNavigation();
+    const dispatch = useDispatch();
     const [items, setItems] = useState<AgendaSchedule | undefined>(undefined);
     const [showItemsDetail, setShowItemsDetail] = useState<boolean>(false);
     const [dayPick, setDayPick] = useState<any>(moment().format('YYYY-MM-DD'));
@@ -25,11 +30,14 @@ const ScheduleEmployerScreen: React.FC = () => {
     const [reservationPick, setReservationPick] = useState<ExtendedAgendaEntry>(undefined);
     const [submit, setSubmit] = useState<boolean>(true);
     const [workIds, setWorkIds] = useState({});
-    const handleAddOrUpdateItem = () => {
-        // setRefreshing(true);
-        setItems(prevItems => {
-            const newItems = { ...prevItems };
-            const dayItems = newItems[dayPick] ? [...newItems[dayPick]] : [];
+    const [noReason, setNoReason] = useState({});
+    const { phoneNumber, role } = useSelector((state: RootReducer) => state.authReducer);
+
+    const handleAddOrUpdateItem = async () => {
+        try {
+            setShowItemsDetail(false);
+            dispatch(showLoading());
+            const dayItems = items[dayPick] ? [...items[dayPick]] : [];
             const item = {
                 date: reservationPick.day,
                 work_id: workIds[reservationPick.day],
@@ -38,53 +46,93 @@ const ScheduleEmployerScreen: React.FC = () => {
                     endTime: reservationPick.end,
                     title: reservationPick.title,
                     type: reservationPick.type,
-                    notes: reservationPick.notes
-                }
-            }
+                    notes: reservationPick.notes,
+                },
+            };
+
+            let response;
             if (isNew) {
-                scheduleService.addItem(item).then(data => {
-                    console.log('Schedule added:', data);
-                    const newWorkIds = { ...workIds };
-                    newWorkIds[dayPick] = data.work_id;
+                response = await scheduleService.addItem(item);
+                const newWorkIds = { ...workIds };
+                console.log(response)
+                if (response.status == 200 && response.data) {
+                    newWorkIds[dayPick] = response.data.work_id;
                     setWorkIds(newWorkIds);
-                }).catch(error => {
-                    console.error('Error adding item:', error);
-                });
-                dayItems.push(reservationPick);
-            } else {
-                scheduleService.updateItem(reservationPick.id, item).then(data => {
-                    console.log('Item updated:', data);
-                    // Handle the updated list of items
-                }).catch(error => {
-                    console.error('Error updating item:', error);
-                });
-                const itemIndex = dayItems.findIndex(item => item.name === reservationPick.name);
-                if (itemIndex > -1) {
-                    dayItems[itemIndex] = reservationPick;
-                } else {
+                    dayItems.push(reservationPick);
+                    Toast.show({
+                        type: 'success',
+                        props: {
+                            title: 'Thành công',
+                            content: 'Thêm sự kiện thành công',
+                        },
+                    });
                 }
+            } else {
+                response = await scheduleService.updateItem(reservationPick.id, item);
+                updateDayItems(dayItems, reservationPick);
+                Toast.show({ type: 'success', text2: 'Cập nhật sự kiện thành công' });
             }
-            // console.log(dayItems)
-            newItems[dayPick] = dayItems;
-            return newItems;
-        });
-        setSubmit(true)
-        setShowItemsDetail(false);
+            setItems(prevItems => ({ ...prevItems, [dayPick]: dayItems }));
+        } catch (error) {
+            if (error.response) {
+                const errorMessage = error.response.data;
+                Toast.show({
+                    type: 'error',
+                    props: {
+                        title: 'Lỗi',
+                        content: errorMessage,
+                    },
+                });
+            } else {
+                Toast.show({
+                    type: 'error',
+                    props: {
+                        title: 'Lỗi',
+                        content: 'Lỗi không xác định. Vui lòng thử lại.',
+                    },
+                });
+            }
+        } finally {
+            setSubmit(true);
+            dispatch(hideLoading());
+        }
     };
 
-    const handleDeleteItem = useCallback((reservation: ExtendedAgendaEntry) => {
-        scheduleService.deleteItem(reservation.id).then(data => {
-            console.log('Item delete:', data);
-        }).catch(error => {
-            console.error('Error delete item:', error);
-        });
-        setItems(prevItems => {
-            const updatedItems = { ...prevItems };
-            if (updatedItems[reservation.day]) {
-                updatedItems[reservation.day] = updatedItems[reservation.day].filter(item => item.name !== reservation.name);
-            }
-            return updatedItems;
-        });
+    const updateWorkIds = (dayPick, workId) => {
+        const newWorkIds = { ...workIds, [dayPick]: workId };
+        setWorkIds(newWorkIds);
+    };
+
+    const updateDayItems = (dayItems, reservationPick) => {
+        const itemIndex = dayItems.findIndex(item => item.name === reservationPick.name);
+        if (itemIndex > -1) {
+            dayItems[itemIndex] = reservationPick;
+        }
+    };
+
+    // xóa sự kiện
+    const handleDeleteItem = useCallback(async (reservation: ExtendedAgendaEntry) => {
+        try {
+            const response = await scheduleService.deleteItem(reservation.id);
+            console.log('Item deleted:', response.data);
+
+            setItems(prevItems => {
+                const updatedItems = { ...prevItems };
+                if (updatedItems[reservation.day]) {
+                    updatedItems[reservation.day] = updatedItems[reservation.day].filter(item => item.name !== reservation.name);
+                }
+                return updatedItems;
+            });
+
+        } catch (error) {
+            Toast.show({
+                type: 'error',
+                props: {
+                    title: 'Lỗi',
+                    content: 'Lỗi không thể xóa',
+                },
+            });
+        }
     }, []);
     const formatDate = (dateArray: number[]): string => {
         const [year, month, day] = dateArray;
@@ -95,44 +143,79 @@ const ScheduleEmployerScreen: React.FC = () => {
         return moment({ hour, minute }).format('HH:mm');
     };
     useEffect(() => {
-        const fetchItems = async () => {
-            try {
-                const response = await scheduleService.fetchItems();
+        scheduleService.fetchItemsByUser(phoneNumber)
+            .then(response => {
                 const newWorkIds = {};
                 const newItems = {};
+                const noReasonUpdates = {};
 
-                response.forEach(item => {
+                const itemPromises = response.data.map(item => {
                     const dateStr = formatDate(item.date);
                     newWorkIds[dateStr] = item.work_id;
-                    newItems[dateStr] = (item.items || []).map(subItem => ({
-                        id: subItem.id.toString(),
-                        name: subItem.id.toString(),
-                        notes: subItem.notes,
-                        height: 100,
-                        day: dateStr,
-                        start: convertToMoment(subItem.startTime),
-                        end: convertToMoment(subItem.endTime),
-                        title: subItem.title,
-                        type: subItem.type
-                    }));
+                    newItems[dateStr] = [];
+
+                    const subItemPromises = (item.items || []).map(subItem => {
+                        if (subItem.type === 'working') {
+                            return scheduleService.countReason(subItem.id)
+                                .then(response => {
+                                    noReasonUpdates[subItem.id] = response.data;
+                                    return {
+                                        ...subItem,
+                                        noReasonCount: response.data
+                                    };
+                                }).catch(() => {
+                                    Toast.show({
+                                        type: 'error',
+                                        props: {
+                                            title: 'Lỗi',
+                                            content: 'Có lỗi xảy ra trong việc đếm lý do',
+                                        },
+                                    });
+                                });
+                        } else {
+                            return Promise.resolve(subItem);
+                        }
+                    });
+
+                    return Promise.all(subItemPromises).then(subItemsWithCounts => {
+                        newItems[dateStr] = subItemsWithCounts.map(subItem => ({
+                            id: subItem.id.toString(),
+                            name: subItem.name,
+                            notes: subItem.notes,
+                            day: dateStr,
+                            start: convertToMoment(subItem.startTime),
+                            end: convertToMoment(subItem.endTime),
+                            title: subItem.title,
+                            type: subItem.type,
+                            ...(subItem.noReasonCount && { noReasonCount: subItem.noReasonCount })
+                        }));
+                    });
                 });
 
-                setWorkIds(prevWorkIds => ({
-                    ...prevWorkIds,
-                    ...newWorkIds
-                }));
-                setItems(prevItems => ({
-                    ...prevItems,
-                    ...newItems
-                }));
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
-        };
-
-        fetchItems();
+                Promise.all(itemPromises).then(() => {
+                    setNoReason(previousNoReason => ({
+                        ...previousNoReason,
+                        ...noReasonUpdates
+                    }));
+                    setWorkIds(prevWorkIds => ({
+                        ...prevWorkIds,
+                        ...newWorkIds
+                    }));
+                    setItems(prevItems => ({
+                        ...prevItems,
+                        ...newItems
+                    }));
+                });
+            }).catch(error => {
+                Toast.show({
+                    type: 'error',
+                    props: {
+                        title: 'Lỗi',
+                        content: 'Lỗi không thể lấy danh sách sự kiện',
+                    },
+                });
+            });
     }, []);
-
     const loadItems = (day: DateData) => {
 
     };
@@ -176,7 +259,6 @@ const ScheduleEmployerScreen: React.FC = () => {
                 </View>
             );
         };
-
         return (
             <Swipeable
                 friction={2}
@@ -192,7 +274,7 @@ const ScheduleEmployerScreen: React.FC = () => {
                         onPress={
                             reservation.type === 'personal'
                                 ? () => handleSetValue(true, false, reservation.day, reservation)
-                                : () => navigation.navigate('EmployeeList', { reservation: reservation })
+                                : () => RootNavigation.navigate('ReasonListScreen', { reservation: reservation })
                         }
                     >
                         <View style={styles.textContainer}>
@@ -215,7 +297,7 @@ const ScheduleEmployerScreen: React.FC = () => {
                             }}
                         >
                             <Text style={{
-                                fontFamily: 'mon',
+                                // fontFamily: 'mon',
                                 color: reservation.type === 'personal' ? '#a45eff' : '#00c94d',
                                 backgroundColor: reservation.type === 'personal' ? 'rgba(128,128,128,0.1)' : 'rgba(128,128,128,0.1)',
                                 padding: 5,
@@ -227,17 +309,41 @@ const ScheduleEmployerScreen: React.FC = () => {
                             style={{
                                 position: 'absolute',
                                 bottom: 10,
-                                right: 10,
+                                right: 20,
                             }}
                         >
-                            <Ionicons name="notifications-outline" size={24} color="black" />
+                            {reservation.type === 'working' &&
+                                <View
+                                    style={{
+                                        position: 'absolute',
+                                        bottom: 18,
+                                        right: 1,
+                                        backgroundColor: 'red',
+                                        borderRadius: 10,
+                                        width: 15,
+                                        height: 15,
+                                        justifyContent: 'center',
+                                        alignItems: 'center'
+                                    }}
+                                >
+                                    <Text style={{
+                                        color: 'white',
+                                        fontSize: 10,
+                                    }}>
+                                        {/* {reservation.id} */}
+                                        {noReason[reservation.id]}
+                                    </Text>
+                                </View>
+                            }
+                            <Ionicons name="notifications-outline" size={24} color="black">
+                            </Ionicons>
                         </View>
                     </TouchableOpacity>
 
                 </View>
             </Swipeable >
         );
-    }, [reservationPick]);
+    }, [reservationPick, noReason]);
 
     const renderEmptyDate = () => {
         return (
@@ -269,8 +375,8 @@ const ScheduleEmployerScreen: React.FC = () => {
                     renderEmptyDate={renderEmptyDate}
                     // rowHasChanged={rowHasChanged}
                     showClosingKnob={true}
-                    minDate={moment().startOf('month').format('YYYY-MM-DD')}
-                    maxDate={moment().endOf('month').format('YYYY-MM-DD')}
+                    // minDate={moment().startOf('month').format('YYYY-MM-DD')}
+                    // maxDate={moment().endOf('month').format('YYYY-MM-DD')}
                     onRefresh={() => {
                         console.log('refresh')
                     }}
@@ -344,7 +450,7 @@ const ScheduleEmployerScreen: React.FC = () => {
                                 top: 10,
                                 left: '30%',
                                 fontSize: 16,
-                                fontFamily: 'mon-m',
+                                // fontFamily: 'mon-m',
                             }}>
                                 {dayPick}
                             </Text>
@@ -409,18 +515,18 @@ const styles = StyleSheet.create({
     },
     timeText: {
         fontSize: 16,
-        fontFamily: 'mon-b',
+        // fontFamily: 'mon-b',
         marginBottom: 5,
     },
     titleText: {
         fontSize: 16,
-        fontFamily: 'mon-sb',
-        // fontWeight: 'bold',
+        // fontFamily: 'mon-sb',
+        fontWeight: 'bold',
         marginBottom: 5,
     },
     nameText: {
         fontSize: 14,
-        fontFamily: 'mon',
+        // fontFamily: 'mon',
         // fontStyle: 'italic',
     },
     coloredBar: {

@@ -1,21 +1,96 @@
 import React from 'react';
 import { PersistGate } from 'redux-persist/integration/react';
-import { store, persistor } from './src/redux/config/store';
-import { Provider } from 'react-redux';
+import { store, persistor } from './src/redux/store/store';
+import { Provider, useSelector, } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import StackNavigator from './src/navigation/StackNavigator';
+import { navigationRef } from './src/route/RootNavigation';
+import Login from './src/screens/login/Login'
+import Signup from './src/screens/signup/Signup'
+import Banner from './src/screens/welcome/Banner';
+import Welcome from './src/screens/welcome/Welcome';
+import ChooseRole from './src/screens/signup/ChooseRole';
+import Information from './src/screens/signup/Information';
+import { ActionSheetProvider } from '@expo/react-native-action-sheet';
+import { LogBox } from 'react-native';
+import { RootReducer } from './src/redux/store/reducer';
+import HomeTab from './src/route/HomeTab';
+import LoadingOverlay from './src/components/LoadingOverlay';
+import { loadFonts } from '@/theme';
+import CustomToast from '@/components/CustomToast';
+
+const Stack = createStackNavigator();
+
+const toHomeScreens = {
+    Banner: Banner,
+    HomeTab: HomeTab,
+}
+
+const authScreens = {
+    Banner: Banner,
+    Welcome: Welcome,
+    Login: Login,
+    Signup: Signup,
+    ChooseRole: ChooseRole,
+    Information: Information,
+    HomeTab: HomeTab,
+}
+
+const ToHomeScreen = () => {
+
+    const Stack = createStackNavigator();
+    LogBox.ignoreLogs([
+      'Non-serializable values were found in the navigation state',
+    ]);
+
+    return (
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+            {Object.entries(toHomeScreens).map(([name, component]) => (
+                <Stack.Screen key={name} name={name} component={component} />
+            ))}
+        </Stack.Navigator>
+    );
+}
+
+const EntryNavigation = () => {
+    const { access_token } = useSelector((state: RootReducer) => state.authReducer);
+
+    if (access_token) {
+        return <ToHomeScreen />;
+    } else {
+        return (
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
+                {Object.entries(authScreens).map(([name, component]) => (
+                    <Stack.Screen key={name} name={name} component={component} />
+                ))}
+            </Stack.Navigator>
+        );
+    }
+};
 
 const App = () => {
-  const Stack = createStackNavigator();
+    const preload = async () => {
+        await Promise.all([loadFonts()]);
+    }
 
-  return (
-    <Provider store={store}>
-      <PersistGate persistor={persistor} loading={null}>
-        <StackNavigator />
-      </PersistGate>
-    </Provider>
-  );
-}
+    React.useEffect(() => {
+        preload();
+    }, []);
+
+    return (
+        <ActionSheetProvider>
+            <Provider store={store}>
+                <PersistGate persistor={persistor} loading={null}>
+                    <NavigationContainer ref={navigationRef}>
+                        <LoadingOverlay>
+                            <EntryNavigation />
+                        </LoadingOverlay>
+                        <CustomToast />
+                    </NavigationContainer>
+                </PersistGate>
+            </Provider>
+        </ActionSheetProvider>
+    );
+};
 
 export default App;
