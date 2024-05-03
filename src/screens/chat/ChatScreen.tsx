@@ -2,7 +2,7 @@ import { SafeAreaView, Text, View, FlatList, StyleSheet, Image, TextInput, Keybo
 import React, { useCallback, useEffect, useState } from 'react'
 import Container from '../../components/Container'
 import { deepPurple, orange, regularPadding, titleFontStyle } from '../../styles/styles'
-import { Bubble, Composer, ComposerProps, GiftedChat, IChatMessage, InputToolbar, MessageImage, Send, TEST_ID } from 'react-native-gifted-chat'
+import { Bubble, Composer, ComposerProps, GiftedChat, IChatMessage, InputToolbar, MessageImage, MessageText, Send, TEST_ID } from 'react-native-gifted-chat'
 import Header from '../../components/Header';
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
@@ -27,12 +27,19 @@ export interface Message {
     sentAt: FirebaseFirestoreTypes.Timestamp,
     sentBy: string,
     image?: string,
+    pdf?: string,
 };
 
 export interface ChatRoom {
     participants: string[],
     messages: Message[],
 };
+
+const CustomPdfView = (props) => (
+    <View {...props}>
+        <Text>asdfasdf</Text>
+    </View>
+)
 
 const ChatScreen = (props) => {
     const { phoneNumber } = useSelector((state: RootReducer) => state.authReducer);
@@ -53,12 +60,13 @@ const ChatScreen = (props) => {
     const dispatch = useDispatch();
     const [sendLoading, setSendLoading] = useState(false);
 
-    const convertMessageToSave = (array: IChatMessage[] | [{ user: { _id: string }, image: string }]) => {
+    const convertMessageToSave = (array: IChatMessage[] | [{ user: { _id: string }, image: string, pdf: string }]) => {
         return array.map(message => ({
             content: message.text ?? '',
             sentAt: firestore.Timestamp.fromDate(new Date()),
             sentBy: message.user._id,
-            image: message.image ?? ''
+            image: message.image ?? '',
+            pdf: message.pdf ?? ''
         }));
     };
 
@@ -74,6 +82,7 @@ const ChatScreen = (props) => {
                 name: message.sentBy
             },
             image: message.image ?? '',
+            pdf: message.pdf ?? '',
         }));
     };
 
@@ -100,16 +109,17 @@ const ChatScreen = (props) => {
         };
     }, [fetchData]);
 
-    const onSend = async (messages: IChatMessage[] = [], image?: string) => {
+    const onSend = async (messages: IChatMessage[] = [], image?: string, pdf?: string) => {
         setSendLoading(true);
         try {
-            const messageData = convertMessageToSave(image
+            const messageData = convertMessageToSave(image || pdf
                 ? [
                     {
                         user: {
                             _id: phoneNumber,
                         },
                         image: image,
+                        pdf: pdf
                     },
                 ]
                 : messages
@@ -245,19 +255,21 @@ const ChatScreen = (props) => {
             justifyContent: 'center',
             alignItems: 'center',
         }}>
-            <Text>Khong co tin nhan</Text>
+            <Text>Không có tin nhắn</Text>
         </View>
     );
 
     const pickDocument = async () => {
         try {
-            const result = await DocumentPicker.getDocumentAsync({
-                type: '*/*',
+            const result: DocumentPicker.DocumentPickerResult = await DocumentPicker.getDocumentAsync({
+                type: 'application/pdf',
                 copyToCacheDirectory: true,
             });
 
             if (!result.canceled) {
-                console.log('Document picked:', result.assets);
+                console.log('Document picked:', result);
+                const { uri, name } = result.assets[0];
+                await uploadFile(uri, name);
             } else {
                 console.log('Document picking cancelled');
             }
@@ -292,6 +304,51 @@ const ChatScreen = (props) => {
             setSendLoading(false);
         }
     };
+
+    const uploadFile = async (uri: string, originalFileName: string) => {
+        setSendLoading(true);
+        try {
+            const response = await fetch(uri);
+            const blob = await response.blob();
+            const fileType = originalFileName.split('.').pop();
+            const storageRef = storage().ref(`pdfs/${originalFileName}_${new Date().getTime()}.${fileType}`);
+            await storageRef.put(blob);
+            const downloadURL = await storageRef.getDownloadURL();
+            await onSend([], '', downloadURL);
+        } catch (error) {
+            console.error('Error uploading file:', error);
+        } finally {
+            setSendLoading(false);
+        }
+    };
+
+    const renderCustomView = (props) => {
+        const { currentMessage } = props;
+
+        if (currentMessage.pdf) {
+            return (
+                <View style={{ padding: 10, backgroundColor: '#f0f0f0' }}>
+                    <Text>{'asdfiasdjf'}</Text>
+                </View>
+            );
+        }
+
+        return null;
+    };
+
+    const renderMessageText = (props) => {
+        const { currentMessage } = props;
+        console.log('cuurrent', currentMessage)
+
+        return (
+            <View>
+                <MessageText
+                    {...props}
+                />
+                {currentMessage.pdf && <CustomPdfView {...props} />}
+            </View>
+        );
+    }
 
     return (
         <Container
@@ -341,6 +398,7 @@ const ChatScreen = (props) => {
                     renderSend={renderSend}
                     renderMessageImage={renderMessageImage}
                     renderChatEmpty={renderChatEmpty}
+                    renderMessageText={renderMessageText}
                 />
             </TouchableOpacity>
         </Container >
