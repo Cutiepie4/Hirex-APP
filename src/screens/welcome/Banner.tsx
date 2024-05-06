@@ -15,18 +15,14 @@ const Banner = () => {
     const { access_token } = useSelector((state: RootReducer) => state.authReducer);
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            if (access_token) {
-                RootNavigation.navigate('HomeTab');
-            }
-            else {
+        if (!access_token) {
+            const timer = setTimeout(() => {
                 RootNavigation.navigate('Welcome');
-            }
-        }, 2000);
+            }, 2000);
 
-        return () => clearTimeout(timer);
+            return () => clearTimeout(timer);
+        }
     }, []);
-
 
     return (
         <Container statusBarColor={deepPurple} statusBarContentColor='light'>

@@ -27,8 +27,10 @@ const Setting = () => {
 
                 <View style={styles.settingSection}>
                     <View style={styles.settingItem}>
-                        <Ionicons name="notifications-outline" size={24} color="black" />
-                        <Text style={styles.settingText}>Notifications</Text>
+                        <TouchableOpacity onPress={() => RootNavigation.navigate('Notifications')} style={{ flex: 1, flexDirection: 'row' }}>
+                            <Ionicons name="notifications-outline" size={24} color="black" />
+                            <Text style={styles.settingText}>Notifications</Text>
+                        </TouchableOpacity>
                         <Switch
                             trackColor={{ false: "#767577", true: 'green' }}
                             thumbColor={isEnabled ? "white" : "#f4f3f4"}
