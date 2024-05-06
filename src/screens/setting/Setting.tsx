@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from '@expo/vector-icons';
 import RootNavigation from '../../route/RootNavigation';
 import { useDispatch } from 'react-redux';  // Import thêm useDispatch từ redux
-import { logout } from '../../redux/slice/authSlice';
+import { logout, showLoading } from '../../redux/slice/authSlice';
 
 const Setting = () => {
     const [isEnabled, setIsEnabled] = React.useState(false);
@@ -13,7 +13,10 @@ const Setting = () => {
     const dispatch = useDispatch();
 
     const confirmLogout = () => {
+        // dispatch(showLoading());
+
         dispatch(logout()); // Dispatch action logout
+
         RootNavigation.navigate('Login'); // Điều hướng về màn hình đăng nhập
     };
 
@@ -25,7 +28,7 @@ const Setting = () => {
                 <View style={styles.settingSection}>
                     <View style={styles.settingItem}>
                         <Ionicons name="notifications-outline" size={24} color="black" />
-                        <Text style={styles.settingText}>Notifications</Text>
+                        <Text style={styles.settingText}>Thông báo</Text>
                         <Switch
                             trackColor={{ false: "#767577", true: 'green' }}
                             thumbColor={isEnabled ? "white" : "#f4f3f4"}
@@ -55,7 +58,7 @@ const Setting = () => {
                 <View style={styles.settingSection}>
                     <TouchableOpacity style={styles.settingItem} onPress={() => setModalVisible(true)}>
                         <Ionicons name="exit-outline" size={24} color="black" />
-                        <Text style={styles.settingText}>Logout</Text>
+                        <Text style={styles.settingText}>Đăng Xuất</Text>
                         <Ionicons name="chevron-forward-outline" size={24} color="black" />
                     </TouchableOpacity>
                 </View>

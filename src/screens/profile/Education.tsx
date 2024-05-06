@@ -84,7 +84,7 @@ const Education = ({ route, navigation }) => {
                         paddingLeft: 15,
                         color: colors.black
                     }}>
-                        {typeof educationIndex === 'number' ? 'Change Education' : 'Add Education'}
+                        {typeof educationIndex === 'number' ? 'Chỉnh sửa thông tin học vấn' : 'Thêm học vấn'}
                     </Text>
                 </View>
 

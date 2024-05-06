@@ -21,8 +21,8 @@ const Login = () => {
     const dispatch = useDispatch();
 
     const handleLoginPress = async () => {
-        console.log("object");
-        // dispatch(showLoading());
+        dispatch(showLoading());
+        
         try {
             const response = await BASE_API.post('/users/login', {
                 phoneNumber: phoneNumber,
@@ -32,15 +32,26 @@ const Login = () => {
             if (response && response.data) {
                 const token = response.data.token;
                 const role = response.data.role;
+                const idUser = response.data.id;
 
                 console.log('Token:', token);
                 console.log('Role:', role);
+                console.log('idUser:', idUser);
 
                 // Dispatch action to update Redux store with token
                 dispatch(login({ role, phoneNumber, access_token: token }));
 
-                // Navigate to HomeTabs screen upon successful login
-                RootNavigation.navigate('HomeTab');
+                RootNavigation.navigate('HomeTab', {
+                    screen: 'Tab2', // Name of the tab where ProfileStack is loaded
+                    params: {
+                        screen: 'Profile', // Assuming 'Profile' is the name of the screen inside ProfileStack
+                        params: {
+                            idUser: idUser, // Your user ID parameter
+                        },
+                    },
+                });
+                
+                
                 Toast.show({
                     type: 'success',
                     props: {
@@ -62,127 +73,121 @@ const Login = () => {
     return (
         <Container>
             <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
-                <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
-                    <View style={{ marginHorizontal: 22, justifyContent: 'center' }}>
-                        <View style={{
-                            marginHorizontal: 22,
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                        }}>
-                            <View style={{ marginVertical: 50 }}>
-                                <Text style={{ fontSize: 30, fontWeight: '900', marginVertical: 12, color: colors.black }}>
-                                    Welcome Back
-                                </Text>
-                                <Text style={{ fontSize: 16, color: colors.black }}>
-                                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-                                </Text>
-                            </View>
-                        </View>
-                        <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                            <Text style={{ fontSize: 16, color: colors.black, marginBottom: 8, fontWeight: '900' }}>
-                                Phone Number
+                <View style={{ flex: 1, marginHorizontal: 22 }}>
+                    <View style={{
+                        marginHorizontal: 22,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}>
+                        <View style={{ marginVertical: 50 }}>
+                            <Text style={{ fontSize: 30, fontWeight: '900', marginVertical: 12, color: colors.black }}>
+                                Chào mừng trở lại
                             </Text>
-                            <View style={{
-                                height: 48,
-                                borderColor: colors.black,
-                                borderWidth: 1,
-                                borderRadius: 8,
-                                alignItems: "center",
-                                justifyContent: "center",
-                                paddingLeft: 22
-                            }}>
-
-                                <Input placeholder="Phone Number" value={phoneNumber} onChangeText={setPhoneNumber} />
-                            </View>
-
-                        </View>
-
-                        <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                            <Text style={{ fontSize: 16, color: colors.black, fontWeight: '900', marginBottom: 8 }}>
-                                Password
-                            </Text>
-                            <View style={{
-                                height: 48,
-                                borderColor: colors.black,
-                                borderWidth: 1,
-                                borderRadius: 8,
-                                alignItems: "center",
-                                justifyContent: "center",
-                                paddingLeft: 22
-                            }}>
-                                <Input placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry={isPasswordShown} />
-                                <TouchableOpacity
-                                    onPress={() => setIsPasswordShown(!isPasswordShown)}
-                                    style={{ position: 'absolute', right: 12 }}
-                                >
-                                    {isPasswordShown ? (
-                                        <Ionicons name="eye-off" size={24} color={colors.black} />
-                                    ) : (
-                                        <Ionicons name="eye" size={24} color={colors.black} />
-                                    )}
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-
-                        <View style={{
-                            flexDirection: 'row',
-                            justifyContent: 'flex-end',
-                            marginVertical: 6
-                        }}>
-                            <Text>Forget Password?</Text>
-                        </View>
-
-                        <Button
-                            title="LOGIN"
-                            filled
-                            onPress={handleLoginPress}
-                            // onPress={() => RootNavigation.navigate('HomeTab')}
-                            style={{
-                                marginTop: 18,
-                                marginBottom: 4,
-                                height: 52,
-                                width: 250, // thêm dòng này để đặt chiều rộng cố định cho Button
-                                alignSelf: 'center' // thêm dòng này để căn giữa Button
-                            }}
-                        />
-                        <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
-                            <TouchableOpacity
-                                onPress={() => RootNavigation.navigate('Setting')}
-                                style={{
-                                    marginTop: 15,
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    flexDirection: 'row',
-                                    height: 52,
-                                    width: 250,
-                                    borderWidth: 1,
-                                    borderColor: colors.grey,
-                                    marginRight: 4,
-                                    borderRadius: 10,
-                                    backgroundColor: colors.lavendar,
-                                    alignSelf: 'center'
-                                }}
-                            >
-                                <Image
-                                    source={GOOGLE}
-                                    style={{ height: 30, width: 30, marginRight: 8 }}
-                                    resizeMode="contain"
-                                />
-                                <Text style={{ fontSize: 15, fontWeight: '900', marginVertical: 12, color: colors.black }}>SIGN IN WITH GOOGLE</Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 22 }}>
-                            <Text style={{ fontSize: 16, color: colors.black }}>You don't have an account yet?</Text>
-                            <Pressable onPress={() => RootNavigation.navigate('SignUp')}>
-                                <Text style={{ fontSize: 16, color: '#FF9228', fontWeight: '900', marginLeft: 6 }}>
-                                    Sign up
-                                </Text>
-                            </Pressable>
                         </View>
                     </View>
-                </KeyboardAvoidingView>
+                    <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                        <Text style={{ fontSize: 16, color: colors.black, marginBottom: 8, fontWeight: '900' }}>
+                            Số điện thoại
+                        </Text>
+                        <View style={{
+                            height: 48,
+                            borderColor: colors.black,
+                            borderWidth: 1,
+                            borderRadius: 8,
+                            alignItems: "center",
+                            justifyContent: "center",
+                            paddingLeft: 22
+                        }}>
 
+                            <Input placeholder="Số điện thoại" value={phoneNumber} onChangeText={setPhoneNumber} />
+                        </View>
+
+                    </View>
+
+                    <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                        <Text style={{ fontSize: 16, color: colors.black, fontWeight: '900', marginBottom: 8 }}>
+                            Mật khẩu
+                        </Text>
+                        <View style={{
+                            height: 48,
+                            borderColor: colors.black,
+                            borderWidth: 1,
+                            borderRadius: 8,
+                            alignItems: "center",
+                            justifyContent: "center",
+                            paddingLeft: 22
+                        }}>
+                            <Input placeholder="Mật khẩu" value={password} onChangeText={setPassword} secureTextEntry={isPasswordShown} />
+                            <TouchableOpacity
+                                onPress={() => setIsPasswordShown(!isPasswordShown)}
+                                style={{ position: 'absolute', right: 12 }}
+                            >
+                                {isPasswordShown ? (
+                                    <Ionicons name="eye-off" size={24} color={colors.black} />
+                                ) : (
+                                    <Ionicons name="eye" size={24} color={colors.black} />
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    <View style={{
+                        flexDirection: 'row',
+                        justifyContent: 'flex-end',
+                        marginVertical: 6
+                    }}>
+                        <Text>Quên mật khẩu?</Text>
+                    </View>
+
+                    <Button
+                        title="Đăng Nhập"
+                        filled
+                        onPress={handleLoginPress}
+                        // onPress={() => RootNavigation.navigate('HomeTab')}
+                        style={{
+                            marginTop: 18,
+                            marginBottom: 4,
+                            height: 52,
+                            width: 250, // thêm dòng này để đặt chiều rộng cố định cho Button
+                            alignSelf: 'center' // thêm dòng này để căn giữa Button
+                        }}
+                    />
+                    <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+                        <TouchableOpacity
+                            onPress={() => RootNavigation.navigate('Setting')}
+                            style={{
+                                marginTop: 15,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexDirection: 'row',
+                                height: 52,
+                                width: 250,
+                                borderWidth: 1,
+                                borderColor: colors.grey,
+                                marginRight: 4,
+                                borderRadius: 10,
+                                backgroundColor: colors.lavendar,
+                                alignSelf: 'center'
+                            }}
+                        >
+                            <Image
+                                source={GOOGLE}
+                                style={{ height: 30, width: 30, marginRight: 8 }}
+                                resizeMode="contain"
+                            />
+                            <Text style={{ fontSize: 15, fontWeight: '900', marginVertical: 12, color: colors.black }}>Đăng nhập với GOOGLE</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 22 }}>
+                        <Text style={{ fontSize: 16, color: colors.black }}>You don't have an account yet?</Text>
+                        <Pressable onPress={() => RootNavigation.navigate('Signup')}>
+                            <Text style={{ fontSize: 16, color: '#FF9228', fontWeight: '900', marginLeft: 6 }}>
+                                Đăng ký
+                            </Text>
+                        </Pressable>
+                    </View>
+                </View>
             </SafeAreaView>
         </Container>
     );

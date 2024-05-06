@@ -64,7 +64,7 @@ const Certification = ({ route, navigation }) => {
                         textAlign: 'center',
                         color: colors.black
                     }}>
-                        {typeof certificationIndex === 'number' ? 'Change Certification' : 'Add Certification'}
+                        {typeof certificationIndex === 'number' ? 'Chỉnh sửa chứng chỉ' : 'Thêm chứng chỉ'}
                     </Text>
                 </View>
 

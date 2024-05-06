@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Modal, SafeAreaView } from 'react-native';
 import { Ionicons } from "@expo/vector-icons";
 import RootNavigation from '../../route/RootNavigation';
+import { BASE_API } from '../../services/BaseApi';
 
 const AboutMeScreen = ({ route }) => {
     const [aboutMeText, setAboutMeText] = useState('');
@@ -12,11 +13,17 @@ const AboutMeScreen = ({ route }) => {
         setAboutMeText(aboutMe);
     }, []);
 
-    const handleSave = () => {
-        if (saveAboutMe) {
-            saveAboutMe(aboutMeText);
+    const handleSave = async () => {
+        try {
+            const response = await BASE_API.put(`/employees/3`, {
+                about: aboutMeText
+            });
+            console.log(response.data);
+            setModalVisible(true);
+        } catch (error) {
+            console.error('Error updating about:', error);
+        } finally {
         }
-        setModalVisible(true);
     };
 
     const closeModal = () => {
@@ -46,7 +53,7 @@ const AboutMeScreen = ({ route }) => {
                 />
                 <View style={styles.saveButtonContainer}>
                     <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-                        <Text style={styles.saveButtonText}>SAVE</Text>
+                        <Text style={styles.saveButtonText}>Lưu</Text>
                     </TouchableOpacity>
                 </View>
                 <Modal
@@ -58,14 +65,14 @@ const AboutMeScreen = ({ route }) => {
                     <View style={styles.modalContainer}>
                         <View style={styles.modalContent}>
                             <Text style={styles.modalText}>
-                                Bạn có chắc chắn muốn thay đổi?
+                                Bạn có chắc chắn muốn lưu?
                             </Text>
                             <View style={styles.buttonContainer}>
                                 <TouchableOpacity style={styles.yesButton} onPress={closeModal}>
-                                    <Text style={styles.buttonText}>Yes</Text>
+                                    <Text style={styles.buttonText}>Có</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-                                    <Text style={styles.buttonText}>No</Text>
+                                    <Text style={styles.buttonText}>Không</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>

@@ -79,7 +79,7 @@ const Experience = (props: any) => {
                         textAlign: 'center',
                         color: colors.black
                     }}>
-                        {typeof experienceIndex === 'number' ? 'Change work experience' : 'Add work experience'}
+                        {typeof experienceIndex === 'number' ? 'Chỉnh sửa kinh nghiệm' : 'Thêm kinh nghiệm'}
                     </Text>
                 </View>
 
@@ -147,7 +147,7 @@ const Experience = (props: any) => {
                 </View>
 
                 <Button
-                    title="Save"
+                    title="Lưu"
                     filled
                     onPress={handleSave}
                     style={{

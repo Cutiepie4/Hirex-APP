@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, Image } from 'react-native';
 import { AntDesign, Entypo, MaterialCommunityIcons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -10,19 +11,61 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import BACKGROUND from '../../assets/images/background.jpg';
+import { BASE_API } from '../../services/BaseApi';
 
-const Profile = () => {
 
+
+const Profile = ({ route }) => {
+
+    const userId = route.params?.idUser;
     const [aboutMe, setAboutMe] = useState('');
     const [image, setImage] = useState(null);
     const [experienceLists, setExperienceLists] = useState([]);
     const [educationLists, setEducationLists] = useState([]);
     const [selectedSkills, setSelectedSkills] = useState([]);
+    const [selectedFiles, setSelectedFiles] = useState([]);
+    const [user, setUser] = useState(null)
+    const [name, setName] = useState(null);
+
     const [showAllSkills, setShowAllSkills] = useState(false);
     const [certificationLists, setCertificationLists] = useState([]);
     const [isPickingDocument, setIsPickingDocument] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
     const { showActionSheetWithOptions } = useActionSheet();
+
+
+
+    const getEmployee = async () => {
+        try {
+            const response = await BASE_API.get(`/employees/${userId}`);
+            setExperienceLists(response.data.experiences || []);
+            setEducationLists(response.data.educations || []);
+            setCertificationLists(response.data.certification || [])
+            setUser(response.data.user)
+            setName(response.data.user.fullName)
+            const imageData = response.data.user.imageBase64;
+            // Tạo URI trực tiếp từ dữ liệu base64
+            const uri = `data:image;base64,${imageData}`;
+            setImage(uri);
+
+            // console.log(response.data);
+
+        } catch (error) {
+            console.error('Failed to fetch employee:', error);
+        } finally {
+        }
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            console.log('Screen is focused, fetching data for user: ', userId);
+            getEmployee();
+            return () => {
+                // console.log('Screen is unfocused');
+                // Bạn có thể làm sạch ở đây nếu cần
+            };
+        }, [userId])
+    );
 
     const handleSeeMore = () => {
         setShowAllSkills(!showAllSkills);
@@ -40,22 +83,23 @@ const Profile = () => {
             setImage(result.assets[0].uri);
         }
     };
-    const saveFile = async () => {
-        if (selectedFile) {
+    
+    const saveFile = async (fileToSave) => {
+        if (fileToSave) {
             const { status } = await MediaLibrary.requestPermissionsAsync();
             if (status !== 'granted') {
                 alert('Permission required to save files');
                 return;
             }
-
-            const fileUri = FileSystem.cacheDirectory + selectedFile.name;
-
+    
+            const fileUri = FileSystem.cacheDirectory + fileToSave.name;
+    
             try {
                 await FileSystem.copyAsync({
-                    from: selectedFile.uri,
+                    from: fileToSave.uri,
                     to: fileUri
                 });
-
+    
                 const asset = await MediaLibrary.createAssetAsync(fileUri);
                 await MediaLibrary.createAlbumAsync('Download', asset, false);
                 alert('File saved successfully!');
@@ -65,27 +109,26 @@ const Profile = () => {
             }
         }
     };
-    const pickDocument = async () => {
-        if (isPickingDocument) {
-            return;
-        }
-        setIsPickingDocument(true);
+    
 
+    const pickDocument = async () => {
         try {
             let result = await DocumentPicker.getDocumentAsync({
                 type: 'application/pdf',
             });
-            console.log(result);
             if (!result.canceled && result.assets && result.assets.length > 0) {
-                setSelectedFile(result.assets[0]);
+                // Thêm file mới vào mảng các file đã có
+                setSelectedFiles(prevFiles => [...prevFiles, result.assets[0]]);
             }
-
         } catch (error) {
             console.error("Document picking error:", error);
-        } finally {
-            setIsPickingDocument(false);
         }
     };
+    
+    const deleteFile = (index) => {
+        setSelectedFiles(prevFiles => prevFiles.filter((_, idx) => idx !== index));
+    };
+    
     const formatFileSize = (sizeInBytes) => {
         return (sizeInBytes / 1024).toFixed(0) + ' KB';
     };
@@ -111,7 +154,6 @@ const Profile = () => {
     const showImagePickerOptions = () => {
         const options = ['Chụp ảnh', 'Chọn ảnh từ thư viện', 'Hủy bỏ'];
         const cancelButtonIndex = 2;
-        console.log('ssss');
         showActionSheetWithOptions(
             {
                 options,
@@ -249,7 +291,7 @@ const Profile = () => {
             <View style={styles.section}>
                 <View style={styles.iconWithText}>
                     <Entypo name="briefcase" size={24} color="orange" />
-                    <Text style={styles.sectionText}>Work experience</Text>
+                    <Text style={styles.sectionText}>Kinh nghiệm làm việc</Text>
                     <View style={styles.editButtonContainer}>
                         <TouchableOpacity style={styles.addButton} onPress={experienceScreen}>
                             <AntDesign name="plus" size={24} color="#FF9228" />
@@ -295,7 +337,7 @@ const Profile = () => {
             <View style={styles.section}>
                 <View style={styles.iconWithText}>
                     <MaterialCommunityIcons name="book-education" size={24} color="orange" />
-                    <Text style={styles.sectionText}>Education</Text>
+                    <Text style={styles.sectionText}>Học vấn</Text>
                     <View style={styles.editButtonContainer}>
                         <TouchableOpacity style={styles.addButton} onPress={educationScreen}>
                             <AntDesign name="plus" size={24} color="orange" />
@@ -341,7 +383,7 @@ const Profile = () => {
             <View style={styles.section}>
                 <View style={styles.iconWithText}>
                     <AntDesign name="staro" size={24} color="#FF9228" />
-                    <Text style={styles.sectionText}>Skill</Text>
+                    <Text style={styles.sectionText}>Kỹ năng</Text>
                     <View style={styles.editButtonContainer}>
                         <TouchableOpacity style={styles.addButton} onPress={skillScreen}>
                             <AntDesign name="plus" size={24} color="orange" />
@@ -376,7 +418,7 @@ const Profile = () => {
             <View style={styles.section}>
                 <View style={styles.iconWithText}>
                     <MaterialCommunityIcons name="certificate-outline" size={24} color="#FF9228" />
-                    <Text style={styles.sectionText}>Certification</Text>
+                    <Text style={styles.sectionText}>Chứng chỉ</Text>
                     <View style={styles.editButtonContainer}>
                         <TouchableOpacity style={styles.addButton} onPress={certificationScreen}>
                             <AntDesign name="plus" size={24} color="orange" />
@@ -417,7 +459,6 @@ const Profile = () => {
             </View>
         );
     };
-
     const renderResumeSection = () => {
         return (
             <View style={styles.section}>
@@ -430,32 +471,34 @@ const Profile = () => {
                         </TouchableOpacity>
                     </View>
                 </View>
-                {selectedFile && (
+                {selectedFiles.length > 0 && (
                     <>
                         <View style={styles.separator}></View>
-                        <View style={styles.experienceItem}>
-                            <MaterialIcons name="picture-as-pdf" size={40} color="red" />
-                            <View >
-                                <Text style={styles.sectionText}>{selectedFile.name}</Text>
-                                <Text style={styles.sectionText}>{formatFileSize(selectedFile.size)}</Text>
+                        {selectedFiles.map((file, index) => (
+                            <View key={index} style={styles.experienceItem}>
+                                <MaterialIcons name="picture-as-pdf" size={40} color="red" />
+                                <View>
+                                    <Text style={styles.sectionText}>{file.name}</Text>
+                                    <Text style={styles.sectionText}>{formatFileSize(file.size)}</Text>
+                                </View>
+                                <View style={styles.buttonsContainer1}>
+                                    <TouchableOpacity style={styles.addButton} onPress={() => saveFile(file)}>
+                                        <MaterialIcons name="save-alt" size={24} color="#FF9228" />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={styles.addButton} onPress={() => deleteFile(index)}>
+                                        <AntDesign name="delete" size={24} color="#FF9228" />
+                                    </TouchableOpacity>
+                                </View>
                             </View>
-                            <View style={styles.buttonsContainer1}>
-                                <TouchableOpacity style={styles.addButton} onPress={saveFile}>
-                                    <MaterialIcons name="save-alt" size={24} color="#FF9228" />
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.addButton} onPress={() => setSelectedFile(null)}>
-                                    <AntDesign name="delete" size={24} color="#FF9228" />
-                                </TouchableOpacity>
-                            </View>
-                        </View>
+                        ))}
                     </>
                 )}
             </View>
         );
     };
+    
 
     return (
-        <Container statusBarContentColor='light'>
             <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
                 <View style={styles.container}>
                     <View style={styles.header}>
@@ -471,7 +514,7 @@ const Profile = () => {
                             <FontAwesome5 name="camera" size={15} color="white" />
                         </TouchableOpacity>
                         <View style={styles.nameRoleContainer}>
-                            <Text style={styles.name}>Nguyễn Quân</Text>
+                            <Text style={styles.name}>{name}</Text>
                             <Text style={styles.role}>Applicant</Text>
                         </View>
                     </View>
@@ -488,8 +531,7 @@ const Profile = () => {
                         </View>
                     </ScrollView>
                 </View>
-            </SafeAreaView >
-        </Container >
+            </SafeAreaView>
 
     );
 }
@@ -572,9 +614,9 @@ const styles = StyleSheet.create({
         // flexDirection: 'row',
         // justifyContent: 'flex-start', // Align items to the start of the container
         // alignItems: 'center', // Center items vertically
-        // backgroundColor: '#6c5ce7',
+        // backgroundColor: 'red',
         // paddingHorizontal: 50,
-        paddingVertical: 25,
+        paddingVertical: 28,
     },
     nameRoleContainer: {
         alignItems: 'center',
@@ -596,7 +638,7 @@ const styles = StyleSheet.create({
     name: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: 'black',
+        color: 'white',
     },
     role: {
         fontSize: 16,
