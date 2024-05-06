@@ -48,7 +48,7 @@ const Information = ({ route }) => {
         try {
             const response = await BASE_API.post('/users/register', payload);
             if (response.status === 200) {
-                 setModalVisible(true);
+                setModalVisible(true);
             } else {
                 throw new Error('Failed to register. Please try again.');
             }

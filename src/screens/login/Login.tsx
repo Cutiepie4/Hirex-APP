@@ -22,7 +22,7 @@ const Login = () => {
 
     const handleLoginPress = async () => {
         dispatch(showLoading());
-        
+
         try {
             const response = await BASE_API.post('/users/login', {
                 phoneNumber: phoneNumber,
@@ -50,8 +50,8 @@ const Login = () => {
                         },
                     },
                 });
-                
-                
+
+
                 Toast.show({
                     type: 'success',
                     props: {

@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
+import React, { useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, Image } from 'react-native';
 import { AntDesign, Entypo, MaterialCommunityIcons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -83,7 +82,7 @@ const Profile = ({ route }) => {
             setImage(result.assets[0].uri);
         }
     };
-    
+
     const saveFile = async (fileToSave) => {
         if (fileToSave) {
             const { status } = await MediaLibrary.requestPermissionsAsync();
@@ -91,15 +90,15 @@ const Profile = ({ route }) => {
                 alert('Permission required to save files');
                 return;
             }
-    
+
             const fileUri = FileSystem.cacheDirectory + fileToSave.name;
-    
+
             try {
                 await FileSystem.copyAsync({
                     from: fileToSave.uri,
                     to: fileUri
                 });
-    
+
                 const asset = await MediaLibrary.createAssetAsync(fileUri);
                 await MediaLibrary.createAlbumAsync('Download', asset, false);
                 alert('File saved successfully!');
@@ -109,7 +108,7 @@ const Profile = ({ route }) => {
             }
         }
     };
-    
+
 
     const pickDocument = async () => {
         try {
@@ -124,11 +123,11 @@ const Profile = ({ route }) => {
             console.error("Document picking error:", error);
         }
     };
-    
+
     const deleteFile = (index) => {
         setSelectedFiles(prevFiles => prevFiles.filter((_, idx) => idx !== index));
     };
-    
+
     const formatFileSize = (sizeInBytes) => {
         return (sizeInBytes / 1024).toFixed(0) + ' KB';
     };
@@ -383,7 +382,7 @@ const Profile = ({ route }) => {
             <View style={styles.section}>
                 <View style={styles.iconWithText}>
                     <AntDesign name="staro" size={24} color="#FF9228" />
-                    <Text style={styles.sectionText}>Kỹ năng</Text>
+                    <Text style={styles.sectionText}>Skill</Text>
                     <View style={styles.editButtonContainer}>
                         <TouchableOpacity style={styles.addButton} onPress={skillScreen}>
                             <AntDesign name="plus" size={24} color="orange" />
@@ -496,7 +495,7 @@ const Profile = ({ route }) => {
             </View>
         );
     };
-    
+
 
     return (
             <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
