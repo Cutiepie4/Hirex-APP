@@ -1,8 +1,8 @@
-import { SafeAreaView, Text, View, FlatList, StyleSheet, Image, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity, ScrollView, Button, Keyboard, Dimensions, ActivityIndicator } from 'react-native'
+import { SafeAreaView, Text, View, FlatList, StyleSheet, Image, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity, ScrollView, Button, Keyboard, Dimensions, ActivityIndicator, Linking } from 'react-native'
 import React, { useCallback, useEffect, useState } from 'react'
 import Container from '../../components/Container'
 import { deepPurple, orange, regularPadding, titleFontStyle } from '../../styles/styles'
-import { Bubble, Composer, ComposerProps, GiftedChat, IChatMessage, InputToolbar, MessageImage, MessageText, Send, TEST_ID } from 'react-native-gifted-chat'
+import { Bubble, BubbleProps, Composer, ComposerProps, GiftedAvatarProps, GiftedChat, GiftedChatProps, IChatMessage, InputToolbar, MessageImage, MessageText, Send, TEST_ID } from 'react-native-gifted-chat'
 import Header from '../../components/Header';
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
@@ -16,7 +16,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { hideLoading, showLoading } from '../../redux/slice/authSlice';
 import { RootReducer } from '@/redux/store/reducer';
 import Toast from 'react-native-toast-message';
-
+import { MaterialIcons } from '@expo/vector-icons';
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
@@ -27,7 +27,7 @@ export interface Message {
     sentAt: FirebaseFirestoreTypes.Timestamp,
     sentBy: string,
     image?: string,
-    pdf?: string,
+    file?: AttachedFile,
 };
 
 export interface ChatRoom {
@@ -35,38 +35,37 @@ export interface ChatRoom {
     messages: Message[],
 };
 
-const CustomPdfView = (props) => (
-    <View {...props}>
-        <Text>asdfasdf</Text>
-    </View>
-)
+export interface AttachedFile {
+    type: string,
+    url: string,
+    fileName: string
+};
 
 const ChatScreen = (props) => {
     const { phoneNumber } = useSelector((state: RootReducer) => state.authReducer);
     const { messages: initMessages, participants: initParticipants, chatFriendPhone } = props.route.params.data;
     const [participants, setParticipants] = useState(initParticipants);
+    const [sendLoading, setSendLoading] = useState(false);
     const [messages, setMessages] = useState<IChatMessage[]>(
         initMessages?.map((item) => {
             return {
-                ...item,
                 _id: item.id,
                 sentAt: item.sentAt,
                 user: {
                     _id: item.sentBy
-                }
+                },
+                ...item,
             }
         }) || []
     );
-    const dispatch = useDispatch();
-    const [sendLoading, setSendLoading] = useState(false);
 
-    const convertMessageToSave = (array: IChatMessage[] | [{ user: { _id: string }, image: string, pdf: string }]) => {
+    const convertMessageToSave = (array: IChatMessage[] | [{ user: { _id: string }, image: string, file: AttachedFile }]) => {
         return array.map(message => ({
             content: message.text ?? '',
             sentAt: firestore.Timestamp.fromDate(new Date()),
             sentBy: message.user._id,
             image: message.image ?? '',
-            pdf: message.pdf ?? ''
+            file: message.file
         }));
     };
 
@@ -82,7 +81,7 @@ const ChatScreen = (props) => {
                 name: message.sentBy
             },
             image: message.image ?? '',
-            pdf: message.pdf ?? '',
+            file: message.file?.url && message.file
         }));
     };
 
@@ -109,17 +108,32 @@ const ChatScreen = (props) => {
         };
     }, [fetchData]);
 
-    const onSend = async (messages: IChatMessage[] = [], image?: string, pdf?: string) => {
+    const onSend = useCallback(async (messages: IChatMessage[] = [], image?: string, file?: AttachedFile) => {
         setSendLoading(true);
         try {
-            const messageData = convertMessageToSave(image || pdf
+            console.log('image', image)
+            console.log('attached file', file)
+            console.log('all', [
+                {
+                    user: {
+                        _id: phoneNumber,
+                    },
+                    image: image,
+                    file: file
+                },
+            ])
+            const messageData = convertMessageToSave(image || file?.url
                 ? [
                     {
                         user: {
                             _id: phoneNumber,
                         },
-                        image: image,
-                        pdf: pdf
+                        image: image ?? '',
+                        file: file ?? {
+                            type: '',
+                            fileName: '',
+                            url: ''
+                        }
                     },
                 ]
                 : messages
@@ -139,6 +153,7 @@ const ChatScreen = (props) => {
                 transaction.update(conversationRef, { messages: updatedMessages });
             });
         } catch (error) {
+            console.log('error', error)
             Toast.show({
                 type: 'error',
                 props: {
@@ -149,12 +164,65 @@ const ChatScreen = (props) => {
         } finally {
             setSendLoading(false);
         }
+    }, []);
+
+    const openPdf = async (pdfUri) => {
+        try {
+            const supported = await Linking.canOpenURL(pdfUri);
+            if (supported) {
+                await Linking.openURL(pdfUri);
+            } else {
+                console.error('Cannot open PDF: ', pdfUri);
+            }
+        } catch (error) {
+            console.error('Error opening PDF: ', error);
+        }
     };
 
     const renderBubble = (props) => {
+        const { currentMessage } = props;
+        const file: AttachedFile = currentMessage.file;
+
         return (
             <Bubble
                 {...props}
+                renderCustomView={() => {
+                    if (file?.url)
+                        return (
+                            <View style={{
+                                paddingHorizontal: regularPadding,
+                                paddingVertical: regularPadding,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                borderRadius: 10,
+                                marginHorizontal: 10,
+                                marginVertical: regularPadding / 2,
+                                backgroundColor: '#f5f5f5'
+                            }}>
+                                <TouchableOpacity
+                                    onPress={() => file?.url && openPdf(file.url)}
+                                    style={{
+                                        borderWidth: 1,
+                                        borderColor: deepPurple,
+                                        borderRadius: 20,
+                                        width: 40,
+                                        height: 40,
+                                        justifyContent: 'center',
+                                        alignItems: 'center'
+                                    }}
+                                >
+                                    <FontAwesome name="cloud-download" size={24} color={deepPurple} />
+                                </TouchableOpacity>
+                                <Text style={{
+                                    color: deepPurple,
+                                    marginLeft: 12
+                                }}>
+                                    {file.fileName ?? 'Không có tên file'}
+                                </Text>
+                            </View>
+                        )
+                    return null;
+                }}
                 wrapperStyle={{
                     right: {
                         backgroundColor: deepPurple
@@ -167,6 +235,10 @@ const ChatScreen = (props) => {
         );
     };
 
+    const renderChatFooter = () => {
+        return <View style={{ height: 24 }} />;
+    };
+
     const renderInputToolbar = (props) => {
         return <InputToolbar
             {...props}
@@ -175,8 +247,13 @@ const ChatScreen = (props) => {
             }}
             containerStyle={{
                 backgroundColor: 'white',
-                marginHorizontal: regularPadding,
+                paddingHorizontal: regularPadding,
+                paddingVertical: 6,
                 alignContent: 'center',
+                marginHorizontal: regularPadding / 2,
+                borderRadius: 20,
+                marginBottom: 10,
+                borderTopWidth: 0
             }}
             renderComposer={(composerProps) => (
                 <View
@@ -189,13 +266,13 @@ const ChatScreen = (props) => {
                     <TouchableOpacity
                         onPress={pickImage}
                         style={{
-                            marginRight: 10
+                            marginRight: regularPadding
                         }}
                     >
                         <FontAwesome name="image" size={20} color={deepPurple} />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={pickDocument}>
-                        <FontAwesome name="file-pdf-o" size={18} color="black" />
+                        <MaterialIcons name="attachment" size={24} color={deepPurple} />
                     </TouchableOpacity>
                     <Composer
                         {...composerProps}
@@ -242,7 +319,7 @@ const ChatScreen = (props) => {
             <MessageImage
                 {...props}
                 imageStyle={{
-                    resizeMode: 'contain'
+                    resizeMode: 'cover'
                 }}
             />
         )
@@ -314,7 +391,11 @@ const ChatScreen = (props) => {
             const storageRef = storage().ref(`pdfs/${originalFileName}_${new Date().getTime()}.${fileType}`);
             await storageRef.put(blob);
             const downloadURL = await storageRef.getDownloadURL();
-            await onSend([], '', downloadURL);
+            await onSend([], '', {
+                type: fileType,
+                url: downloadURL,
+                fileName: originalFileName
+            });
         } catch (error) {
             console.error('Error uploading file:', error);
         } finally {
@@ -322,37 +403,9 @@ const ChatScreen = (props) => {
         }
     };
 
-    const renderCustomView = (props) => {
-        const { currentMessage } = props;
-
-        if (currentMessage.pdf) {
-            return (
-                <View style={{ padding: 10, backgroundColor: '#f0f0f0' }}>
-                    <Text>{'asdfiasdjf'}</Text>
-                </View>
-            );
-        }
-
-        return null;
-    };
-
-    const renderMessageText = (props) => {
-        const { currentMessage } = props;
-        console.log('cuurrent', currentMessage)
-
-        return (
-            <View>
-                <MessageText
-                    {...props}
-                />
-                {currentMessage.pdf && <CustomPdfView {...props} />}
-            </View>
-        );
-    }
-
     return (
         <Container
-            backgroundColor={'white'}
+            backgroundColor={'transparent'}
             statusBarColor='white'
             statusBarContentColor='dark'
         >
@@ -373,7 +426,8 @@ const ChatScreen = (props) => {
 
             <TouchableOpacity
                 style={{
-                    flex: 1
+                    flex: 1,
+                    paddingHorizontal: regularPadding / 2
                 }}
                 activeOpacity={1}
                 onPress={Keyboard.dismiss}
@@ -386,9 +440,8 @@ const ChatScreen = (props) => {
                         name: phoneNumber,
                     }}
                     messagesContainerStyle={{
-                        backgroundColor: '#f8f8f8'
+                        backgroundColor: 'transparent'
                     }}
-                    isCustomViewBottom={true}
                     textInputProps={{
                         placeholder: "Enter your message...",
                     }}
@@ -398,7 +451,8 @@ const ChatScreen = (props) => {
                     renderSend={renderSend}
                     renderMessageImage={renderMessageImage}
                     renderChatEmpty={renderChatEmpty}
-                    renderMessageText={renderMessageText}
+                    renderAvatarOnTop
+                    renderChatFooter={renderChatFooter}
                 />
             </TouchableOpacity>
         </Container >
