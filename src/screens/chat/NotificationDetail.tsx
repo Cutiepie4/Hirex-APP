@@ -10,7 +10,7 @@ import Group from '../../components/Group'
 const NotificationDetail = () => {
     return (
         <Container>
-            <Header title='Notification' backArrow />
+            <Header title='Thông báo' backArrow />
             <Group>
                 <Image source={GOOGLE} />
                 <Text style={[titleFontStyle, { marginTop: regularPadding }]}>UI/UX Designer</Text>

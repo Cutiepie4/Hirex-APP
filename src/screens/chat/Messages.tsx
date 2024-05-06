@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import Container from '../../components/Container'
 import Header from '../../components/Header'
 import SearchInput from '../../components/SearchInput'
-import { backgroundColor, orange, placeholderTextColor, regularPadding, titleFontStyle } from '../../styles/styles'
+import { backgroundColor, deepPurple, orange, placeholderTextColor, regularPadding, titleFontStyle } from '../../styles/styles'
 import AVATAR from '../../assets/images/avt.png'
 import NO_MESSAGES from '../../assets/images/no_messages.png'
 import { Feather } from '@expo/vector-icons';
@@ -16,8 +16,8 @@ import { SimpleLineIcons } from '@expo/vector-icons';
 import { saveChatRoom } from '../../redux/slice/chatSlice'
 import { ChatRoom } from './ChatScreen'
 import Toast from 'react-native-toast-message'
-
 import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore'
+import BottomModal from '@/components/BottomModal'
 
 const Messages = () => {
     const dispatch = useDispatch();
@@ -25,6 +25,7 @@ const Messages = () => {
     const [chatRoom, setChatRoom] = useState<ChatRoom[]>([]);
     const { phoneNumber, isLoading } = useSelector((state: RootReducer) => state.authReducer);
     const width = useWindowDimensions().width;
+    const [showBottomModal, setShowBottomModal] = useState(false);
 
     useEffect(() => {
         setChatRoom(initChatRoom?.map(item => {
@@ -42,27 +43,27 @@ const Messages = () => {
 
     useFocusEffect(
         useCallback(() => {
-            const fetchData = async () => {
-                // dispatch(showLoading());
-                let tempChatRoom = [];
-                const q = firestore().collection('conversations_col').where('participants', 'array-contains', phoneNumber);
-                const querySnapshot = await q.get();
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    tempChatRoom = [
-                        ...tempChatRoom,
-                        {
-                            ...data,
-                            messages: data.messages.map(item => {
-                                return { ...item, sentAt: item.sentAt.toDate().toISOString() }
-                            })
-                        }
-                    ];
+            const unsubscribe = firestore()
+                .collection('conversations_col')
+                .where('participants', 'array-contains', phoneNumber)
+                .onSnapshot((querySnapshot) => {
+                    let tempChatRoom = [];
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        tempChatRoom = [
+                            ...tempChatRoom,
+                            {
+                                ...data,
+                                messages: data.messages.map((item) => {
+                                    return { ...item, sentAt: item.sentAt.toDate().toISOString() };
+                                }),
+                            },
+                        ];
+                    });
+                    dispatch(saveChatRoom(tempChatRoom));
                 });
-                // dispatch(hideLoading());
-                dispatch(saveChatRoom(tempChatRoom));
-            };
-            fetchData();
+
+            return unsubscribe;
         }, [phoneNumber])
     );
 
@@ -96,11 +97,13 @@ const Messages = () => {
                 pagingEnabled
                 scrollToOverflowEnabled
                 showsHorizontalScrollIndicator={false}
+                bounces={false}
             >
                 <View style={{
                     flexDirection: 'row',
                 }}>
                     <TouchableOpacity
+                        onLongPress={() => setShowBottomModal(true)}
                         onPress={() => RootNavigation.navigate('ChatScreen', { data: { ...item, chatFriendPhone } })}
                         style={{
                             flexDirection: 'row',
@@ -143,10 +146,10 @@ const Messages = () => {
                             <View style={[styles.row, { marginTop: 8 }]}>
                                 <View>
                                     <Text>
-                                        {messages.length > 0 && messages[messages.length - 1].content || 'Da gui mot anh'}
+                                        {messages.length > 0 && messages[messages.length - 1].content || `Đã gửi một ${messages[messages.length - 1].image == '' ? 'file' : 'ảnh'}`}
                                     </Text>
                                 </View>
-                                <View style={{
+                                {/* <View style={{
                                     backgroundColor: orange,
                                     width: 20,
                                     height: 20,
@@ -159,7 +162,7 @@ const Messages = () => {
                                     ]}>
                                         {2}
                                     </Text>
-                                </View>
+                                </View> */}
                             </View>
                         </View >
                     </TouchableOpacity>
@@ -225,7 +228,22 @@ const Messages = () => {
                     </View>
                 }
             />
-
+            <BottomModal showBottomModal={showBottomModal} setShowBottomModal={setShowBottomModal} options={[
+                {
+                    icon: <Feather name="trash-2" size={24} color={deepPurple} />,
+                    title: 'Xóa tin nhắn',
+                    onPressOption: () => {
+                        console.log('pressedd');
+                    }
+                },
+                {
+                    icon: <Feather name="settings" size={24} color={deepPurple} />,
+                    title: 'Cài đặt',
+                    onPressOption: () => {
+                        RootNavigation.navigate('Setting');
+                    }
+                }
+            ]} />
         </Container >
     )
 };
@@ -234,7 +252,6 @@ export default Messages;
 
 const styles = StyleSheet.create({
     container: {
-        // paddingHorizontal: 20,
         flexDirection: 'column',
     },
     inbox: {

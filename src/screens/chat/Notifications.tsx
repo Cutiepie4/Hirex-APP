@@ -68,7 +68,7 @@ const Notifications = () => {
     return (
         <Container>
             <Header
-                title='Notifications'
+                title='Thông báo'
                 backArrow
                 rightHeaderComponent={
                     <TouchableOpacity>
