@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,45 +21,32 @@ const Login = () => {
     const dispatch = useDispatch();
 
     const handleLoginPress = async () => {
-        dispatch(showLoading());
-        
         try {
+            dispatch(showLoading());
             const response = await BASE_API.post('/users/login', {
                 phoneNumber: phoneNumber,
                 password: password
             });
+            if (response.status == 200 && response.data) {
 
-            if (response && response.data) {
                 const token = response.data.token;
                 const role = response.data.role;
-                const idUser = response.data.id;
+                const fullname = response.data.fullname;
+                const userId = response.data.id;
 
                 console.log('Token:', token);
                 console.log('Role:', role);
-                console.log('idUser:', idUser);
 
                 // Dispatch action to update Redux store with token
-                dispatch(login({ role, phoneNumber, access_token: token }));
-
-                RootNavigation.navigate('HomeTab', {
-                    screen: 'Tab2', // Name of the tab where ProfileStack is loaded
-                    params: {
-                        screen: 'Profile', // Assuming 'Profile' is the name of the screen inside ProfileStack
-                        params: {
-                            idUser: idUser, // Your user ID parameter
-                        },
-                    },
-                });
-                
-                
+                dispatch(login({ role, phoneNumber, access_token: token, fullname, userId }));
                 Toast.show({
                     type: 'success',
                     props: {
                         title: 'Đăng nhập thành công',
-                        content: 'Chào mừng trở lại!'
+                        content: `Chào mừng ${fullname || 'Invalid name'} trở lại!`
                     },
-                    autoHide: false
-                })
+                });
+
             } else {
                 console.error('Token not found in response');
             }
@@ -68,6 +55,7 @@ const Login = () => {
         } finally {
             dispatch(hideLoading());
         }
+
     };
 
     return (
@@ -143,7 +131,7 @@ const Login = () => {
                         title="Đăng Nhập"
                         filled
                         onPress={handleLoginPress}
-                        // onPress={() => RootNavigation.navigate('HomeTab')}
+
                         style={{
                             marginTop: 18,
                             marginBottom: 4,

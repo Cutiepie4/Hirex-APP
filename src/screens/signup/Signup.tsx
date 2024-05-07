@@ -16,7 +16,7 @@ const Signup = () => {
     const [password, setPassword] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [retryPassword, setRetryPassword] = useState('');
-
+    
 
     const handleSigupPress = () => {
         RootNavigation.navigate('ChooseRole', {

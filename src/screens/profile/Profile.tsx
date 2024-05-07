@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, Image } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, Image, Dimensions, Alert } from 'react-native';
 import { AntDesign, Entypo, MaterialCommunityIcons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { ScrollView } from 'react-native-gesture-handler';
 import * as ImagePicker from 'expo-image-picker';
@@ -12,12 +12,16 @@ import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import BACKGROUND from '../../assets/images/background.jpg';
 import { BASE_API } from '../../services/BaseApi';
+import { hideLoading, login, showLoading } from '../../redux/slice/authSlice';
+import { useSelector } from 'react-redux';
+import { RootReducer } from '@/redux/store/reducer';
 
 
-
+const { height, width } = Dimensions.get('window');
 const Profile = ({ route }) => {
 
-    const userId = route.params?.idUser;
+
+    const { userId, phoneNumber } = useSelector((state: RootReducer) => state.authReducer)
     const [aboutMe, setAboutMe] = useState('');
     const [image, setImage] = useState(null);
     const [experienceLists, setExperienceLists] = useState([]);
@@ -32,7 +36,7 @@ const Profile = ({ route }) => {
     const [isPickingDocument, setIsPickingDocument] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
     const { showActionSheetWithOptions } = useActionSheet();
-
+    const [idEmployee, setIdEmployee] = useState('');
 
 
     const getEmployee = async () => {
@@ -43,10 +47,19 @@ const Profile = ({ route }) => {
             setCertificationLists(response.data.certification || [])
             setUser(response.data.user)
             setName(response.data.user.fullName)
+
+            setIdEmployee(response.data.id)
+            console.log(response.data.id);
             const imageData = response.data.user.imageBase64;
             // Tạo URI trực tiếp từ dữ liệu base64
-            const uri = `data:image;base64,${imageData}`;
-            setImage(uri);
+
+            if (imageData) {
+                const uri = `data:image;base64,${imageData}`;
+                setImage(uri);
+            } else {
+                setImage(null);
+            }
+
 
             // console.log(response.data);
 
@@ -71,19 +84,46 @@ const Profile = ({ route }) => {
         setShowAllSkills(!showAllSkills);
     };
 
-    const pickImage = async () => {
-        let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    const uploadImageAndSaveData = async (phoneNumber) => {
+        let imageResult = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.All,
             allowsEditing: true,
-            aspect: [1, 1],
-            quality: 1,
+            quality: 0.2,
         });
 
-        if (!result.canceled) {
-            setImage(result.assets[0].uri);
+        if (!imageResult.canceled) {
+            setImage(imageResult.assets[0].uri);
+            try {
+                const uri = imageResult.assets[0].uri;
+                const uriParts = uri.split('.');
+                const fileType = uriParts[uriParts.length - 1];
+
+                const formData = new FormData();
+                formData.append('image', {
+                    uri: uri,
+                    name: `photo.${fileType}`,
+                    type: `image/${fileType}`
+                });
+                formData.append('phoneNumber', phoneNumber);
+
+                const uploadResponse = await BASE_API.post('/users/uploadImage', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+
+                if (uploadResponse.status === 200) {
+                    console.log('Upload thành công, message:', uploadResponse.data);
+                } else {
+                    throw new Error('Upload không thành công: ' + uploadResponse.data);
+                }
+            } catch (error) {
+                console.error('Lỗi khi upload ảnh: ', error);
+            }
         }
     };
-    
+
+
     const saveFile = async (fileToSave) => {
         if (fileToSave) {
             const { status } = await MediaLibrary.requestPermissionsAsync();
@@ -91,15 +131,15 @@ const Profile = ({ route }) => {
                 alert('Permission required to save files');
                 return;
             }
-    
+
             const fileUri = FileSystem.cacheDirectory + fileToSave.name;
-    
+
             try {
                 await FileSystem.copyAsync({
                     from: fileToSave.uri,
                     to: fileUri
                 });
-    
+
                 const asset = await MediaLibrary.createAssetAsync(fileUri);
                 await MediaLibrary.createAlbumAsync('Download', asset, false);
                 alert('File saved successfully!');
@@ -109,7 +149,7 @@ const Profile = ({ route }) => {
             }
         }
     };
-    
+
 
     const pickDocument = async () => {
         try {
@@ -124,11 +164,11 @@ const Profile = ({ route }) => {
             console.error("Document picking error:", error);
         }
     };
-    
+
     const deleteFile = (index) => {
         setSelectedFiles(prevFiles => prevFiles.filter((_, idx) => idx !== index));
     };
-    
+
     const formatFileSize = (sizeInBytes) => {
         return (sizeInBytes / 1024).toFixed(0) + ' KB';
     };
@@ -165,7 +205,7 @@ const Profile = ({ route }) => {
                         takePhoto();
                         break;
                     case 1:
-                        pickImage();
+                        uploadImageAndSaveData(phoneNumber);
                         break;
                     default:
                         break; // Cancel action
@@ -179,10 +219,35 @@ const Profile = ({ route }) => {
         setExperienceLists([...experienceLists, newExperience]);
     };
     const deleteExperience = (index) => {
-        const updatedList = [...experienceLists];
-        updatedList.splice(index, 1);
+        // Hiển thị cửa sổ xác nhận trước khi xóa
+        Alert.alert(
+            "Xác nhận xóa",
+            "Bạn có chắc chắn muốn xóa ?",
+            [
+                {
+                    text: "Hủy",
+                    onPress: () => console.log("Cancel Pressed"),
+                    style: "cancel"
+                },
+                {
+                    text: "Xác nhận",
+                    onPress: () => confirmDeleteExperience(index)
+                }
+            ],
+            { cancelable: false }
+        );
+    };
+
+    const confirmDeleteExperience = async (id) => {
+        try {
+            const response = await BASE_API.delete(`/experiences/${id}`);
+        } catch (error) {
+        }
+        const updatedList = experienceLists.filter(experience => experience.id !== id);
         setExperienceLists(updatedList);
     };
+
+
     const editExperience = (experience, index) => {
         RootNavigation.navigate('Experience', {
             experienceData: experience,
@@ -237,8 +302,11 @@ const Profile = ({ route }) => {
     };
 
     const experienceScreen = () => {
-        RootNavigation.navigate('Experience', { addNewExperience: addNewExperience });
-    };
+        RootNavigation.navigate('Experience', { 
+            addNewExperience: addNewExperience,
+            idEmployee: idEmployee
+        });
+            };
     const aboutScreen = () => {
         RootNavigation.navigate('AboutMeScreen', { saveAboutMe: setAboutMe, aboutMe });
     };
@@ -318,7 +386,7 @@ const Profile = ({ route }) => {
                                         </TouchableOpacity>
                                         <TouchableOpacity
                                             style={styles.addButton}
-                                            onPress={() => deleteExperience(index)}
+                                            onPress={() => deleteExperience(experience.id)}
                                         >
                                             <AntDesign name="delete" size={24} color="#FF9228" />
                                         </TouchableOpacity>
@@ -496,52 +564,55 @@ const Profile = ({ route }) => {
             </View>
         );
     };
-    
+
 
     return (
-            <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
-                <View style={styles.container}>
-                    <View style={styles.header}>
-                        <Image source={BACKGROUND} style={{ height: 140, width: '100%', position: 'absolute', top: 0 }}></Image>
-                        <View style={styles.profileContainer}>
-                            {image ? (
-                                <Image source={{ uri: image }} style={styles.profileImage} />
-                            ) : (
-                                <MaterialCommunityIcons name="account-circle" size={90} color="black" style={{ marginLeft: 15 }} />
-                            )}
-                        </View>
-                        <TouchableOpacity style={styles.cameraIcon} onPress={showImagePickerOptions}>
-                            <FontAwesome5 name="camera" size={15} color="white" />
-                        </TouchableOpacity>
-                        <View style={styles.nameRoleContainer}>
-                            <Text style={styles.name}>{name}</Text>
-                            <Text style={styles.role}>Applicant</Text>
-                        </View>
+        <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+            <View style={styles.container}>
+                <View style={styles.header}>
+                    <Image source={BACKGROUND} style={{ height: height / 4.7, width: '100%', position: 'absolute', top: 0 }}></Image>
+                    <View style={styles.profileContainer}>
+                        {image ? (
+                            <Image source={{ uri: image }} style={styles.profileImage} />
+                        ) : (
+                            <MaterialCommunityIcons name="account-circle" size={100} color="black" style={{ marginLeft: '5%', position: 'absolute' }} />
+                        )}
                     </View>
-                    <ScrollView>
-                        <View style={{
-                            margin: 20,
-                        }}>
-                            {renderAboutMeSection()}
-                            {renderExperienceSection()}
-                            {renderEducationSection()}
-                            {renderSkillSection()}
-                            {renderCertificationSection()}
-                            {renderResumeSection()}
-                        </View>
-                    </ScrollView>
+                    <TouchableOpacity style={styles.cameraIcon} onPress={showImagePickerOptions}>
+                        <FontAwesome5 name="camera" size={15} color="white" />
+                    </TouchableOpacity>
+                    <View style={styles.nameRoleContainer}>
+                        <Text style={styles.name}>{name}</Text>
+                        <Text style={styles.role}>Applicant</Text>
+                    </View>
                 </View>
-            </SafeAreaView>
+                <ScrollView style={{ marginTop: '13%' }}>
+                    <View style={{
+                        margin: 20,
+                    }}>
+                        {renderAboutMeSection()}
+                        {renderExperienceSection()}
+                        {renderEducationSection()}
+                        {renderSkillSection()}
+                        {renderCertificationSection()}
+                        {renderResumeSection()}
+                    </View>
+
+                </ScrollView>
+
+
+            </View>
+        </SafeAreaView>
 
     );
 }
 
 const styles = StyleSheet.create({
     profileContainer: {
-        // justifyContent: 'center',
-        // alignItems: 'center',
-        position: 'relative',
-        top: 5,
+
+        position: 'absolute',
+        top: 50,
+        left: 15,
     },
     skillsContainer: {
         flexDirection: 'row',
@@ -589,10 +660,6 @@ const styles = StyleSheet.create({
         backgroundColor: 'white', // Nền trắng cho mỗi mục kinh nghiệm
         marginBottom: 10, // Khoảng cách giữa các mục
         borderRadius: 5, // Bo tròn góc nếu cần
-        // shadowColor: '#000', // Màu bóng
-        // shadowOffset: { width: 0, height: 1 }, // Offset cho bóng
-        // shadowOpacity: 0.22, // Độ mờ của bóng
-        // shadowRadius: 2.22, // Bán kính bóng
         elevation: 3, // Độ cao của phần tử (cho Android)
     },
     experienceInfo: {
@@ -610,30 +677,28 @@ const styles = StyleSheet.create({
         backgroundColor: '#f2f2f2',
     },
     header: {
-
-        // flexDirection: 'row',
-        // justifyContent: 'flex-start', // Align items to the start of the container
-        // alignItems: 'center', // Center items vertically
-        // backgroundColor: 'red',
-        // paddingHorizontal: 50,
-        paddingVertical: 28,
+        backgroundColor: 'red',
+        paddingVertical: '16%',
     },
     nameRoleContainer: {
-        alignItems: 'center',
-        marginTop: -60,
+        position: 'absolute',
+        top: 70,
+        left: 150
     },
     profileImage: {
+        marginLeft: '6%',
         width: 80,
         height: 80,
         borderRadius: 60,
+        top: 10
     },
     cameraIcon: {
         backgroundColor: 'grey',
         borderRadius: 30,
         padding: 10,
         position: 'absolute', // Position the camera icon absolutely
-        left: 75, // Adjust according to your needs
-        top: 78, // Adjust based on the size of the profile image and header height
+        left: 80, // Adjust according to your needs
+        top: 105, // Adjust based on the size of the profile image and header height
     },
     name: {
         fontSize: 24,

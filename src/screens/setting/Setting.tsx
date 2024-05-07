@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import RootNavigation from '../../route/RootNavigation';
 import { useDispatch } from 'react-redux';  // Import thêm useDispatch từ redux
 import { logout, showLoading } from '../../redux/slice/authSlice';
+import { clearChatRoom } from '@/redux/slice/chatSlice';
 
 const Setting = () => {
     const [isEnabled, setIsEnabled] = React.useState(false);
@@ -13,11 +14,11 @@ const Setting = () => {
     const dispatch = useDispatch();
 
     const confirmLogout = () => {
-        // dispatch(showLoading());
-
         dispatch(logout()); // Dispatch action logout
 
-        RootNavigation.navigate('Login'); // Điều hướng về màn hình đăng nhập
+       dispatch(clearChatRoom());
+        // RootNavigation.popToTop(); // Điều hướng về màn hình đăng nhập
+        RootNavigation.navigate('Login');
     };
 
     return (

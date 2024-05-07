@@ -14,11 +14,13 @@ interface ChatRoom {
 };
 
 export interface ChatState {
-    chatRoom: ChatRoom[]
+    chatRoom: ChatRoom[],
+    incommingCallShow: boolean,
 };
 
 const initialState: ChatState = {
-    chatRoom: []
+    chatRoom: [],
+    incommingCallShow: false,
 };
 
 const chatSlice = createSlice({
@@ -28,12 +30,18 @@ const chatSlice = createSlice({
         saveChatRoom: (state, action) => {
             state.chatRoom = action.payload;
         },
-        deleteChatRoom: (state) => initialState,
+        clearChatRoom: (state) => initialState,
+        showIncommingCall: (state) => {
+            return { ...state, incommingCallShow: true };
+        },
+        hideIncommingCall: (state) => {
+            return { ...state, incommingCallShow: false };
+        }
     },
     extraReducers(builder) {
 
     },
 });
 
-export const { saveChatRoom, deleteChatRoom } = chatSlice.actions;
+export const { saveChatRoom, clearChatRoom, showIncommingCall, hideIncommingCall } = chatSlice.actions;
 export default chatSlice.reducer;

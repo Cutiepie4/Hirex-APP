@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Platform, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Platform, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from '@/theme';
 import Button from '../../components/Button';
 import RootNavigation from '../../route/RootNavigation';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { BASE_API } from '../../services/BaseApi';
 
 const Experience = (props: any) => {
-    const {route} = props;
-    const { experienceData, addNewExperience, updateExperience, experienceIndex } = route.params;
+    const { route } = props;
+    const { experienceData, addNewExperience, updateExperience, experienceIndex, idEmployee } = route.params;
 
     const [jobTitle, setJobTitle] = useState(experienceData?.jobTitle ?? '');
     const [company, setCompany] = useState(experienceData?.company ?? '');
@@ -23,7 +24,6 @@ const Experience = (props: any) => {
 
     const handleStartDateConfirm = (selectedDate: Date) => {
         setShowStartDatePicker(false);
-        // Lấy tháng và năm từ selectedDate
         const formattedDate = selectedDate.getMonth() + 1 + '/' + selectedDate.getFullYear();
         setStartDate(formattedDate);
     };
@@ -36,27 +36,31 @@ const Experience = (props: any) => {
     };
 
     useEffect(() => {
-        console.log('experienceData', experienceData);
     }, []);
-    const handleSave = () => {
 
-        if (!jobTitle.trim() || !company.trim() || !startDate.trim() || !endDate.trim()) {
-            alert('Please fill in all required fields.'); // Bạn có thể sử dụng Alert từ 'react-native' để hiển thị thông báo
-            return; // Dừng hàm nếu có trường nào đó bỏ trống
+
+    const handleSave = async () => {
+
+        if (!jobTitle.trim() || !company.trim()) {
+            alert('Hãy nhập đầy đủ các thông tin bắt buộc');
+            return;
         }
         const newExperience = {
             jobTitle: jobTitle.trim(),
             company: company.trim(),
-            description: description.trim(), // Không bắt buộc nhưng vẫn nên trim()
+            description: description.trim(),
             startDate,
             endDate,
+            employeeId: idEmployee
         };
-
-        // Check if we are updating an existing experience or adding a new one
         if (typeof experienceIndex === 'number') {
             updateExperience(newExperience, experienceIndex);
         } else {
-            addNewExperience(newExperience);
+            try {
+                const response = await BASE_API.post(`/experiences/create`, newExperience);
+                console.log(response.data);
+            } catch (error) {
+            }
         }
 
         RootNavigation.pop();
@@ -85,7 +89,7 @@ const Experience = (props: any) => {
 
 
                 <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Vị trí</Text>
+                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Vị trí <Text style={{ color: 'red' }}>(*)</Text></Text>
                     <TextInput
                         style={styles.input}
                         value={jobTitle}
@@ -94,7 +98,7 @@ const Experience = (props: any) => {
                 </View>
 
                 <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Tên công ty</Text>
+                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Tên công ty </Text>
                     <TextInput
                         style={styles.input}
                         value={company}
@@ -120,7 +124,7 @@ const Experience = (props: any) => {
                         />
                     </View>
                     <View style={{ flex: 1, marginLeft: 10 }}>
-                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Kết thức</Text>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Kết thúc</Text>
                         <TouchableOpacity onPress={() => setShowEndDatePicker(true)}>
                             <TextInput
                                 style={styles.input}
