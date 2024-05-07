@@ -18,6 +18,8 @@ import UpdatePassword from '../screens/setting/UpdatePassword';
 import Login from '../screens/login/Login';
 import IncomingCall from '@/screens/chat/IncomingCall';
 import JoinScreen from '@/screens/chat/JoinScreen';
+import Notifications from '@/screens/chat/Notifications';
+import NotificationDetail from '@/screens/chat/NotificationDetail';
 
 const homeScreenStack = {
     Home: Home,
@@ -33,7 +35,8 @@ const chatScreenStack = {
     CallActionBox: CallActionBox,
     CallScreen: CallScreen,
     IncomingCall: IncomingCall,
-    JoinScreen: JoinScreen
+    JoinScreen: JoinScreen,
+    Setting: Setting
 }
 
 const pofileScreenStack = {
@@ -49,7 +52,9 @@ const settingScreenStack = {
     Setting: Setting,
     Account: Account,
     UpdatePassword: UpdatePassword,
-    Login: Login
+    Login: Login,
+    Notifications: Notifications,
+    NotificationDetail: NotificationDetail
 }
 
 const Stack = createStackNavigator();
