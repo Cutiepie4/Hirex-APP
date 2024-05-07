@@ -65,7 +65,11 @@ const ChatScreen = (props) => {
             sentAt: firestore.Timestamp.fromDate(new Date()),
             sentBy: message.user._id,
             image: message.image ?? '',
-            file: message.file
+            file: message.file ?? {
+                url: '',
+                type: '',
+                fileName: '',
+            }
         }));
     };
 
@@ -111,17 +115,6 @@ const ChatScreen = (props) => {
     const onSend = useCallback(async (messages: IChatMessage[] = [], image?: string, file?: AttachedFile) => {
         setSendLoading(true);
         try {
-            console.log('image', image)
-            console.log('attached file', file)
-            console.log('all', [
-                {
-                    user: {
-                        _id: phoneNumber,
-                    },
-                    image: image,
-                    file: file
-                },
-            ])
             const messageData = convertMessageToSave(image || file?.url
                 ? [
                     {
@@ -405,7 +398,6 @@ const ChatScreen = (props) => {
 
     return (
         <Container
-            backgroundColor={'transparent'}
             statusBarColor='white'
             statusBarContentColor='dark'
         >
@@ -433,7 +425,17 @@ const ChatScreen = (props) => {
                 onPress={Keyboard.dismiss}
             >
                 <GiftedChat
-                    messages={messages}
+                    messages={
+                        messages.length == 0
+                            ? [
+                                {
+                                    _id: 1,
+                                    text: 'Hãy gửi tin nhắn đầu tiên',
+                                    system: true,
+                                } as IChatMessage
+                            ]
+                            : messages
+                    }
                     onSend={messages => onSend(messages)}
                     user={{
                         _id: phoneNumber,

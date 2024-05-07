@@ -36,14 +36,13 @@ const Login = () => {
                 console.log('Token:', token);
                 console.log('Role:', role);
 
-                // Dispatch action to update Redux store with token
                 dispatch(login({ role, phoneNumber, access_token: token, fullname }));
                 Toast.show({
-                    type: 'success',
+                    type: 'notification',
                     props: {
                         title: 'Đăng nhập thành công',
-                        content: `Chào mừng ${fullname || 'Invalid name'} trở lại!`
-                    },
+                        content: `Chào mừng ${fullname || 'bạn'} trở lại!`
+                    }
                 });
 
             } else {

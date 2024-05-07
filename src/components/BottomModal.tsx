@@ -1,5 +1,6 @@
-import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { ReactNode } from 'react'
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import Modal from 'react-native-modal'
+import React, { ReactNode, useEffect, useState } from 'react'
 import { deepPurple, regularPadding } from '@/styles/styles';
 import { AntDesign } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -34,23 +35,26 @@ const BottomModal = (props: { showBottomModal: boolean, setShowBottomModal: (sho
 
     return (
         <Modal
-            animationType="slide"
-            visible={showBottomModal}
+            isVisible={showBottomModal}
+            onSwipeComplete={() => setShowBottomModal(false)}
+            onBackdropPress={() => setShowBottomModal(false)}
+            swipeDirection={['down']}
             statusBarTranslucent
-            transparent
+            animationIn="slideInUp"
+            animationOut="fadeOut"
+            backdropTransitionOutTiming={0}
         >
-            <TouchableOpacity
-                style={{
-                    flex: 1,
-                    justifyContent: 'flex-end',
-                    backgroundColor: 'rgba(0,0,0,0.5)'
-                }}
-                onPress={() => setShowBottomModal(false)}
-            >
+            <View style={{
+                flex: 1,
+                justifyContent: 'flex-end',
+                marginHorizontal: 0,
+                bottom: 0
+            }}>
                 <View style={{
                     backgroundColor: 'white',
                     borderTopLeftRadius: 20,
                     borderTopRightRadius: 20,
+                    paddingBottom: regularPadding * 1.5,
                 }}>
                     <View
                         style={{
@@ -65,17 +69,10 @@ const BottomModal = (props: { showBottomModal: boolean, setShowBottomModal: (sho
                         renderItem={renderItem}
                     />
                 </View>
-            </TouchableOpacity>
+            </View>
         </Modal>
+
     )
 }
 
-export default BottomModal
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-});
+export default BottomModal;

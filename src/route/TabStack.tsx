@@ -20,6 +20,7 @@ import IncomingCall from '@/screens/chat/IncomingCall';
 import JoinScreen from '@/screens/chat/JoinScreen';
 import Notifications from '@/screens/chat/Notifications';
 import NotificationDetail from '@/screens/chat/NotificationDetail';
+import Test from '@/screens/chat/Test';
 
 const homeScreenStack = {
     Home: Home,
@@ -36,7 +37,8 @@ const chatScreenStack = {
     CallScreen: CallScreen,
     IncomingCall: IncomingCall,
     JoinScreen: JoinScreen,
-    Setting: Setting
+    Setting: Setting,
+    Test: Test
 }
 
 const pofileScreenStack = {

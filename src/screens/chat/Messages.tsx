@@ -3,32 +3,34 @@ import React, { useCallback, useEffect, useState } from 'react'
 import Container from '../../components/Container'
 import Header from '../../components/Header'
 import SearchInput from '../../components/SearchInput'
-import { backgroundColor, deepPurple, orange, placeholderTextColor, regularPadding, titleFontStyle } from '../../styles/styles'
+import { deepPurple, orange, placeholderTextColor, regularPadding, titleFontStyle } from '../../styles/styles'
 import AVATAR from '../../assets/images/avt.png'
 import NO_MESSAGES from '../../assets/images/no_messages.png'
 import { Feather } from '@expo/vector-icons';
 import RootNavigation from '../../route/RootNavigation'
 import { useFocusEffect } from '@react-navigation/native'
 import { useDispatch, useSelector } from 'react-redux'
-import { hideLoading, showLoading } from '../../redux/slice/authSlice'
 import { RootReducer } from '../../redux/store/reducer'
 import { SimpleLineIcons } from '@expo/vector-icons';
 import { saveChatRoom } from '../../redux/slice/chatSlice'
 import { ChatRoom } from './ChatScreen'
-import Toast from 'react-native-toast-message'
 import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore'
 import BottomModal from '@/components/BottomModal'
+import { debounce } from 'lodash'
+
 
 const Messages = () => {
     const dispatch = useDispatch();
     const { chatRoom: initChatRoom } = useSelector((state: RootReducer) => state.chatReducer);
     const [chatRoom, setChatRoom] = useState<ChatRoom[]>([]);
+    const [filteredChatRoom, setFilteredChatRoom] = useState<ChatRoom[]>([]);
     const { phoneNumber, isLoading } = useSelector((state: RootReducer) => state.authReducer);
     const width = useWindowDimensions().width;
     const [showBottomModal, setShowBottomModal] = useState(false);
+    const [textSearch, setTextSearch] = useState('');
 
     useEffect(() => {
-        setChatRoom(initChatRoom?.map(item => {
+        const data = initChatRoom?.map(item => {
             return {
                 ...item,
                 messages: item.messages.map(message => {
@@ -38,8 +40,26 @@ const Messages = () => {
                     }
                 })
             }
-        }) || []);
+        }) || [];
+        setChatRoom(data);
     }, [initChatRoom]);
+
+    const filterList = () => {
+        if (textSearch.trim() == '') {
+            setFilteredChatRoom(chatRoom);
+        } else {
+            setFilteredChatRoom(chatRoom.filter(item => {
+                const chatFriend = item.participants.filter(friend => friend != phoneNumber)[0];
+                return chatFriend.includes(textSearch);
+            }))
+        };
+    };
+
+    useEffect(() => {
+        const debounceSearch = debounce(filterList, 300);
+        debounceSearch();
+        return debounceSearch.cancel;
+    }, [textSearch, chatRoom]);
 
     useFocusEffect(
         useCallback(() => {
@@ -146,7 +166,7 @@ const Messages = () => {
                             <View style={[styles.row, { marginTop: 8 }]}>
                                 <View>
                                     <Text>
-                                        {messages.length > 0 && messages[messages.length - 1].content || `Đã gửi một ${messages[messages.length - 1].image == '' ? 'file' : 'ảnh'}`}
+                                        {messages.length > 0 ? (messages[messages.length - 1].content || `Đã gửi một ${messages[messages.length - 1]?.image == '' ? 'file' : 'ảnh'}`) : 'Chưa có tin nhắn'}
                                     </Text>
                                 </View>
                                 {/* <View style={{
@@ -184,14 +204,15 @@ const Messages = () => {
     };
 
     return (
-        <Container backgroundColor={'#f9f9f9'}>
+        <Container>
             <Header
                 title='Trò chuyện'
                 rightHeaderComponent={<SimpleLineIcons name="options-vertical" size={16} color="black" />}
+                rightHeaderCallback={() => RootNavigation.navigate('Test')}
             />
 
             <FlatList
-                data={chatRoom}
+                data={filteredChatRoom}
                 renderItem={renderItem}
                 style={{
                     height: '100%'
@@ -200,7 +221,7 @@ const Messages = () => {
                     <View style={[styles.container]}>
                         <SearchInput
                             placeholder="Tìm kiếm"
-                            onChangeText={(text) => console.log(text)}
+                            onChangeText={setTextSearch}
                             style={{
                                 borderWidth: 0,
                                 backgroundColor: 'white',
