@@ -13,16 +13,18 @@ const Test = () => {
 
     const addConversation = async (chatFriend) => {
         try {
+            const participants = [phoneNumber, chatFriend];
+            const conversationId = ParseConversationId(participants);
             await firestore()
                 .collection('conversations_col')
-                .doc(ParseConversationId([phoneNumber, chatFriend]))
+                .doc(conversationId)
                 .set({
-                    participants: [phoneNumber, chatFriend],
+                    participants,
                     messages: []
                 }, {
                     merge: true
                 });
-            RootNavigation.navigate('ChatScreen', { data: { chatFriend } });
+            RootNavigation.navigate('ChatScreen', { data: { chatFriendPhone: chatFriend, participants, messages: [] } });
         } catch (error) {
             console.error('Error adding document: ', error);
         }
@@ -38,6 +40,4 @@ const Test = () => {
     )
 }
 
-export default Test
-
-const styles = StyleSheet.create({})
+export default Test;

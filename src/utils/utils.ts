@@ -1,3 +1,4 @@
 export const ParseConversationId = (array: string[]) => {
-    return array.sort().join('-');
+    const newArray = [...array];
+    return newArray.sort().join('-');
 }

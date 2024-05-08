@@ -17,6 +17,8 @@ import { ChatRoom } from './ChatScreen'
 import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore'
 import BottomModal from '@/components/BottomModal'
 import { debounce } from 'lodash'
+import Toast from 'react-native-toast-message'
+import { ParseConversationId } from '@/utils/utils'
 
 
 const Messages = () => {
@@ -24,10 +26,30 @@ const Messages = () => {
     const { chatRoom: initChatRoom } = useSelector((state: RootReducer) => state.chatReducer);
     const [chatRoom, setChatRoom] = useState<ChatRoom[]>([]);
     const [filteredChatRoom, setFilteredChatRoom] = useState<ChatRoom[]>([]);
-    const { phoneNumber, isLoading } = useSelector((state: RootReducer) => state.authReducer);
+    const { phoneNumber } = useSelector((state: RootReducer) => state.authReducer);
     const width = useWindowDimensions().width;
     const [showBottomModal, setShowBottomModal] = useState(false);
     const [textSearch, setTextSearch] = useState('');
+    const [selectedMessage, setSelectedMessage] = useState<string[]>();
+
+    const deleteConversation = async (conversationId) => {
+        try {
+            await firestore()
+                .collection('conversations_col')
+                .doc(ParseConversationId(conversationId))
+                .delete();
+
+            Toast.show({
+                type: 'notification',
+                props: {
+                    title: 'Thông báo',
+                    content: 'Đã xóa tin nhắn.'
+                }
+            });
+        } catch (error) {
+            console.error('Error deleting conversation: ', error);
+        }
+    };
 
     useEffect(() => {
         const data = initChatRoom?.map(item => {
@@ -123,7 +145,10 @@ const Messages = () => {
                     flexDirection: 'row',
                 }}>
                     <TouchableOpacity
-                        onLongPress={() => setShowBottomModal(true)}
+                        onLongPress={() => {
+                            setShowBottomModal(true);
+                            setSelectedMessage(item.participants);
+                        }}
                         onPress={() => RootNavigation.navigate('ChatScreen', { data: { ...item, chatFriendPhone } })}
                         style={{
                             flexDirection: 'row',
@@ -249,22 +274,26 @@ const Messages = () => {
                     </View>
                 }
             />
-            <BottomModal showBottomModal={showBottomModal} setShowBottomModal={setShowBottomModal} options={[
-                {
-                    icon: <Feather name="trash-2" size={24} color={deepPurple} />,
-                    title: 'Xóa tin nhắn',
-                    onPressOption: () => {
-                        console.log('pressedd');
+            <BottomModal
+                showBottomModal={showBottomModal}
+                setShowBottomModal={setShowBottomModal}
+                options={[
+                    {
+                        icon: <Feather name="trash-2" size={24} color={deepPurple} />,
+                        title: 'Xóa tin nhắn',
+                        onPressOption: () => {
+                            deleteConversation(selectedMessage)
+                        }
+                    },
+                    {
+                        icon: <Feather name="settings" size={24} color={deepPurple} />,
+                        title: 'Cài đặt',
+                        onPressOption: () => {
+                            RootNavigation.navigate('Setting')
+                        }
                     }
-                },
-                {
-                    icon: <Feather name="settings" size={24} color={deepPurple} />,
-                    title: 'Cài đặt',
-                    onPressOption: () => {
-                        RootNavigation.navigate('Setting');
-                    }
-                }
-            ]} />
+                ]}
+            />
         </Container >
     )
 };

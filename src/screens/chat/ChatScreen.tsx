@@ -1,25 +1,26 @@
-import { SafeAreaView, Text, View, FlatList, StyleSheet, Image, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity, ScrollView, Button, Keyboard, Dimensions, ActivityIndicator, Linking } from 'react-native'
+import { Text, View, StyleSheet, Platform, TouchableOpacity, ActivityIndicator, Linking, Keyboard, Image } from 'react-native'
 import React, { useCallback, useEffect, useState } from 'react'
-import Container from '../../components/Container'
-import { deepPurple, orange, regularPadding, titleFontStyle } from '../../styles/styles'
-import { Bubble, BubbleProps, Composer, ComposerProps, GiftedAvatarProps, GiftedChat, GiftedChatProps, IChatMessage, InputToolbar, MessageImage, MessageText, Send, TEST_ID } from 'react-native-gifted-chat'
-import Header from '../../components/Header';
+import { deepPurple, orange, placeholderTextColor, regularPadding, titleFontStyle } from '../../styles/styles'
+import { Bubble, Composer, GiftedChat, IChatMessage, InputToolbar, MessageImage, Send } from 'react-native-gifted-chat'
 import { Ionicons } from '@expo/vector-icons';
-import { Feather } from '@expo/vector-icons';
-import RootNavigation from '../../route/RootNavigation';
-import AVATAR from '../../assets/images/avt.png'
-import { ParseConversationId } from '../../utils/utils';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { FontAwesome } from '@expo/vector-icons';
-import { useDispatch, useSelector } from 'react-redux';
-import { hideLoading, showLoading } from '../../redux/slice/authSlice';
 import { RootReducer } from '@/redux/store/reducer';
 import Toast from 'react-native-toast-message';
 import { MaterialIcons } from '@expo/vector-icons';
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
+import { ParseConversationId } from '@/utils/utils'
+import { useSelector } from 'react-redux';
+import Container from '@/components/Container';
+import RootNavigation from '@/route/RootNavigation';
+import Header from '@/components/Header';
+import AVATAR from '../../assets/images/avt.png'
+import CHAT_HERE from '../../assets/images/chat-here.png'
+import { Feather } from '@expo/vector-icons';
+import { Video } from 'expo-av';
 
 export interface Message {
     id: string,
@@ -27,6 +28,7 @@ export interface Message {
     sentAt: FirebaseFirestoreTypes.Timestamp,
     sentBy: string,
     image?: string,
+    video?: string,
     file?: AttachedFile,
 };
 
@@ -59,12 +61,13 @@ const ChatScreen = (props) => {
         }) || []
     );
 
-    const convertMessageToSave = (array: IChatMessage[] | [{ user: { _id: string }, image: string, file: AttachedFile }]) => {
+    const convertMessageToSave = (array: IChatMessage[] | [{ user: { _id: string }, image: string, video: string, file: AttachedFile }]) => {
         return array.map(message => ({
             content: message.text ?? '',
             sentAt: firestore.Timestamp.fromDate(new Date()),
             sentBy: message.user._id,
             image: message.image ?? '',
+            video: message.video ?? '',
             file: message.file ?? {
                 url: '',
                 type: '',
@@ -85,14 +88,16 @@ const ChatScreen = (props) => {
                 name: message.sentBy
             },
             image: message.image ?? '',
+            video: message.video ?? '',
             file: message.file?.url && message.file
         }));
     };
 
     const fetchData = useCallback(() => {
+        const conversationId = ParseConversationId(participants);
         const unsubscribe = firestore()
             .collection('conversations_col')
-            .doc(ParseConversationId(participants))
+            .doc(conversationId)
             .onSnapshot((docSnapshot) => {
                 if (docSnapshot.exists) {
                     setParticipants(docSnapshot.data().participants);
@@ -112,16 +117,18 @@ const ChatScreen = (props) => {
         };
     }, [fetchData]);
 
-    const onSend = useCallback(async (messages: IChatMessage[] = [], image?: string, file?: AttachedFile) => {
+    const onSend = useCallback(async (messages: IChatMessage[] = [], image?: string, video?: string, file?: AttachedFile) => {
+        console.log('vide', video)
         setSendLoading(true);
         try {
-            const messageData = convertMessageToSave(image || file?.url
+            const messageData = convertMessageToSave(image || file?.url || video
                 ? [
                     {
                         user: {
                             _id: phoneNumber,
                         },
                         image: image ?? '',
+                        video: video ?? '',
                         file: file ?? {
                             type: '',
                             fileName: '',
@@ -319,13 +326,42 @@ const ChatScreen = (props) => {
     };
 
     const renderChatEmpty = () => (
-        <View style={{
-            flex: 1,
-            backgroundColor: 'red',
-            justifyContent: 'center',
-            alignItems: 'center',
-        }}>
-            <Text>Không có tin nhắn</Text>
+        <View
+            style={{
+                ...Platform.select({
+                    ios: {
+                        transform: [{ scaleY: -1 }],
+                    },
+                    android: {
+                        transform: [{ scaleX: -1 }, { scaleY: -1 }],
+                    },
+                }),
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+            }}
+        >
+            <View
+                style={{
+                    width: 200,
+                    height: 200,
+                    justifyContent: 'center',
+                    marginBottom: 30
+                }}
+            >
+                <Image source={CHAT_HERE} resizeMode="contain" style={{ flex: 1, width: undefined, height: undefined }} />
+            </View>
+            <View>
+                <Text
+                    style={{
+                        fontStyle: 'italic',
+                        color: placeholderTextColor,
+                        fontSize: 16
+                    }}
+                >
+                    Hãy đặt câu hỏi tại đây
+                </Text>
+            </View>
         </View>
     );
 
@@ -355,19 +391,27 @@ const ChatScreen = (props) => {
         });
 
         if (!result.canceled) {
-            await uploadImage(result.assets[0].uri);
+            await uploadImage(result.assets[0]);
         }
     };
 
-    const uploadImage = async (uri: string) => {
+    const uploadImage = async (assets: ImagePicker.ImagePickerAsset) => {
         setSendLoading(true);
         try {
-            const response = await fetch(uri);
+            const response = await fetch(assets.uri);
             const blob = await response.blob();
-            const storageRef = storage().ref(`images/${new Date().getTime()}`);
-            await storageRef.put(blob);
-            const downloadURL = await storageRef.getDownloadURL();
-            await onSend([], downloadURL);
+            if (assets.type == 'image') {
+                const storageRef = storage().ref(`images/${new Date().getTime()}`);
+                await storageRef.put(blob);
+                const downloadURL = await storageRef.getDownloadURL();
+                await onSend([], downloadURL);
+            }
+            else {
+                const storageRef = storage().ref(`videos/${new Date().getTime()}`);
+                await storageRef.put(blob);
+                const downloadURL = await storageRef.getDownloadURL();
+                await onSend([], '', downloadURL);
+            }
         } catch (error) {
             console.error('Error uploading image:', error);
         } finally {
@@ -384,7 +428,7 @@ const ChatScreen = (props) => {
             const storageRef = storage().ref(`pdfs/${originalFileName}_${new Date().getTime()}.${fileType}`);
             await storageRef.put(blob);
             const downloadURL = await storageRef.getDownloadURL();
-            await onSend([], '', {
+            await onSend([], '', '', {
                 type: fileType,
                 url: downloadURL,
                 fileName: originalFileName
@@ -395,6 +439,19 @@ const ChatScreen = (props) => {
             setSendLoading(false);
         }
     };
+
+    const renderMessageVideo = (props) => (
+        <View style={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: deepPurple,
+        }}>
+            <Video
+                source={{ uri: props.currentMessage?.video }}
+                style={{ width: 200, height: 200 }}
+            />
+        </View>
+    );
 
     return (
         <Container
@@ -425,17 +482,7 @@ const ChatScreen = (props) => {
                 onPress={Keyboard.dismiss}
             >
                 <GiftedChat
-                    messages={
-                        messages.length == 0
-                            ? [
-                                {
-                                    _id: 1,
-                                    text: 'Hãy gửi tin nhắn đầu tiên',
-                                    system: true,
-                                } as IChatMessage
-                            ]
-                            : messages
-                    }
+                    messages={messages}
                     onSend={messages => onSend(messages)}
                     user={{
                         _id: phoneNumber,
@@ -452,6 +499,7 @@ const ChatScreen = (props) => {
                     renderInputToolbar={renderInputToolbar}
                     renderSend={renderSend}
                     renderMessageImage={renderMessageImage}
+                    renderMessageVideo={renderMessageVideo}
                     renderChatEmpty={renderChatEmpty}
                     renderAvatarOnTop
                     renderChatFooter={renderChatFooter}
