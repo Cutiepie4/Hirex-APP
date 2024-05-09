@@ -12,7 +12,6 @@ import Welcome from './src/screens/welcome/Welcome';
 import ChooseRole from './src/screens/signup/ChooseRole';
 import Information from './src/screens/signup/Information';
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
-import { Alert, LogBox, View, Text, Modal } from 'react-native';
 import { RootReducer } from './src/redux/store/reducer';
 import HomeTab from './src/route/HomeTab';
 import LoadingOverlay from './src/components/LoadingOverlay';
@@ -23,6 +22,7 @@ import { saveDeviceToken } from '@/redux/slice/authSlice';
 import { BASE_API } from '@/services/BaseApi';
 import { hideIncommingCall, showIncommingCall } from '@/redux/slice/chatSlice';
 import IncomingCall from '@/screens/chat/IncomingCall';
+import Toast from 'react-native-toast-message';
 
 const Stack = createStackNavigator();
 
@@ -68,7 +68,14 @@ const EntryNavigation = () => {
         })
 
         messaging().setBackgroundMessageHandler(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-            console.log('message handled in background, ', remoteMessage)
+            Toast.show({
+                type: 'notification',
+                props: {
+                    title: remoteMessage.notification.title,
+                    content: remoteMessage.notification.body
+                },
+                autoHide: false
+            })
         });
 
         messaging().onTokenRefresh(async (token) => {

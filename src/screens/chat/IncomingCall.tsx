@@ -13,6 +13,7 @@ import { StatusBar } from 'expo-status-bar';
 import RootNavigation from '@/route/RootNavigation';
 import JoinScreen from './JoinScreen';
 import { Audio } from 'expo-av';
+import Toast from 'react-native-toast-message';
 
 const IncomingCallScreen = (props) => {
     const { caller, acceptCall, refuseCall } = props;
@@ -109,9 +110,21 @@ const IncomingCall = () => {
     const [showJoinScreen, setShowJoinScreen] = useState(false);
 
     messaging().onMessage(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-        dispatch(showIncommingCall());
-        setCaller(remoteMessage.notification.title);
-        setRoomId(remoteMessage.notification.body);
+        if (remoteMessage.data.type == 'VIDEO_CALL') {
+            dispatch(showIncommingCall());
+            setCaller(remoteMessage.notification.title);
+            setRoomId(remoteMessage.notification.body);
+        }
+        if (remoteMessage.data.type == 'INFO') {
+            Toast.show({
+                type: 'notification',
+                props: {
+                    title: remoteMessage.notification.title,
+                    content: remoteMessage.notification.body
+                },
+                autoHide: false
+            })
+        }
     });
 
     const acceptCall = useCallback(() => {
