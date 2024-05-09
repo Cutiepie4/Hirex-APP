@@ -21,6 +21,7 @@ import AVATAR from '../../assets/images/avt.png'
 import CHAT_HERE from '../../assets/images/chat-here.png'
 import { Feather } from '@expo/vector-icons';
 import { Video } from 'expo-av';
+import { AntDesign } from '@expo/vector-icons';
 
 export interface Message {
     id: string,
@@ -441,16 +442,22 @@ const ChatScreen = (props) => {
     };
 
     const renderMessageVideo = (props) => (
-        <View style={{
+        <TouchableOpacity style={{
             justifyContent: 'center',
             alignItems: 'center',
             backgroundColor: deepPurple,
-        }}>
+        }}
+            onPress={() => RootNavigation.navigate('VideoStream', { uriVideo: props.currentMessage?.video })}
+        >
             <Video
                 source={{ uri: props.currentMessage?.video }}
                 style={{ width: 200, height: 200 }}
+                shouldPlay={false}
             />
-        </View>
+            <View style={{ position: 'absolute' }}>
+                <AntDesign name="play" size={50} color="white" />
+            </View>
+        </TouchableOpacity>
     );
 
     return (
