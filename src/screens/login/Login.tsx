@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, TouchableOpacity, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, Image, TouchableOpacity, Pressable, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme';
@@ -10,9 +10,11 @@ import RootNavigation from '../../route/RootNavigation'
 import { useDispatch } from 'react-redux';
 import { hideLoading, login, showLoading } from '../../redux/slice/authSlice';
 import GOOGLE from '../../assets/images/google_logo.png'
-
+import LOGO from '../../assets/images/logo.png'
+import { FontAwesome } from '@expo/vector-icons';
 import { BASE_API } from '../../services/BaseApi';
 import Toast from 'react-native-toast-message';
+import { EvilIcons } from '@expo/vector-icons';
 
 const Login = () => {
     const [isPasswordShown, setIsPasswordShown] = useState(true);
@@ -37,7 +39,6 @@ const Login = () => {
                 console.log('Token:', token);
                 console.log('Role:', role);
 
-                // Dispatch action to update Redux store with token
                 dispatch(login({ role, phoneNumber, access_token: token, fullname, userId }));
                 Toast.show({
                     type: 'success',
@@ -51,96 +52,130 @@ const Login = () => {
                 console.error('Token not found in response');
             }
         } catch (error) {
-            console.error('Error:');
+            Toast.show({
+                type: 'error',
+                props: {
+                    title: 'Đăng nhập không thành công',
+                    content: `Kiểm tra thông tin đăng nhập`
+                },
+            });
         } finally {
             dispatch(hideLoading());
         }
 
     };
-
+    const dismissKeyboard = () => {
+        Keyboard.dismiss();
+    };
     return (
-        <Container>
-            <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
-                <View style={{ flex: 1, marginHorizontal: 22 }}>
-                    <View style={{
-                        marginHorizontal: 22,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}>
-                        <View style={{ marginVertical: 50 }}>
-                            <Text style={{ fontSize: 30, fontWeight: '900', marginVertical: 12, color: colors.black }}>
-                                Chào mừng trở lại
+        <Container statusBarColor={colors.primary} statusBarContentColor='light'>
+            <TouchableWithoutFeedback onPress={dismissKeyboard}>
+
+                <SafeAreaView style={{ flex: 1, backgroundColor: colors.grey_light }}>
+                    <View style={{ flex: 1, marginHorizontal: 22 }}>
+                        <View style={{
+                            marginHorizontal: 22,
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                        }}>
+                            <View style={{ marginVertical: -30 }}>
+
+                                <Image
+                                    source={LOGO}
+                                    style={{ height: 200, width: 250, marginRight: 10 }}
+                                    resizeMode="contain"
+                                />
+                            </View>
+
+                            <View style={{ marginVertical: 20 }}>
+                                <Text style={{ fontSize: 12, fontWeight: '900', alignItems: 'center', marginVertical: 12, color: colors.black, fontFamily: 'sans-serif-light' }}>
+                                    Tìm kiếm ứng viên & công việc phù hợp trong một vài phút
+                                </Text>
+
+                            </View>
+                        </View>
+                        <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                            <Text style={{ fontSize: 16, color: colors.black, marginBottom: 8, fontWeight: '900' }}>
+                                Số điện thoại
                             </Text>
+                            <View style={{
+                                height: 48,
+                                borderColor: colors.white,
+                                borderWidth: 1,
+                                borderRadius: 8,
+                                alignItems: "center",
+                                justifyContent: "flex-start",
+                                flexDirection: 'row', // Add this to layout children in a row
+                                paddingLeft: 22,
+                                backgroundColor: colors.grey_sur
+
+                            }}>
+                                <FontAwesome name="mobile-phone" size={25} color={colors.black} style={{ marginRight: 10, marginLeft: -10 }} />
+                                <Input placeholder="Số điện thoại" value={phoneNumber} onChangeText={setPhoneNumber} />
+                            </View>
+
                         </View>
-                    </View>
-                    <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 16, color: colors.black, marginBottom: 8, fontWeight: '900' }}>
-                            Số điện thoại
-                        </Text>
-                        <View style={{
-                            height: 48,
-                            borderColor: colors.black,
-                            borderWidth: 1,
-                            borderRadius: 8,
-                            alignItems: "center",
-                            justifyContent: "center",
-                            paddingLeft: 22
-                        }}>
 
-                            <Input placeholder="Số điện thoại" value={phoneNumber} onChangeText={setPhoneNumber} />
+                        <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                            <Text style={{ fontSize: 16, color: colors.black, fontWeight: '900', marginBottom: 8 }}>
+                                Mật khẩu
+                            </Text>
+                            <View style={{
+                                height: 48,
+                                borderColor: colors.white,
+                                borderWidth: 1,
+                                borderRadius: 8,
+                                alignItems: "center",
+                                justifyContent: "flex-start",
+                                flexDirection: 'row', // Maintain as row to layout children in a row
+                                paddingLeft: 22,
+                                backgroundColor: colors.grey_sur
+                            }}>
+                                <FontAwesome name="unlock-alt" size={24} color={colors.black} style={{ marginRight: 10, marginLeft: -10 }} />
+                                <Input placeholder="Mật khẩu" value={password} onChangeText={setPassword} secureTextEntry={isPasswordShown} />
+                                <TouchableOpacity
+                                    onPress={() => setIsPasswordShown(!isPasswordShown)}
+                                    style={{ position: 'absolute', right: 12 }}
+                                >
+                                    {isPasswordShown ? (
+                                        <Ionicons name="eye-off" size={24} color={colors.black} />
+                                    ) : (
+                                        <Ionicons name="eye" size={24} color={colors.black} />
+                                    )}
+                                </TouchableOpacity>
+                            </View>
                         </View>
 
-                    </View>
-
-                    <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 16, color: colors.black, fontWeight: '900', marginBottom: 8 }}>
-                            Mật khẩu
-                        </Text>
-                        <View style={{
-                            height: 48,
-                            borderColor: colors.black,
-                            borderWidth: 1,
-                            borderRadius: 8,
-                            alignItems: "center",
-                            justifyContent: "center",
-                            paddingLeft: 22
-                        }}>
-                            <Input placeholder="Mật khẩu" value={password} onChangeText={setPassword} secureTextEntry={isPasswordShown} />
-                            <TouchableOpacity
-                                onPress={() => setIsPasswordShown(!isPasswordShown)}
-                                style={{ position: 'absolute', right: 12 }}
-                            >
-                                {isPasswordShown ? (
-                                    <Ionicons name="eye-off" size={24} color={colors.black} />
-                                ) : (
-                                    <Ionicons name="eye" size={24} color={colors.black} />
-                                )}
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-
-                    <View style={{
+                        {/* <View style={{
                         flexDirection: 'row',
                         justifyContent: 'flex-end',
                         marginVertical: 6
                     }}>
                         <Text>Quên mật khẩu?</Text>
-                    </View>
+                    </View> */}
 
-                    <Button
-                        title="Đăng Nhập"
-                        filled
-                        onPress={handleLoginPress}
+                        <Pressable
+                            style={({ pressed }) => [
+                                {
+                                    backgroundColor: colors.primary,
+                                    fontWeight: '900',
+                                    borderRadius: 8,
+                                    height: 48,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    marginBottom: 4,
+                                    marginTop: 18,
+                                    width: 250,
+                                    alignSelf: 'center',
+                                },
+                                pressed && { opacity: 0.5 } // Opacity change when pressed
+                            ]}
+                            onPress={handleLoginPress}
+                        >
+                            <Text style={{ color: colors.white, fontSize: 18 }}>Đăng Nhập</Text>
+                        </Pressable>
 
-                        style={{
-                            marginTop: 18,
-                            marginBottom: 4,
-                            height: 52,
-                            width: 250, // thêm dòng này để đặt chiều rộng cố định cho Button
-                            alignSelf: 'center' // thêm dòng này để căn giữa Button
-                        }}
-                    />
-                    <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+                        {/* <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
                         <TouchableOpacity
                             onPress={() => RootNavigation.navigate('Setting')}
                             style={{
@@ -165,19 +200,21 @@ const Login = () => {
                             />
                             <Text style={{ fontSize: 15, fontWeight: '900', marginVertical: 12, color: colors.black }}>Đăng nhập với GOOGLE</Text>
                         </TouchableOpacity>
-                    </View>
+                    </View> */}
 
-                    <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 22 }}>
-                        <Text style={{ fontSize: 16, color: colors.black }}>You don't have an account yet?</Text>
-                        <Pressable onPress={() => RootNavigation.navigate('Signup')}>
-                            <Text style={{ fontSize: 16, color: '#FF9228', fontWeight: '900', marginLeft: 6 }}>
-                                Đăng ký
-                            </Text>
-                        </Pressable>
+                        <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 22 }}>
+                            <Text style={{ fontSize: 16, color: colors.black }}>Bạn chưa có tài khoản?</Text>
+                            <Pressable onPress={() => RootNavigation.navigate('Signup')}>
+                                <Text style={{ fontSize: 16, color: '#FF9228', fontWeight: '900', marginLeft: 6 }}>
+                                    Đăng ký
+                                </Text>
+                            </Pressable>
+                        </View>
                     </View>
-                </View>
-            </SafeAreaView>
+                </SafeAreaView>
+            </TouchableWithoutFeedback>
         </Container>
+
     );
 };
 

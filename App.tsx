@@ -18,7 +18,7 @@ import HomeTab from './src/route/HomeTab';
 import LoadingOverlay from './src/components/LoadingOverlay';
 import { loadFonts } from '@/theme';
 import CustomToast from '@/components/CustomToast';
-// import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging'
+import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging'
 import { saveDeviceToken } from '@/redux/slice/authSlice';
 import { BASE_API } from '@/services/BaseApi';
 import { hideIncommingCall, showIncommingCall } from '@/redux/slice/chatSlice';
@@ -41,39 +41,39 @@ const EntryNavigation = () => {
 
     useEffect(() => {
         dispatch(hideIncommingCall());
-        // const requestUserPermissions = async () => {
-        //     const authStatus = await messaging().requestPermission();
-        //     const enabled =
-        //         authStatus === messaging.AuthorizationStatus.AUTHORIZED || authStatus === messaging.AuthorizationStatus.PROVISIONAL
-        //     if (enabled) {
-        //         console.log('Authorized status: ', authStatus);
-        //     }
-        // };
+        const requestUserPermissions = async () => {
+            const authStatus = await messaging().requestPermission();
+            const enabled =
+                authStatus === messaging.AuthorizationStatus.AUTHORIZED || authStatus === messaging.AuthorizationStatus.PROVISIONAL
+            if (enabled) {
+                console.log('Authorized status: ', authStatus);
+            }
+        };
 
-        // if (requestUserPermissions()) {
-        //     messaging().getToken().then(token => { dispatch(saveDeviceToken(token)); console.log('devicetoken: ', token) })
-        // }
-        // else {
-        //     console.log('Permission messaging not granted: ');
-        // };
+        if (requestUserPermissions()) {
+            messaging().getToken().then(token => { dispatch(saveDeviceToken(token)); console.log('devicetoken: ', token) })
+        }
+        else {
+            console.log('Permission messaging not granted: ');
+        };
 
-        // messaging().getInitialNotification().then(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-        //     if (remoteMessage) {
-        //         console.log('Notification caused app to open from quit state:', remoteMessage.notification)
-        //     }
-        // });
+        messaging().getInitialNotification().then(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
+            if (remoteMessage) {
+                console.log('Notification caused app to open from quit state:', remoteMessage.notification)
+            }
+        });
 
-        // messaging().onNotificationOpenedApp(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-        //     console.log('Notification caused app to oopen from background state: , ', remoteMessage.notification)
-        // })
+        messaging().onNotificationOpenedApp(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
+            console.log('Notification caused app to oopen from background state: , ', remoteMessage.notification)
+        })
 
-        // messaging().setBackgroundMessageHandler(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-        //     console.log('message handled in background, ', remoteMessage)
-        // });
+        messaging().setBackgroundMessageHandler(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
+            console.log('message handled in background, ', remoteMessage)
+        });
 
-        // messaging().onTokenRefresh(async (token) => {
-        //     dispatch(saveDeviceToken(token));
-        // });
+        messaging().onTokenRefresh(async (token) => {
+            dispatch(saveDeviceToken(token));
+        });
     }, []);
 
     useEffect(() => {

@@ -8,13 +8,13 @@ import RootNavigation from '../../route/RootNavigation';
 
 const Company = ({ route, navigation }) => {
 
-    const { experienceData, addNewExperience, updateExperience, experienceIndex } = route.params;
+    const { companyData, addNewExperience, updateExperience, experienceIndex } = route.params;
 
-    const [jobTitle, setJobTitle] = useState(experienceData?.jobTitle ?? '');
-    const [company, setCompany] = useState(experienceData?.company ?? '');
-    const [description, setDescription] = useState(experienceData?.description ?? '');
-    const [startDate, setStartDate] = useState(experienceData?.startDate ?? '');
-    const [endDate, setEndDate] = useState(experienceData?.endDate ?? '');
+    const [name, setName] = useState(companyData?.name ?? '');
+    const [shortName, setSortName] = useState(companyData?.shortName ?? '');
+    const [description, setDescription] = useState(companyData?.description ?? '');
+    const [startDate, setStartDate] = useState(companyData?.startDate ?? '');
+    const [endDate, setEndDate] = useState(companyData?.endDate ?? '');
 
     const [showStartDatePicker, setShowStartDatePicker] = useState(false);
     const [showEndDatePicker, setShowEndDatePicker] = useState(false);
@@ -22,36 +22,31 @@ const Company = ({ route, navigation }) => {
 
     const handleStartDateConfirm = (selectedDate) => {
         setShowStartDatePicker(false);
-        // Lấy tháng và năm từ selectedDate
         const formattedDate = selectedDate.getMonth() + 1 + '/' + selectedDate.getFullYear();
         setStartDate(formattedDate);
     };
 
     const handleEndDateConfirm = (selectedDate) => {
         setShowEndDatePicker(false);
-        // Lấy tháng và năm từ selectedDate
         const formattedDate = selectedDate.getMonth() + 1 + '/' + selectedDate.getFullYear();
         setEndDate(formattedDate);
     };
 
     useEffect(() => {
-        console.log('experienceData', experienceData);
     }, []);
     const handleSave = () => {
 
-        if (!jobTitle.trim() || !company.trim()) {
-            alert('Please fill in all required fields.'); // Bạn có thể sử dụng Alert từ 'react-native' để hiển thị thông báo
-            return; // Dừng hàm nếu có trường nào đó bỏ trống
+        if (!name.trim() || !shortName.trim()) {
+            alert('Please fill in all required fields.'); 
+            return; 
         }
         const newExperience = {
-            jobTitle: jobTitle.trim(),
-            company: company.trim(),
-            description: description.trim(), // Không bắt buộc nhưng vẫn nên trim()
+            name: name.trim(),
+            shortName: shortName.trim(),
+            description: description.trim(), 
             startDate,
             endDate,
         };
-
-        // Check if we are updating an existing experience or adding a new one
         if (typeof experienceIndex === 'number') {
             updateExperience(newExperience, experienceIndex);
         } else {
@@ -79,7 +74,7 @@ const Company = ({ route, navigation }) => {
                             textAlign: 'center',
                             color: colors.black
                         }}>
-                            {typeof experienceIndex === 'number' ? 'Change company' : 'Add company'}
+                            {typeof experienceIndex === 'number' ? 'Thay đổi công ty' : 'Thêm công ty'}
                         </Text>
                     </View>
 
@@ -87,8 +82,8 @@ const Company = ({ route, navigation }) => {
                         <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Tên ngắn</Text>
                         <TextInput
                             style={styles.input}
-                            value={jobTitle}
-                            onChangeText={setJobTitle}
+                            value={name}
+                            onChangeText={setName}
                         />
                     </View>
 
@@ -96,8 +91,8 @@ const Company = ({ route, navigation }) => {
                         <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Tên công ty</Text>
                         <TextInput
                             style={styles.input}
-                            value={company}
-                            onChangeText={setCompany}
+                            value={shortName}
+                            onChangeText={setSortName}
                         />
                     </View>
 

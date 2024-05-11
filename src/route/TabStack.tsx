@@ -20,6 +20,8 @@ import IncomingCall from '@/screens/chat/IncomingCall';
 import JoinScreen from '@/screens/chat/JoinScreen';
 import Notifications from '@/screens/chat/Notifications';
 import NotificationDetail from '@/screens/chat/NotificationDetail';
+import ProfileHandler from '@/screens/profile/ProfileHandler';
+import Company from '@/screens/profile/Company';
 
 const homeScreenStack = {
     Home: Home,
@@ -40,12 +42,13 @@ const chatScreenStack = {
 }
 
 const pofileScreenStack = {
-    Profile,
+    ProfileHandler,
     AboutMeScreen,
     Experience,
     Education,
     Certification,
-    Skill
+    Skill,
+    Company
 }
 
 const settingScreenStack = {

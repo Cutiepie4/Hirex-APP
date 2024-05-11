@@ -53,7 +53,7 @@ const Setting = () => {
                 <View style={styles.settingSection}>
                     <TouchableOpacity style={styles.settingItem} onPress={() => RootNavigation.navigate('UpdatePassword')}>
                         <Ionicons name="key-outline" size={24} color="black" />
-                        <Text style={styles.settingText}>Password</Text>
+                        <Text style={styles.settingText}>Thay đổi mật khẩu</Text>
                         <Ionicons name="chevron-forward-outline" size={24} color="black" />
                     </TouchableOpacity>
                 </View>

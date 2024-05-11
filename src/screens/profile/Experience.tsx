@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Platform, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Modal, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from '@/theme';
-import Button from '../../components/Button';
 import RootNavigation from '../../route/RootNavigation';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { BASE_API } from '../../services/BaseApi';
 
 const Experience = (props: any) => {
     const { route } = props;
-    const { experienceData, addNewExperience, updateExperience, experienceIndex, idEmployee } = route.params;
+    const { experienceData, experienceIndex, idEmployee } = route.params;
 
     const [jobTitle, setJobTitle] = useState(experienceData?.jobTitle ?? '');
     const [company, setCompany] = useState(experienceData?.company ?? '');
@@ -21,6 +20,7 @@ const Experience = (props: any) => {
     const [showStartDatePicker, setShowStartDatePicker] = useState(false);
     const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
+    const [modalVisible, setModalVisible] = useState(false);
 
     const handleStartDateConfirm = (selectedDate: Date) => {
         setShowStartDatePicker(false);
@@ -42,9 +42,11 @@ const Experience = (props: any) => {
     const handleSave = async () => {
 
         if (!jobTitle.trim() || !company.trim()) {
-            alert('Hãy nhập đầy đủ các thông tin bắt buộc');
+            alert('Hãy điền đủ thông tin');
+            setModalVisible(false);
             return;
         }
+
         const newExperience = {
             jobTitle: jobTitle.trim(),
             company: company.trim(),
@@ -53,24 +55,58 @@ const Experience = (props: any) => {
             endDate,
             employeeId: idEmployee
         };
+        const OldExperience = {
+            id: experienceIndex,
+            jobTitle: jobTitle.trim(),
+            company: company.trim(),
+            description: description.trim(),
+            startDate,
+            endDate,
+            employeeId: idEmployee
+        };
+
         if (typeof experienceIndex === 'number') {
-            updateExperience(newExperience, experienceIndex);
+            try {
+                if (modalVisible) {
+                    const response = await BASE_API.put(`/experiences/${experienceIndex}`, OldExperience);
+                    setModalVisible(false);
+                    RootNavigation.pop();
+                } else {
+                    setModalVisible(true);
+                }
+            }catch (error) {
+                console.error('update Experiences', error);
+            }
+
         } else {
             try {
-                const response = await BASE_API.post(`/experiences/create`, newExperience);
-                console.log(response.data);
-            } catch (error) {
+                if (modalVisible) {
+                    const response = await BASE_API.post(`/experiences/create`, newExperience);
+                    setModalVisible(false);
+                    RootNavigation.pop();
+                } else {
+                    setModalVisible(true);
+                }
+            }catch (error) {
+                console.error('Create Experiences', error);
             }
         }
-
-        RootNavigation.pop();
     };
 
     const handleBack = () => {
         RootNavigation.pop();
     };
+
+    const handleCancel = () => {
+        setModalVisible(false);
+    };
+
+    const handleModal = () => {
+        setModalVisible(true);
+    };
+
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.grey_light }}>
             <View style={{ flex: 1, marginHorizontal: 22 }}>
                 <View style={{ marginVertical: 22 }}>
                     <TouchableOpacity onPress={handleBack}>
@@ -78,7 +114,7 @@ const Experience = (props: any) => {
                     </TouchableOpacity>
                     <Text style={{
                         fontSize: 22,
-                        fontWeight: 'bold',
+                        fontWeight: '900',
                         marginVertical: 12,
                         textAlign: 'center',
                         color: colors.black
@@ -98,7 +134,7 @@ const Experience = (props: any) => {
                 </View>
 
                 <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Tên công ty </Text>
+                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Tên công ty <Text style={{ color: 'red' }}>(*)</Text> </Text>
                     <TextInput
                         style={styles.input}
                         value={company}
@@ -108,7 +144,7 @@ const Experience = (props: any) => {
 
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
                     <View style={{ flex: 1, marginRight: 10 }}>
-                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Bắt đầu</Text>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Bắt đầu <Text style={{ color: 'red' }}>(*)</Text></Text>
                         <TouchableOpacity onPress={() => setShowStartDatePicker(true)}>
                             <TextInput
                                 style={styles.input}
@@ -124,7 +160,7 @@ const Experience = (props: any) => {
                         />
                     </View>
                     <View style={{ flex: 1, marginLeft: 10 }}>
-                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Kết thúc</Text>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Kết thúc <Text style={{ color: 'red' }}>(*)</Text></Text>
                         <TouchableOpacity onPress={() => setShowEndDatePicker(true)}>
                             <TextInput
                                 style={styles.input}
@@ -140,6 +176,7 @@ const Experience = (props: any) => {
                         />
                     </View>
                 </View>
+                
                 <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
                     <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Mô tả</Text>
                     <TextInput
@@ -149,19 +186,33 @@ const Experience = (props: any) => {
                         multiline
                     />
                 </View>
-
-                <Button
-                    title="Lưu"
-                    filled
-                    onPress={handleSave}
-                    style={{
-                        marginTop: 18,
-                        marginBottom: 4,
-                        height: 52,
-                        width: 250,
-                        alignSelf: 'center'
-                    }}
-                />
+                <View style={styles.saveButtonContainer}>
+                    <TouchableOpacity style={styles.saveButton} onPress={handleModal}>
+                        <Text style={styles.saveButtonText}>Lưu</Text>
+                    </TouchableOpacity>
+                </View>
+                <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={modalVisible}
+                    onRequestClose={() => setModalVisible(false)}
+                >
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.modalText}>
+                                Bạn có chắc chắn muốn lưu?
+                            </Text>
+                            <View style={styles.buttonContainer}>
+                                <TouchableOpacity style={styles.yesButton} onPress={handleSave}>
+                                    <Text style={styles.buttonText}>Có</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+                                    <Text style={styles.buttonText}>Không</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
             </View>
         </SafeAreaView>
     )
@@ -187,6 +238,66 @@ const styles = StyleSheet.create({
         textAlignVertical: 'top',
         borderWidth: 1,
         borderColor: colors.black,
+    },
+    saveButtonContainer: {
+        alignItems: 'center',
+    },
+    saveButton: {
+        backgroundColor: '#130160',
+        borderRadius: 10,
+        padding: 10,
+        height: 52,
+        width: 200,
+        alignItems: 'center',
+    },
+    saveButtonText: {
+        color: 'white',
+        fontSize: 18,
+    },
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        borderRadius: 10,
+        padding: 20,
+        width: '80%',
+    },
+    modalHeaderText: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    modalText: {
+        fontSize: 16,
+        marginBottom: 20,
+    },
+    yesButton: {
+        backgroundColor: '#130160',
+        borderRadius: 10,
+        padding: 15,
+        width: 90,
+        margin: 5,
+    },
+    cancelButton: {
+        backgroundColor: '#D6CDFE',
+        borderRadius: 10,
+        padding: 15,
+        width: 90,
+        margin: 5,
+    },
+    buttonText: {
+        color: 'white',
+        fontSize: 18,
+        textAlign: 'center',
     },
 });
 
