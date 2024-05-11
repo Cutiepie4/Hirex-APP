@@ -14,8 +14,8 @@ const Container = (props: {
     children: ReactNode
 }) => {
     const {
-        statusBarColor = '#F9F9F9',
-        backgroundColor = '#F9F9F9',
+        statusBarColor = 'transparent',
+        backgroundColor = 'transparent',
         statusBarContentColor = 'dark'
     } = props;
 

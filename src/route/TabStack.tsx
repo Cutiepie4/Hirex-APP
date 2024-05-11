@@ -22,6 +22,8 @@ import Notifications from '@/screens/chat/Notifications';
 import NotificationDetail from '@/screens/chat/NotificationDetail';
 import ProfileHandler from '@/screens/profile/ProfileHandler';
 import Company from '@/screens/profile/Company';
+import Test from '@/screens/chat/Test';
+import VideoStream from '@/screens/chat/VideoStream';
 
 const homeScreenStack = {
     Home: Home,
@@ -38,7 +40,9 @@ const chatScreenStack = {
     CallScreen: CallScreen,
     IncomingCall: IncomingCall,
     JoinScreen: JoinScreen,
-    Setting: Setting
+    Setting: Setting,
+    Test: Test,
+    VideoStream: VideoStream
 }
 
 const pofileScreenStack = {

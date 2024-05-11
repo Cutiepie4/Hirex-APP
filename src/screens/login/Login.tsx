@@ -41,11 +41,11 @@ const Login = () => {
 
                 dispatch(login({ role, phoneNumber, access_token: token, fullname, userId }));
                 Toast.show({
-                    type: 'success',
+                    type: 'notification',
                     props: {
                         title: 'Đăng nhập thành công',
-                        content: `Chào mừng ${fullname || 'Invalid name'} trở lại!`
-                    },
+                        content: `Chào mừng ${fullname || 'bạn'} trở lại!`
+                    }
                 });
 
             } else {
