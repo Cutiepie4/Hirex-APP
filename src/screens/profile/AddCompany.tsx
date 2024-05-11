@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, Image, ScrollView, Dimensions } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, Image, ScrollView, Dimensions, Alert } from 'react-native';
 import { AntDesign, Entypo, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useActionSheet } from '@expo/react-native-action-sheet';
@@ -18,8 +19,44 @@ const AddCompany = () => {
     const { userId, phoneNumber, role } = useSelector((state: RootReducer) => state.authReducer)
     const [image, setImage] = useState(null);
     const [companyLists, setCompanyLists] = useState([]);
+    const [user, setUser] = useState(null)
+    const [name, setName] = useState(null);
+    const [idEmployer, setIdEmployer] = useState('');
 
     const { showActionSheetWithOptions } = useActionSheet();
+
+
+    const getEmployer = async () => {
+        try {
+            const response = await BASE_API.get(`/employer/${userId}`);
+
+            setCompanyLists(response.data.companies || [])
+
+            setUser(response.data.user)
+            setName(response.data.user?.fullName)
+
+            setIdEmployer(response.data.id)
+
+            
+            const imageData = response.data.user?.imageBase64;
+
+            if (imageData) {
+                const uri = `data:image;base64,${imageData}`;
+                setImage(uri);
+            } 
+        } catch (error) {
+            console.error('Failed to fetch employee:', error);
+        } finally {
+        }
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            getEmployer();
+            return () => {
+            };
+        }, [userId])
+    );
 
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
@@ -117,16 +154,46 @@ const AddCompany = () => {
     const addNewCompany = (newCompany) => {
         setCompanyLists([...companyLists, newCompany]);
     };
-    const deleteComapany = (index) => {
-        const updatedList = [...companyLists];
-        updatedList.splice(index, 1);
+
+
+    const deleteCompany = (index) => {
+        // Hiển thị cửa sổ xác nhận trước khi xóa
+        Alert.alert(
+            "Xác nhận xóa",
+            "Bạn có chắc chắn muốn xóa ?",
+            [
+                {
+                    text: "Hủy",
+                    onPress: () => console.log("Cancel Pressed"),
+                    style: "cancel"
+                },
+                {
+                    text: "Xác nhận",
+                    onPress: () => confirmDeletedeleteCompany(index)
+                }
+            ],
+            { cancelable: false }
+        );
+    };
+
+    const confirmDeletedeleteCompany = async (id) => {
+        try {
+            const response = await BASE_API.delete(`/companies/${id}`);
+        } catch (error) {
+        }
+        const updatedList = companyLists.filter(education => education.id !== id);
         setCompanyLists(updatedList);
     };
+
+
+
+
     const editCompany = (company, index) => {
         RootNavigation.navigate('Company', {
             companyData: company,
             companyIndex: index,
-            updateExperience: (updatedCompany, index) => {
+            idEmployer: idEmployer,
+            updateCompany: (updatedCompany, index) => {
                 const updatedList = [...companyLists];
                 updatedList[index] = updatedCompany;
                 setCompanyLists(updatedList);
@@ -136,7 +203,10 @@ const AddCompany = () => {
 
 
     const companyScreen = () => {
-        RootNavigation.navigate('Company', { addNewCompany: addNewCompany});
+        RootNavigation.navigate('Company', { addNewCompany: addNewCompany,
+            idEmployer: idEmployer
+
+        });
     };
 
     return (
@@ -156,7 +226,7 @@ const AddCompany = () => {
                             <FontAwesome5 name="camera" size={15} color="white" />
                         </TouchableOpacity>
                         <View style={styles.nameRoleContainer}>
-                            <Text style={styles.name}>xx</Text>
+                            <Text style={styles.name}>{name}</Text>
                             <Text style={styles.role}>Người tuyển dụng</Text>
                         </View>
                     </View>
@@ -178,25 +248,24 @@ const AddCompany = () => {
                                         {companyLists.length > 0 && (
                                             <>
                                                 <View style={styles.separator}></View>
-                                                {companyLists.map((experience, index) => (
+                                                {companyLists.map((company, index) => (
                                                     <View key={index} style={styles.experienceItem}>
                                                         <View style={styles.experienceInfo}>
-                                                            <Text style={styles.experienceText}>{experience.jobTitle}</Text>
-                                                            <Text>{experience.company}</Text>
-                                                            <Text>{experience.description}</Text>
-
+                                                            <Text style={styles.experienceText}>{company.name}</Text>
+                                                            {/* <Text>{company.company}</Text>
+                                                            <Text>{company.description}</Text> */}
                                                         </View>
 
                                                         <View style={styles.buttonsContainer1}>
                                                             <TouchableOpacity
                                                                 style={styles.addButton}
-                                                                onPress={() => editCompany(experience, index)}
+                                                                onPress={() => editCompany(company, company.id)}
                                                             >
                                                                 <AntDesign name="edit" size={24} color="#FF9228" />
                                                             </TouchableOpacity>
                                                             <TouchableOpacity
-                                                                style={styles.addButton} // Bạn nên thay đổi này thành styles.deleteButton nếu đã tạo
-                                                                onPress={() => deleteComapany(index)}
+                                                                style={styles.addButton} 
+                                                                onPress={() => deleteCompany(company.id)}
                                                             >
                                                                 <AntDesign name="delete" size={24} color="#FF9228" />
                                                             </TouchableOpacity>

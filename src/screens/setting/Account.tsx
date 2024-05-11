@@ -28,7 +28,6 @@ const Account = ({ route }) => {
     const [showStartDatePicker, setShowStartDatePicker] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
 
-    console.log(userId)
     const getUser = async () => {
         try {
             const response = await BASE_API.get(`/users/${userId}`);
