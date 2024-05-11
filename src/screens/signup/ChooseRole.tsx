@@ -47,7 +47,7 @@ const ChooseRole = ({ route }) => {
                         <Text style={styles.optionText}>Người xin việc</Text>
                     </View>
                     <View style={styles.option}>
-                        <TouchableOpacity onPress={() => toInformation(0)}>
+                        <TouchableOpacity onPress={() => toInformation(2)}>
                             <View style={styles.optionView}>
                                 <Image
                                     source={BUSINESS}
