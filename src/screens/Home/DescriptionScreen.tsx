@@ -69,7 +69,7 @@ export const Description = () => {
                                 </View>
                                 <View style={{ marginTop: 30 }}>
                                     <Text style={[desc.desc_text_3, { color: colors.primary }]}>Location</Text>
-                                    {/* Map */}<MapView
+                                    {/* Map<MapView
                                         provider={PROVIDER_GOOGLE} // remove if not using Google Maps
                                         style={{ height: 200, marginTop: 20 }}
                                         minZoomLevel={10}
@@ -81,7 +81,7 @@ export const Description = () => {
                                             longitudeDelta: 0.0121,
                                         }}
                                     >
-                                    </MapView>
+                                    </MapView> */}
                                 </View>
 
                                 <View style={{ marginTop: 30 }}>

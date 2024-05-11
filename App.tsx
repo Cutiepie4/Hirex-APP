@@ -18,7 +18,7 @@ import LoadingOverlay from './src/components/LoadingOverlay';
 import { loadFonts } from '@/theme';
 import CustomToast from '@/components/CustomToast';
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging'
-import { saveDeviceToken } from '@/redux/slice/authSlice';
+import { hideLoading, saveDeviceToken } from '@/redux/slice/authSlice';
 import { BASE_API } from '@/services/BaseApi';
 import { hideIncommingCall, showIncommingCall } from '@/redux/slice/chatSlice';
 import IncomingCall from '@/screens/chat/IncomingCall';
@@ -38,7 +38,7 @@ const authScreens = {
 const EntryNavigation = () => {
     const { access_token, phoneNumber, deviceToken } = useSelector((state: RootReducer) => state.authReducer);
     const dispatch = useDispatch();
-
+    
     useEffect(() => {
         dispatch(hideIncommingCall());
         const requestUserPermissions = async () => {

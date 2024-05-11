@@ -1,6 +1,6 @@
 import React from 'react';
 import { BottomTabBarProps, createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { ChatStack, HomeStack, ProfileStack, SettingStack } from './TabStack';
+import { BookmarkStack, ChatStack, HomeStack, ProfileStack, SettingStack } from './TabStack';
 import { Entypo } from '@expo/vector-icons';
 import { orange, placeholderTextColor } from '../styles/styles';
 import { Feather } from '@expo/vector-icons';
@@ -38,6 +38,11 @@ const HomeTab = () => {
             name: 'Tab4',
             component: SettingStack,
             icon: <FontAwesome name="user" size={iconSize} color="black" />,
+        },
+        {
+            name: 'Tab5',
+            component: BookmarkStack,
+            icon: <FontAwesome name="bookmark" size={iconSize} color="black" />
         },
     ];
 

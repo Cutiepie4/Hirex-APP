@@ -1,165 +1,186 @@
-import React from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native'
-import { colors, fonts, sizes } from "@/theme";
-import profile from '@assets/images/profile.png'
-import woman from '@assets/images/woman2.png'
-import job from '@assets/images/job.png'
-import Card from '@/components/Card/Card'
-import Container from "@/components/Container";
+import React, { useState } from 'react';
+import { SafeAreaView, ScrollView, View, Image, Text, TouchableOpacity, StyleSheet, Platform, Dimensions, Button } from 'react-native';
+import BoxJob from '../../components/BoxJob';
 import RootNavigation from "@/route/RootNavigation";
+import Container from '@/components/Container';
+// import Navbar from './constaints/Navbar';
 
 
-const jobs = [1, 2, 3, 4, 5]
+const { height: heightScreen } = Dimensions.get('window');
 
-export const Home = () => {
-    const home = homeStyle
+const HomeScreen = () => {
     return (
         <Container>
-            <View style={home.container}>
-                <View style={{ position: 'absolute', right: 25, marginTop: '5%' }}>
-                    <View style={{ height: 45, width: 45, borderRadius: 50, position: 'relative' }}>
-                        <Image style={{ height: 45, width: 45 }} source={profile} />
+            <SafeAreaView style={styles.container}>
+                <View style={styles.title}>
+                    <View style={styles.indexTextHeader}>
+                        <Text style={styles.textHeader}>Xin chào</Text>
+                        <Text style={styles.textHeader}>Orlando Diggs.</Text>
+                    </View>
+                    <View>
+                        <Image source={require('../../assets/avata2.png')} style={{ width: 50, height: 50 }}></Image>
                     </View>
                 </View>
                 <View>
-                    <Text style={home.home_text_1}>Hello {"\n"}Orlando Diggs.</Text>
-                </View>
-
-                <View style={{ marginTop: 30 }}>
-                    <View style={home.home_banner}>
-                        <View >
-                            <Text style={home.home_text_2}>50% off {"\n"}take any courses</Text>
-                            <TouchableOpacity activeOpacity={0.8} style={home.home_banner_button}>
-                                <Text style={home.home_banner_button_text}>Join Now</Text>
+                    <View style={styles.joinNow}>
+                        <View>
+                            <Text style={styles.textJoinNow}>Giảm giá 50%</Text>
+                            <Text style={styles.textJoinNow}>khi tham gia khóa học</Text>
+                            <TouchableOpacity style={styles.buttonJoinNow}>
+                                <Text style={[styles.textJoinNow]}>
+                                    Tham Gia
+                                </Text>
                             </TouchableOpacity>
                         </View>
-                        <Image style={{ position: "absolute", bottom: 0, right: 0, width: 200, height: 200 }} source={woman} />
-
                     </View>
+                    <Image source={require('../../assets/people.png')} style={styles.imagePeople}></Image>
                 </View>
-                <ScrollView showsVerticalScrollIndicator={false} style={{ marginTop: 10 }}>
-                    <View style={{ marginTop: 10 }}>
-                        <Text style={home.home_text_3}>Find Your Job</Text>
-                    </View>
-                    <View style={{ marginTop: 20 }}>
-                        <View style={{ display: 'flex', gap: 10, flexDirection: 'row', height: 200 }}>
-                            {/* Remote job button */}
-                            <TouchableOpacity onPress={() => {
-                                // RootNavigation.navigate('MainSearch') 
-                            }}
-                                activeOpacity={0.8}
-                                style={{ flex: 1, backgroundColor: colors.sega, marginRight: 10, borderRadius: 10, display: 'flex', justifyContent: 'center', alignItems: 'center' }}
-                            >
-                                <Image source={job} style={{ height: 40, width: 40, marginBottom: 10 }} />
-                                <Text style={home.home_text_3}>44.5K</Text>
-                                <Text style={home.home_text_4}>Remote Job</Text>
-                            </TouchableOpacity >
+                <ScrollView style={{ height: heightScreen / 1.8 }}>
+                    <View>
+                        <Text style={styles.textFindJob}>Tìm kiếm công việc</Text>
+                        <View style={styles.boxFindJob}>
+                            <View style={styles.boxRemoteJob}>
+                                <Image source={require('../../assets/headhunting.png')} style={{ width: '40%', height: '20%', marginBottom: 10 }} resizeMode='contain'></Image>
+                                <Text style={styles.textBoxFindJob}> 44.5K</Text>
+                                <Text> Remote Job</Text>
+                            </View>
 
-                            <View style={{ flex: 1, marginLeft: 10, borderRadius: 10, display: 'flex', justifyContent: 'space-between' }}>
-                                {/* FUll time button */}
-                                <TouchableOpacity onPress={
-                                    () => {
-                                        // RootNavigation.navigate('MainSearch') 
-                                    }}
-                                    activeOpacity={0.8}
-                                    style={{ height: '45%', backgroundColor: colors.tertiary_deep, borderRadius: 10, display: 'flex', justifyContent: 'center', alignItems: 'center' }}
-                                >
-                                    <Text style={home.home_text_3}>66.8K</Text>
-                                    <Text style={home.home_text_4}>Full Time</Text>
-                                </TouchableOpacity>
-
-                                {/* Part time button */}
-                                <TouchableOpacity
-                                    onPress={() => {
-                                        // RootNavigation.navigate('MainSearch') 
-                                    }}
-                                    activeOpacity={0.8}
-                                    style={{ height: '45%', backgroundColor: colors.ultra_light, borderRadius: 10, display: 'flex', justifyContent: 'center', alignItems: 'center' }}
-                                >
-                                    <Text style={home.home_text_3}>38.9K</Text>
-                                    <Text style={home.home_text_4}>Part Time</Text>
-                                </TouchableOpacity>
-
+                            <View style={styles.boxOffJob}>
+                                <View style={styles.boxFullTimeJob}>
+                                    <Text style={styles.textBoxFindJob}>66.8K</Text>
+                                    <Text>Full Time</Text>
+                                </View>
+                                <View style={styles.boxPtJob}>
+                                    <Text style={styles.textBoxFindJob}>38.9K</Text>
+                                    <Text>Part Time</Text>
+                                </View>
                             </View>
                         </View>
                     </View>
-
-
-                    <View style={{ marginTop: 20 }}>
-                        <Text style={home.home_text_3}>Recent Job List</Text>
-                    </View>
-
-                    <View style={{ marginTop: 20 }}>
-                        {jobs.map((item, i) => {
-                            return (<View key={i} style={{ marginTop: 5, marginBottom: 5 }}>
-                                <Card
-                                    name="Product Design"
-                                    address="Carlifonia, USA"
-                                    salary="$15k"
-                                    onPress={() => { RootNavigation.navigate('Description') }}
-                                />
-                            </View>)
-                        })}
-                    </View>
+                    <Text style={styles.textFindJob}>Danh sách công việc gần đây</Text>
+                    {[...Array(3)].map((_, index) => (
+                        <TouchableOpacity onPress={() => { RootNavigation.navigate('Description') }} key={index}>
+                            <BoxJob key={index}></BoxJob>
+                        </TouchableOpacity>
+                    ))}
                 </ScrollView>
-            </View>
+            </SafeAreaView>
         </Container>
     )
 }
 
-export default Home;
-
-
-const homeStyle = StyleSheet.create({
+const styles = StyleSheet.create({
     container: {
-        backgroundColor: colors.background_2,
-        display: 'flex',
-        position: 'relative',
+        // paddingTop: Platform.OS === 'android' ? 45 : 0,
+        paddingHorizontal: 10,
+        backgroundColor: '#F5F5F5',
+        marginHorizontal: 10,
+        paddingBottom: heightScreen / 15
+    },
+
+    title: {
+        margin: 10,
+        flexDirection: 'row',
+        justifyContent: 'space-between'
+    },
+
+    heightScreens: {
+        height: heightScreen + heightScreen / 18
+    },
+
+    indexTextHeader: {
+        marginTop: heightScreen / 30
+    },
+
+    textHeader: {
+        fontSize: 24,
+        fontWeight: '500',
+        color: '#0D0140',
+    },
+
+    joinNow: {
+        marginTop: 30,
+        height: heightScreen / 4.5,
+        backgroundColor: '#130160',
+        borderRadius: 8,
+        justifyContent: 'center'
+    },
+
+    imagePeople: {
+        width: '60%',
         height: '100%',
-        paddingTop: '10%',
-        paddingLeft: 25,
-        paddingRight: 25
+        position: 'absolute',
+        right: 0,
+        bottom: 0,
     },
-    home_text_1: {
-        fontFamily: fonts.dMSans.bold,
-        fontSize: sizes.h22,
-        color: colors.primary,
+
+    textJoinNow: {
+        fontSize: 18,
+        color: '#FFFFFF',
+        marginHorizontal: 20,
     },
-    home_text_2: {
-        fontFamily: fonts.dMSans.regular,
-        fontSize: sizes.h18,
-        color: "white"
+
+    buttonJoinNow: {
+        backgroundColor: '#FF9228',
+        width: '29%',
+        marginTop: heightScreen / 35,
+        marginLeft: heightScreen / 40,
+        paddingVertical: 5,
+        borderRadius: 6
     },
-    home_banner: {
-        height: 160,
-        backgroundColor: colors.primary,
+
+    textFindJob: {
+        fontSize: 18,
+        fontWeight: '600',
+        marginTop: heightScreen / 40,
+        marginBottom: heightScreen / 30
+    },
+
+    boxFindJob: {
+        width: '100%',
+        height: heightScreen / 4,
+        flexDirection: 'row'
+    },
+
+    boxRemoteJob: {
+        width: '45%',
+        height: '100%',
+        backgroundColor: '#AFECFE',
         borderRadius: 6,
-        display: 'flex',
-        justifyContent: 'center',
-        padding: 20
-    },
-    home_banner_button: {
-        height: 35,
-        width: 120,
-        backgroundColor: colors.ultra,
-        marginTop: 15, borderRadius: 10,
-        display: 'flex',
+        marginRight: '5%',
         justifyContent: 'center',
         alignItems: 'center'
     },
-    home_banner_button_text: {
-        fontFamily: fonts.dMSans.semiBold,
-        fontSize: sizes.h13,
-        color: 'white'
+
+    boxOffJob: {
+        width: '50%',
+        height: '100%',
+        justifyContent: 'space-between',
+        alignItems: 'center'
     },
-    home_text_3: {
-        fontSize: sizes.h16,
-        fontFamily: fonts.dMSans.bold,
-        color: colors.primary
+
+    boxFullTimeJob: {
+        width: '98%',
+        height: '45%',
+        backgroundColor: '#BEAFFE',
+        borderRadius: 6,
+        justifyContent: 'center',
+        alignItems: 'center'
     },
-    home_text_4: {
-        fontSize: sizes.h14,
-        fontFamily: fonts.dMSans.regular,
-        color: colors.primary
+
+    boxPtJob: {
+        width: '98%',
+        height: '45%',
+        backgroundColor: '#FFD6AD',
+        borderRadius: 6,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+
+    textBoxFindJob: {
+        fontSize: 16,
+        fontWeight: '600',
     }
 })
+
+export default HomeScreen

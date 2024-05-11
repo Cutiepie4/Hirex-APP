@@ -9,7 +9,7 @@ import Messages from '../screens/chat/Messages';
 import CallActionBox from '../screens/chat/CallActionBox';
 import CallScreen from '../screens/chat/CallScreen';
 import { hideTabBar, showTabBar } from '../redux/slice/authSlice';
-import { Home, Description, UploadCV, UploadCVSuccess } from '@/screens/Home';
+import { Description, UploadCV, UploadCVSuccess } from '@/screens/Home';
 import ChatScreen from '../screens/chat/ChatScreen';
 import Setting from '../screens/setting/Setting';
 import { Profile, AboutMeScreen, Experience, Education, Certification, Skill } from '../screens';
@@ -22,9 +22,15 @@ import Notifications from '@/screens/chat/Notifications';
 import NotificationDetail from '@/screens/chat/NotificationDetail';
 import Test from '@/screens/chat/Test';
 import VideoStream from '@/screens/chat/VideoStream';
+import HomeScreen from '@/screens/Home/HomeScreen';
+import SaveJob from '@/screens/Home/SaveJob';
+import NoSave from '@/screens/Home/NoSave';
+import SearchJob from '@/screens/Home/SearchJob';
+import Filter from '@/screens/Home/Filter';
+
 
 const homeScreenStack = {
-    Home: Home,
+    HomeScreen: HomeScreen,
     Description: Description,
     UploadCV: UploadCV,
     UploadCVSuccess: UploadCVSuccess,
@@ -61,6 +67,13 @@ const settingScreenStack = {
     NotificationDetail: NotificationDetail
 }
 
+const settingBookmarkStack = {
+    SaveJob: SaveJob,
+    NoSave: NoSave,
+    SearchJob: SearchJob,
+    Filter: Filter
+}
+
 const Stack = createStackNavigator();
 
 const HomeStack = ({ navigation, route }: any) => {
@@ -68,7 +81,7 @@ const HomeStack = ({ navigation, route }: any) => {
 
     useLayoutEffect(() => {
         const routeName = getFocusedRouteNameFromRoute(route);
-        if (routeName === 'Home' || routeName == undefined) {
+        if (routeName === 'HomeScreen' || routeName == undefined) {
             dispatch(showTabBar());
         } else {
             dispatch(hideTabBar());
@@ -95,7 +108,8 @@ const ChatStack = ({ navigation, route }: any) => {
         const routeName = getFocusedRouteNameFromRoute(route);
         if (routeName === 'Messages' || routeName == undefined) {
             dispatch(showTabBar());
-        } else {
+        }
+        else {
             dispatch(hideTabBar());
         }
     }, [navigation, route]);
@@ -142,4 +156,32 @@ const SettingStack = () => {
         </Stack.Navigator>
     );
 };
-export { HomeStack, ChatStack, ProfileStack, SettingStack }
+
+const BookmarkStack = ({ navigation, route }: any) => {
+
+    const dispatch = useDispatch();
+
+    useLayoutEffect(() => {
+        const routeName = getFocusedRouteNameFromRoute(route);
+        if (routeName === 'Filter' || routeName == undefined) {
+            dispatch(hideTabBar());
+        }
+        else {
+            dispatch(showTabBar());
+        }
+    }, [navigation, route]);
+
+
+    return (
+        <Stack.Navigator
+            screenOptions={{
+                headerShown: false,
+            }}
+        >
+            {Object.entries(settingBookmarkStack).map(([name, component]) => (
+                <Stack.Screen key={name} name={name} component={component} />
+            ))}
+        </Stack.Navigator>
+    );
+};
+export { HomeStack, ChatStack, ProfileStack, SettingStack, BookmarkStack}
