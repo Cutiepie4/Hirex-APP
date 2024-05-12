@@ -22,8 +22,6 @@ import Notifications from '@/screens/chat/Notifications';
 import NotificationDetail from '@/screens/chat/NotificationDetail';
 import ProfileHandler from '@/screens/profile/ProfileHandler';
 import Company from '@/screens/profile/Company';
-import Test from '@/screens/chat/Test';
-import VideoStream from '@/screens/chat/VideoStream';
 
 const homeScreenStack = {
     Home: Home,
@@ -42,9 +40,7 @@ const chatScreenStack = {
     CallScreen: CallScreen,
     IncomingCall: IncomingCall,
     JoinScreen: JoinScreen,
-    Setting: Setting,
-    Test: Test,
-    VideoStream: VideoStream
+    Setting: Setting
 }
 
 const pofileScreenStack = {
@@ -120,7 +116,18 @@ const ChatStack = ({ navigation, route }: any) => {
 };
 
 
-const ProfileStack = () => {
+const ProfileStack = ({ navigation, route }: any) => {
+    const dispatch = useDispatch();
+
+    useLayoutEffect(() => {
+        const routeName = getFocusedRouteNameFromRoute(route);
+        if (routeName === 'ProfileHandler' || routeName == undefined) {
+            dispatch(showTabBar());
+        } else {
+            dispatch(hideTabBar());
+        }
+    }, [navigation, route]);
+    
     return (
         <Stack.Navigator
             screenOptions={{
@@ -134,7 +141,17 @@ const ProfileStack = () => {
     );
 };
 
-const SettingStack = () => {
+const SettingStack = ({ navigation, route }: any) => {
+    const dispatch = useDispatch();
+
+    useLayoutEffect(() => {
+        const routeName = getFocusedRouteNameFromRoute(route);
+        if (routeName === 'Setting' || routeName == undefined) {
+            dispatch(showTabBar());
+        } else {
+            dispatch(hideTabBar());
+        }
+    }, [navigation, route]);
     return (
         <Stack.Navigator
             screenOptions={{

@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     },
     backButtonContainer: {
         position: 'absolute',
-        top: 80,
+        top: 40,
         left: 20,
         zIndex: 10,
         backgroundColor: deepPurple

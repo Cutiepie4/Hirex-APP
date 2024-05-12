@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, Image, Dimensions, Alert, Linking } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, Image, Dimensions, Alert, Modal } from 'react-native';
 import { AntDesign, Entypo, MaterialCommunityIcons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { ScrollView } from 'react-native-gesture-handler';
 import * as ImagePicker from 'expo-image-picker';
@@ -33,7 +33,7 @@ const Profile = () => {
     const [user, setUser] = useState(null)
     const [name, setName] = useState(null);
 
-    const [showAllSkills, setShowAllSkills] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
     const [certificationLists, setCertificationLists] = useState([]);
     const [isPickingDocument, setIsPickingDocument] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
@@ -255,7 +255,7 @@ const Profile = () => {
     };
 
     const showImagePickerOptions = () => {
-        const options = ['Chụp ảnh', 'Chọn ảnh từ thư viện', 'Hủy bỏ'];
+        const options = ['Chọn ảnh từ thư viện', 'Hủy bỏ'];
         const cancelButtonIndex = 2;
         showActionSheetWithOptions(
             {
@@ -265,11 +265,11 @@ const Profile = () => {
             buttonIndex => {
                 switch (buttonIndex) {
                     case 0:
-                        takePhoto();
-                        break;
-                    case 1:
                         uploadImageAndSaveData(phoneNumber);
                         break;
+                    // case 1:
+                    //     uploadImageAndSaveData(phoneNumber);
+                    //     break;
                     default:
                         break; // Cancel action
                 }
@@ -409,7 +409,7 @@ const Profile = () => {
     };
 
     const editSkill = (skill, id) => {
-        RootNavigation.navigate('Skil', {
+        RootNavigation.navigate('Skill', {
             skillData: skill,
             skillIndex: id,
             idEmployee: idEmployee,
@@ -774,23 +774,46 @@ const Profile = () => {
         );
     };
 
-
+    const toggleModal = () => {
+        setModalVisible(!modalVisible);  // Function to toggle the modal's visibility
+    };
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
             <View style={styles.container}>
-
                 <View style={styles.header}>
                     <Image source={BACKGROUND} style={{ height: height / 4.7, width: '100%', position: 'absolute', top: 0 }}></Image>
                     <View style={styles.profileContainer}>
                         {image ? (
-                            <Image source={{ uri: image }} style={styles.profileImage} />
+                            <TouchableOpacity onPress={toggleModal}>
+                                <Image source={{ uri: image }} style={styles.profileImage} />
+                            </TouchableOpacity>
                         ) : (
                             <MaterialCommunityIcons name="account-circle" size={100} color="black" style={{ marginLeft: '5%', position: 'absolute' }} />
                         )}
+                        <Modal
+                            animationType="slide"
+                            transparent={true}
+                            visible={modalVisible}
+                            onRequestClose={toggleModal}  // Handles hardware back button on Android
+                        >
+                            <View style={styles.centeredView}>
+                                <View style={styles.modalView}>
+                                    <Image source={{ uri: image }} style={styles.fullSizeImage} />
+                                    <TouchableOpacity
+                                        style={styles.buttonClose}
+                                        onPress={toggleModal}
+                                    >
+                                        <Text style={styles.textStyle}>Thoát</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </Modal>
                     </View>
-                    <TouchableOpacity style={styles.cameraIcon} onPress={showImagePickerOptions}>
-                        <FontAwesome5 name="camera" size={15} color="white" />
-                    </TouchableOpacity>
+                    {role === 'user' && (
+                        <TouchableOpacity style={styles.cameraIcon} onPress={showImagePickerOptions}>
+                            <FontAwesome5 name="camera" size={15} color="white" />
+                        </TouchableOpacity>
+                    )}
                     <View style={styles.nameRoleContainer}>
                         <Text style={styles.name}>{name}</Text>
                         <Text style={styles.role}>Người xin việc</Text>
@@ -810,8 +833,6 @@ const Profile = () => {
                     </View>
 
                 </ScrollView>
-
-
             </View>
         </SafeAreaView>
 
@@ -819,6 +840,44 @@ const Profile = () => {
 }
 
 const styles = StyleSheet.create({
+    centeredView: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        marginTop: 22
+    },
+    modalView: {
+        margin: 20,
+        backgroundColor: "white",
+        borderRadius: 20,
+        padding: 35,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5
+    },
+    fullSizeImage: {
+        width: 300,  // Set this according to your needs
+        height: 300,  // Set this according to your needs
+        resizeMode: 'contain'
+    },
+    buttonClose: {
+        backgroundColor: "#2196F3",
+        borderRadius: 20,
+        padding: 10,
+        elevation: 2,
+        marginTop: 15
+    },
+    textStyle: {
+        color: "white",
+        fontWeight: "bold",
+        textAlign: "center"
+    },
     profileContainer: {
         position: 'absolute',
         top: 50,
