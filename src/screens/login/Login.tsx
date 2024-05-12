@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, TouchableOpacity, Pressable, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, Text, Image, TouchableOpacity, Pressable, TouchableWithoutFeedback, Keyboard, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme';
@@ -105,15 +105,20 @@ const Login = () => {
                                 borderRadius: 8,
                                 alignItems: "center",
                                 justifyContent: "flex-start",
-                                flexDirection: 'row', // Add this to layout children in a row
+                                flexDirection: 'row', 
                                 paddingLeft: 22,
                                 backgroundColor: colors.grey_sur
 
                             }}>
                                 <FontAwesome name="mobile-phone" size={25} color={colors.black} style={{ marginRight: 10, marginLeft: -10 }} />
-                                <Input placeholder="Số điện thoại" value={phoneNumber} onChangeText={setPhoneNumber} />
+                                <TextInput
+                                    placeholder="Số điện thoại"
+                                    value={phoneNumber}
+                                    onChangeText={setPhoneNumber}
+                                    keyboardType="numeric"
+                                    style={{ flex: 1 }}
+                                />
                             </View>
-
                         </View>
 
                         <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
@@ -127,7 +132,7 @@ const Login = () => {
                                 borderRadius: 8,
                                 alignItems: "center",
                                 justifyContent: "flex-start",
-                                flexDirection: 'row', // Maintain as row to layout children in a row
+                                flexDirection: 'row',
                                 paddingLeft: 22,
                                 backgroundColor: colors.grey_sur
                             }}>

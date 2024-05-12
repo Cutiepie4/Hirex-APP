@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Modal, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Modal, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from '@/theme';
@@ -35,7 +35,7 @@ const Certification = ({ route, navigation }) => {
         }
         const newCertification = {
             name: name.trim(),
-            description: description.trim(), 
+            description: description.trim(),
             startDate,
             employeeId: idEmployee
 
@@ -88,94 +88,100 @@ const Certification = ({ route, navigation }) => {
     const handleModal = () => {
         setModalVisible(true);
     };
+
+    const dismissKeyboard = () => {
+        Keyboard.dismiss();
+    };
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
-            <View style={{ flex: 1, marginHorizontal: 22 }}>
-                <View style={{ marginVertical: 22 }}>
-                    <TouchableOpacity onPress={handleBack}>
-                        <Ionicons name="arrow-back" size={24} color="black" style={{ marginRight: 10 }} />
-                    </TouchableOpacity>
-                    <Text style={{
-                        fontSize: 22,
-                        fontWeight: '900',
-                        marginVertical: 12,
-                        textAlign: 'center',
-                        color: colors.black
-                    }}>
-                        {typeof certificationIndex === 'number' ? 'Chỉnh sửa chứng chỉ' : 'Thêm chứng chỉ'}
-                    </Text>
-                </View>
-
-
-                <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Tên bằng, chứng chỉ</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={name}
-                        onChangeText={setName}
-                    />
-                </View>
-
-
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <View style={{ flex: 1, marginRight: 10 }}>
-                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Bắt đầu</Text>
-                        <TouchableOpacity onPress={() => setShowStartDatePicker(true)}>
-                            <TextInput
-                                style={styles.input}
-                                value={startDate.toString()}
-                                editable={false}
-                            />
+        <TouchableWithoutFeedback onPress={dismissKeyboard}>
+            <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
+                <View style={{ flex: 1, marginHorizontal: 22 }}>
+                    <View style={{ marginVertical: 22 }}>
+                        <TouchableOpacity onPress={handleBack}>
+                            <Ionicons name="arrow-back" size={24} color="black" style={{ marginRight: 10 }} />
                         </TouchableOpacity>
-                        <DateTimePickerModal
-                            isVisible={showStartDatePicker}
-                            mode="date"
-                            onConfirm={handleStartDateConfirm}
-                            onCancel={() => setShowStartDatePicker(false)}
+                        <Text style={{
+                            fontSize: 22,
+                            fontWeight: '900',
+                            marginVertical: 12,
+                            textAlign: 'center',
+                            color: colors.black
+                        }}>
+                            {typeof certificationIndex === 'number' ? 'Chỉnh sửa chứng chỉ' : 'Thêm chứng chỉ'}
+                        </Text>
+                    </View>
+
+
+                    <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Tên bằng, chứng chỉ</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={name}
+                            onChangeText={setName}
                         />
                     </View>
 
-                </View>
-                
-                <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Mô tả</Text>
-                    <TextInput
-                        style={styles.input1}
-                        value={description}
-                        onChangeText={setDescription}
-                        multiline
-                    />
-                </View>
 
-                <View style={styles.saveButtonContainer}>
-                    <TouchableOpacity style={styles.saveButton} onPress={handleModal}>
-                        <Text style={styles.saveButtonText}>Lưu</Text>
-                    </TouchableOpacity>
-                </View>
-                <Modal
-                    animationType="slide"
-                    transparent={true}
-                    visible={modalVisible}
-                    onRequestClose={() => setModalVisible(false)}
-                >
-                    <View style={styles.modalContainer}>
-                        <View style={styles.modalContent}>
-                            <Text style={styles.modalText}>
-                                Bạn có chắc chắn muốn lưu?
-                            </Text>
-                            <View style={styles.buttonContainer}>
-                                <TouchableOpacity style={styles.yesButton} onPress={handleSave}>
-                                    <Text style={styles.buttonText}>Có</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-                                    <Text style={styles.buttonText}>Không</Text>
-                                </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                        <View style={{ flex: 1, marginRight: 10 }}>
+                            <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Bắt đầu</Text>
+                            <TouchableOpacity onPress={() => setShowStartDatePicker(true)}>
+                                <TextInput
+                                    style={styles.input}
+                                    value={startDate.toString()}
+                                    editable={false}
+                                />
+                            </TouchableOpacity>
+                            <DateTimePickerModal
+                                isVisible={showStartDatePicker}
+                                mode="date"
+                                onConfirm={handleStartDateConfirm}
+                                onCancel={() => setShowStartDatePicker(false)}
+                            />
+                        </View>
+
+                    </View>
+
+                    <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Mô tả</Text>
+                        <TextInput
+                            style={styles.input1}
+                            value={description}
+                            onChangeText={setDescription}
+                            multiline
+                        />
+                    </View>
+
+                    <View style={styles.saveButtonContainer}>
+                        <TouchableOpacity style={styles.saveButton} onPress={handleModal}>
+                            <Text style={styles.saveButtonText}>Lưu</Text>
+                        </TouchableOpacity>
+                    </View>
+                    <Modal
+                        animationType="slide"
+                        transparent={true}
+                        visible={modalVisible}
+                        onRequestClose={() => setModalVisible(false)}
+                    >
+                        <View style={styles.modalContainer}>
+                            <View style={styles.modalContent}>
+                                <Text style={styles.modalText}>
+                                    Bạn có chắc chắn muốn lưu?
+                                </Text>
+                                <View style={styles.buttonContainer}>
+                                    <TouchableOpacity style={styles.yesButton} onPress={handleSave}>
+                                        <Text style={styles.buttonText}>Có</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+                                        <Text style={styles.buttonText}>Không</Text>
+                                    </TouchableOpacity>
+                                </View>
                             </View>
                         </View>
-                    </View>
-                </Modal>
-            </View>
-        </SafeAreaView>
+                    </Modal>
+                </View>
+            </SafeAreaView>
+        </TouchableWithoutFeedback>
     )
 }
 

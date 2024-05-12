@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Modal, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Modal, StyleSheet, ScrollView, SafeAreaView, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme';  // Ensure this path matches your theme configuration file.
 import RootNavigation from '../../route/RootNavigation';
@@ -73,7 +73,7 @@ const Skill = ({ route }) => {
 
     const handleSelectSkill = (skill) => {
         setSelectedSkill(skill);
-        setName(skill); 
+        setName(skill);
         setDropdownVisible(false);
     };
 
@@ -89,105 +89,112 @@ const Skill = ({ route }) => {
         setModalVisible(true);
     };
 
-    return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: colors.grey_light }}>
-            <View style={{ flex: 1, marginHorizontal: 20 }}>
-            <View style={{ marginVertical: 50}}>
-                    <TouchableOpacity onPress={handleBack}>
-                        <Ionicons name="arrow-back" size={25} color="black" style={{ marginRight: 10 }} />
-                    </TouchableOpacity>
-                    <Text style={{
-                        fontSize: 22,
-                        fontWeight: '900',
-                        marginVertical: 5,
-                        textAlign: 'center',
-                        color: colors.black
-                    }}>
-                        {typeof skillIndex === 'number' ? 'Chỉnh sửa kỹ năng' : 'Thêm kỹ năng'}
-                    </Text>
-                </View>
+    const dismissKeyboard = () => {
+        Keyboard.dismiss();
+    };
 
-                <View style={{ marginBottom: 10, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 5, fontWeight: '900' }}>Kỹ năng cá nhân<Text style={{ color: 'red' }}>(*)</Text></Text>
-                    <TouchableOpacity onPress={() => setDropdownVisible(true)}>
+    return (
+        <TouchableWithoutFeedback onPress={dismissKeyboard}>
+
+            <SafeAreaView style={{ flex: 1, backgroundColor: colors.grey_light }}>
+                <View style={{ flex: 1, marginHorizontal: 20 }}>
+                    <View style={{ marginVertical: 50 }}>
+                        <TouchableOpacity onPress={handleBack}>
+                            <Ionicons name="arrow-back" size={25} color="black" style={{ marginRight: 10 }} />
+                        </TouchableOpacity>
+                        <Text style={{
+                            fontSize: 22,
+                            fontWeight: '900',
+                            marginVertical: 5,
+                            textAlign: 'center',
+                            color: colors.black
+                        }}>
+                            {typeof skillIndex === 'number' ? 'Chỉnh sửa kỹ năng' : 'Thêm kỹ năng'}
+                        </Text>
+                    </View>
+
+                    <View style={{ marginBottom: 10, paddingLeft: 15, paddingRight: 15 }}>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 5, fontWeight: '900' }}>Kỹ năng cá nhân<Text style={{ color: 'red' }}>(*)</Text></Text>
+                        <TouchableOpacity onPress={() => setDropdownVisible(true)}>
+                            <TextInput
+                                style={styles.input}
+                                value={name}
+                                placeholder="Chọn trình độ học vấn"
+                                editable={false}
+                            />
+                        </TouchableOpacity>
+                    </View>
+
+                    <Modal
+                        animationType="slide"
+                        transparent={true}
+                        visible={dropdownVisible}
+                        onRequestClose={() => {
+                            setDropdownVisible(!dropdownVisible);
+                        }}
+                    >
+                        <TouchableOpacity
+                            style={styles.modalOverlay}
+                            activeOpacity={1}
+                            onPressOut={() => setDropdownVisible(false)}>
+                            <View style={styles.modal}>
+                                <ScrollView>
+                                    {filteredSkills.map((skill, index) => (
+                                        <TouchableOpacity
+                                            key={index}
+                                            style={styles.modalItem}
+                                            onPress={() => handleSelectSkill(skill)}
+                                        >
+                                            <Text style={styles.modalItemText}>{skill}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </ScrollView>
+                            </View>
+                        </TouchableOpacity>
+                    </Modal>
+
+
+                    <View style={{ marginBottom: 10, paddingLeft: 15, paddingRight: 15 }}>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 5, fontWeight: '900' }}>Ghi chú</Text>
                         <TextInput
                             style={styles.input}
-                            value={name}
-                            placeholder="Chọn trình độ học vấn"
-                            editable={false}
+                            value={note}
+                            onChangeText={setNote}
                         />
-                    </TouchableOpacity>
-                </View>
+                    </View>
 
-                <Modal
-                    animationType="slide"
-                    transparent={true}
-                    visible={dropdownVisible}
-                    onRequestClose={() => {
-                        setDropdownVisible(!dropdownVisible);
-                    }}
-                >
-                    <TouchableOpacity
-                        style={styles.modalOverlay}
-                        activeOpacity={1}
-                        onPressOut={() => setDropdownVisible(false)}>
-                        <View style={styles.modal}>
-                            <ScrollView>
-                                {filteredSkills.map((skill, index) => (
-                                    <TouchableOpacity
-                                        key={index}
-                                        style={styles.modalItem}
-                                        onPress={() => handleSelectSkill(skill)}
-                                    >
-                                        <Text style={styles.modalItemText}>{skill}</Text>
+                    <View style={styles.saveButtonContainer}>
+                        <TouchableOpacity style={styles.saveButton} onPress={handleModal}>
+                            <Text style={styles.saveButtonText}>Lưu</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <Modal
+                        animationType="slide"
+                        transparent={true}
+                        visible={modalVisible}
+                        onRequestClose={() => setModalVisible(false)}
+                    >
+                        <View style={styles.modalContainer1}>
+                            <View style={styles.modalContent1}>
+                                <Text style={styles.modalText}>
+                                    Bạn có chắc chắn muốn lưu?
+                                </Text>
+                                <View style={styles.buttonContainer}>
+                                    <TouchableOpacity style={styles.yesButton} onPress={handleSave}>
+                                        <Text style={styles.buttonText}>Có</Text>
                                     </TouchableOpacity>
-                                ))}
-                            </ScrollView>
-                        </View>
-                    </TouchableOpacity>
-                </Modal>
-
- 
-                <View style={{ marginBottom: 10, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 5, fontWeight: '900' }}>Ghi chú</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={note}
-                        onChangeText={setNote}
-                    />
-                </View>
-
-                <View style={styles.saveButtonContainer}>
-                    <TouchableOpacity style={styles.saveButton} onPress={handleModal}>
-                        <Text style={styles.saveButtonText}>Lưu</Text>
-                    </TouchableOpacity>
-                </View>
-
-                <Modal
-                    animationType="slide"
-                    transparent={true}
-                    visible={modalVisible}
-                    onRequestClose={() => setModalVisible(false)}
-                >
-                    <View style={styles.modalContainer1}>
-                        <View style={styles.modalContent1}>
-                            <Text style={styles.modalText}>
-                                Bạn có chắc chắn muốn lưu?
-                            </Text>
-                            <View style={styles.buttonContainer}>
-                                <TouchableOpacity style={styles.yesButton} onPress={handleSave}>
-                                    <Text style={styles.buttonText}>Có</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-                                    <Text style={styles.buttonText}>Không</Text>
-                                </TouchableOpacity>
+                                    <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+                                        <Text style={styles.buttonText}>Không</Text>
+                                    </TouchableOpacity>
+                                </View>
                             </View>
                         </View>
-                    </View>
-                </Modal>
+                    </Modal>
 
-            </View>
-        </SafeAreaView>
+                </View>
+            </SafeAreaView>
+        </TouchableWithoutFeedback>
     );
 };
 

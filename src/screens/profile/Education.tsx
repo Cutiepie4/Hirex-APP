@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Modal, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Modal, StyleSheet, ScrollView, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from '@/theme';
@@ -113,157 +113,161 @@ const Education = ({ route }) => {
     const handleModal = () => {
         setModalVisible(true);
     };
-
+    const dismissKeyboard = () => {
+        Keyboard.dismiss();
+    };
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: colors.grey_light }}>
-            <View style={{ flex: 1, marginHorizontal: 22 }}>
-                <View style={{ marginVertical: 22 }}>
-                    <TouchableOpacity onPress={handleBack}>
-                        <Ionicons name="arrow-back" size={24} color="black" style={{ marginRight: 10 }} />
-                    </TouchableOpacity>
-                    <Text style={{
-                        fontSize: 22,
-                        fontWeight: '900',
-                        marginVertical: 5,
-                        textAlign: 'center',
-                        color: colors.black
-                    }}>
-                        {typeof educationIndex === 'number' ? 'Chỉnh sửa thông tin học vấn' : 'Thêm học vấn'}
-                    </Text>
-                </View>
+        <TouchableWithoutFeedback onPress={dismissKeyboard}>
+            <SafeAreaView style={{ flex: 1, backgroundColor: colors.grey_light }}>
+                <View style={{ flex: 1, marginHorizontal: 22 }}>
+                    <View style={{ marginVertical: 22 }}>
+                        <TouchableOpacity onPress={handleBack}>
+                            <Ionicons name="arrow-back" size={24} color="black" style={{ marginRight: 10 }} />
+                        </TouchableOpacity>
+                        <Text style={{
+                            fontSize: 22,
+                            fontWeight: '900',
+                            marginVertical: 5,
+                            textAlign: 'center',
+                            color: colors.black
+                        }}>
+                            {typeof educationIndex === 'number' ? 'Chỉnh sửa thông tin học vấn' : 'Thêm học vấn'}
+                        </Text>
+                    </View>
 
+                    <View style={{ marginBottom: 10, paddingLeft: 15, paddingRight: 15 }}>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 5, fontWeight: '900' }}>Trình độ học vấn <Text style={{ color: 'red' }}>(*)</Text></Text>
+                        <TouchableOpacity onPress={() => setShowEducationModal(true)}>
+                            <TextInput
+                                style={styles.input}
+                                value={level}
+                                placeholder="Chọn trình độ học vấn"
+                                editable={false}
+                            />
+                        </TouchableOpacity>
+                    </View>
 
-                <View style={{ marginBottom: 10, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 5, fontWeight: '900' }}>Trình độ học vấn <Text style={{ color: 'red' }}>(*)</Text></Text>
-                    <TouchableOpacity onPress={() => setShowEducationModal(true)}>
-                        <TextInput
-                            style={styles.input}
-                            value={level}
-                            placeholder="Chọn trình độ học vấn"
-                            editable={false}
-                        />
-                    </TouchableOpacity>
-                </View>
-
-                <Modal
-                    visible={showEducationModal}
-                    animationType="slide"
-                    transparent={true}
-                    onRequestClose={() => setShowEducationModal(false)}
-                >
-                    <View style={styles.modalContainer}>
-                        <View style={styles.modalContent}>
-                            {educationLevels.map((level, index) => (
+                    <Modal
+                        visible={showEducationModal}
+                        animationType="slide"
+                        transparent={true}
+                        onRequestClose={() => setShowEducationModal(false)}
+                    >
+                        <View style={styles.modalContainer}>
+                            <View style={styles.modalContent}>
+                                {educationLevels.map((level, index) => (
+                                    <TouchableOpacity
+                                        key={index}
+                                        style={styles.modalItem}
+                                        onPress={() => handleEducationLevelSelection(level)}
+                                    >
+                                        <Text style={styles.modalItemText}>{level}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                                {/* Thêm nút "Hủy bỏ" với styles mới */}
                                 <TouchableOpacity
-                                    key={index}
-                                    style={styles.modalItem}
-                                    onPress={() => handleEducationLevelSelection(level)}
+                                    style={styles.modalCancelItem}
+                                    onPress={() => setShowEducationModal(false)}
                                 >
-                                    <Text style={styles.modalItemText}>{level}</Text>
-                                </TouchableOpacity>
-                            ))}
-                            {/* Thêm nút "Hủy bỏ" với styles mới */}
-                            <TouchableOpacity
-                                style={styles.modalCancelItem}
-                                onPress={() => setShowEducationModal(false)}
-                            >
-                                <Text style={styles.modalCancelItemText}>Hủy bỏ</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </Modal>
-
-                <View style={{ marginBottom: 10, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 5, fontWeight: '900' }}>Tên Trường <Text style={{ color: 'red' }}>(*)</Text></Text>
-                    <TextInput
-                        style={styles.input}
-                        value={institution}
-                        onChangeText={setInstitution}
-                    />
-                </View>
-
-                <View style={{ marginBottom: 10, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 5, fontWeight: '900' }}>Chuyên Ngành <Text style={{ color: 'red' }}>(*)</Text></Text>
-                    <TextInput
-                        style={styles.input}
-                        value={major}
-                        onChangeText={setMajor}
-                    />
-                </View>
-
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10, paddingLeft: 15, paddingRight: 15 }}>
-                    <View style={{ flex: 1, marginRight: 10 }}>
-                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 5, fontWeight: '900' }}>Bắt đầu <Text style={{ color: 'red' }}>(*)</Text></Text>
-                        <TouchableOpacity onPress={() => setShowStartDatePicker(true)}>
-                            <TextInput
-                                style={styles.input}
-                                value={startDate.toString()}
-                                editable={false}
-                            />
-                        </TouchableOpacity>
-                        <DateTimePickerModal
-                            isVisible={showStartDatePicker}
-                            mode="date"
-                            onConfirm={handleStartDateConfirm}
-                            onCancel={() => setShowStartDatePicker(false)}
-                        />
-                    </View>
-                    <View style={{ flex: 1, marginLeft: 10 }}>
-                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 5, fontWeight: '900' }}>Kết thúc <Text style={{ color: 'red' }}>(*)</Text></Text>
-                        <TouchableOpacity onPress={() => setShowEndDatePicker(true)}>
-                            <TextInput
-                                style={styles.input}
-                                value={endDate.toString()}
-                                editable={false}
-                            />
-                        </TouchableOpacity>
-                        <DateTimePickerModal
-                            isVisible={showEndDatePicker}
-                            mode="date"
-                            onConfirm={handleEndDateConfirm}
-                            onCancel={() => setShowEndDatePicker(false)}
-                        />
-                    </View>
-                </View>
-                <View style={{ marginBottom: 10, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 5, fontWeight: '900' }}>Mô tả</Text>
-                    <TextInput
-                        style={styles.input1}
-                        value={description}
-                        onChangeText={setDescription}
-                        multiline
-                    />
-                </View>
-
-                <View style={styles.saveButtonContainer}>
-                    <TouchableOpacity style={styles.saveButton} onPress={handleModal}>
-                        <Text style={styles.saveButtonText}>Lưu</Text>
-                    </TouchableOpacity>
-                </View>
-                <Modal
-                    animationType="slide"
-                    transparent={true}
-                    visible={modalVisible}
-                    onRequestClose={() => setModalVisible(false)}
-                >
-                    <View style={styles.modalContainer1}>
-                        <View style={styles.modalContent1}>
-                            <Text style={styles.modalText}>
-                                Bạn có chắc chắn muốn lưu?
-                            </Text>
-                            <View style={styles.buttonContainer}>
-                                <TouchableOpacity style={styles.yesButton} onPress={handleSave}>
-                                    <Text style={styles.buttonText}>Có</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-                                    <Text style={styles.buttonText}>Không</Text>
+                                    <Text style={styles.modalCancelItemText}>Hủy bỏ</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
+                    </Modal>
+
+                    <View style={{ marginBottom: 10, paddingLeft: 15, paddingRight: 15 }}>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 5, fontWeight: '900' }}>Tên Trường <Text style={{ color: 'red' }}>(*)</Text></Text>
+                        <TextInput
+                            style={styles.input}
+                            value={institution}
+                            onChangeText={setInstitution}
+                        />
                     </View>
-                </Modal>
-            </View>
-        </SafeAreaView>
+
+                    <View style={{ marginBottom: 10, paddingLeft: 15, paddingRight: 15 }}>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 5, fontWeight: '900' }}>Chuyên Ngành <Text style={{ color: 'red' }}>(*)</Text></Text>
+                        <TextInput
+                            style={styles.input}
+                            value={major}
+                            onChangeText={setMajor}
+                        />
+                    </View>
+
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10, paddingLeft: 15, paddingRight: 15 }}>
+                        <View style={{ flex: 1, marginRight: 10 }}>
+                            <Text style={{ fontSize: 12, color: colors.black, marginBottom: 5, fontWeight: '900' }}>Bắt đầu <Text style={{ color: 'red' }}>(*)</Text></Text>
+                            <TouchableOpacity onPress={() => setShowStartDatePicker(true)}>
+                                <TextInput
+                                    style={styles.input}
+                                    value={startDate.toString()}
+                                    editable={false}
+                                />
+                            </TouchableOpacity>
+                            <DateTimePickerModal
+                                isVisible={showStartDatePicker}
+                                mode="date"
+                                onConfirm={handleStartDateConfirm}
+                                onCancel={() => setShowStartDatePicker(false)}
+                            />
+                        </View>
+                        <View style={{ flex: 1, marginLeft: 10 }}>
+                            <Text style={{ fontSize: 12, color: colors.black, marginBottom: 5, fontWeight: '900' }}>Kết thúc <Text style={{ color: 'red' }}>(*)</Text></Text>
+                            <TouchableOpacity onPress={() => setShowEndDatePicker(true)}>
+                                <TextInput
+                                    style={styles.input}
+                                    value={endDate.toString()}
+                                    editable={false}
+                                />
+                            </TouchableOpacity>
+                            <DateTimePickerModal
+                                isVisible={showEndDatePicker}
+                                mode="date"
+                                onConfirm={handleEndDateConfirm}
+                                onCancel={() => setShowEndDatePicker(false)}
+                            />
+                        </View>
+                    </View>
+                    <View style={{ marginBottom: 10, paddingLeft: 15, paddingRight: 15 }}>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 5, fontWeight: '900' }}>Mô tả</Text>
+                        <TextInput
+                            style={styles.input1}
+                            value={description}
+                            onChangeText={setDescription}
+                            multiline
+                        />
+                    </View>
+
+                    <View style={styles.saveButtonContainer}>
+                        <TouchableOpacity style={styles.saveButton} onPress={handleModal}>
+                            <Text style={styles.saveButtonText}>Lưu</Text>
+                        </TouchableOpacity>
+                    </View>
+                    <Modal
+                        animationType="slide"
+                        transparent={true}
+                        visible={modalVisible}
+                        onRequestClose={() => setModalVisible(false)}
+                    >
+                        <View style={styles.modalContainer1}>
+                            <View style={styles.modalContent1}>
+                                <Text style={styles.modalText}>
+                                    Bạn có chắc chắn muốn lưu?
+                                </Text>
+                                <View style={styles.buttonContainer}>
+                                    <TouchableOpacity style={styles.yesButton} onPress={handleSave}>
+                                        <Text style={styles.buttonText}>Có</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+                                        <Text style={styles.buttonText}>Không</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </View>
+                    </Modal>
+                </View>
+            </SafeAreaView>
+        </TouchableWithoutFeedback>
+
     )
 }
 
