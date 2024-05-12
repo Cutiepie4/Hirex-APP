@@ -276,4 +276,3 @@ export default CallScreen;
 const styles = StyleSheet.create({
 
 });
-

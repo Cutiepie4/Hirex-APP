@@ -83,7 +83,7 @@ export const Home = () => {
                                     name="Product Design"
                                     address="Carlifonia, USA"
                                     salary="$15k"
-                                    onPress={() => { RootNavigation.navigate('Description2') }}
+                                    onPress={() => { RootNavigation.navigate('Description') }}
                                 />
                             </View>)
                         })}

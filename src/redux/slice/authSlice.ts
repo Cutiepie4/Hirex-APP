@@ -8,6 +8,7 @@ export interface AuthState {
     isLoading: boolean,
     showTabBar: boolean,
     deviceToken: string,
+    userId: string,
 };
 
 const initialState: AuthState = {
@@ -18,18 +19,20 @@ const initialState: AuthState = {
     isLoading: false,
     showTabBar: false,
     deviceToken: '',
+    userId: '',
 };
 
 const authSlice = createSlice({
     name: 'authReducer',
     initialState,
     reducers: {
-        login: (state, action: PayloadAction<{ role: string, phoneNumber: string, access_token: string, fullname: string }>) => {
-            const { role, phoneNumber, access_token, fullname } = action.payload;
+        login: (state, action: PayloadAction<{ role: string, phoneNumber: string, access_token: string, fullname: string, userId: string }>) => {
+            const { role, phoneNumber, access_token, fullname, userId } = action.payload;
             state.role = role;
             state.phoneNumber = phoneNumber;
             state.access_token = access_token;
             state.fullname = fullname;
+            state.userId = userId;
         },
         logout: (state) => initialState,
         showLoading: (state) => {
