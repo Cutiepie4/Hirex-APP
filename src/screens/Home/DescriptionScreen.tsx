@@ -5,14 +5,91 @@ import google from '@assets/images/google.png'
 import company1 from '@assets/images/company1.png'
 import company2 from '@assets/images/company2.png'
 import { color, Icon } from '@rneui/base';
-import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
+// import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import RootNavigation from '@/route/RootNavigation';
+import { BASE_API } from '@/services/BaseApi';
+import { RootReducer } from '@/redux/store/reducer';
+import { useSelector } from 'react-redux';
+import { ParseConversationId } from '@/utils/utils';
+import firestore from '@react-native-firebase/firestore'
+import { formatRemainingTime } from '@/utils/formatRemainingTime';
 
+export type Expert = {
+    id: number
+    name: string
+}
 
+export type User = {
+    id: number
+    phoneNumber: string
+}
+
+export type Employer = {
+    id: number
+    user: User
+}
+
+export type Company = {
+    id: number
+    name: string
+    shortName: string
+    description: string
+    employeeSize: number
+    headOffice: string
+    industry: string
+    website: string
+    imageBase64: string
+    employer: Employer
+}
+
+export type Work = {
+    id: number
+    name: string
+    address: string
+    description: string
+    startTime: string
+    endTime: string
+    startDate: string
+    endDate: string
+    expert: Expert
+    company: Company
+    createOn: string
+}
 
 export const Description = () => {
     const [info, setInfo] = React.useState(false)
+    const [work, setWork] = React.useState<Work>(null)
     const desc = descStyle
+    React.useEffect(() => {
+        BASE_API.get("works/1").then((res) => {
+            setWork(res.data)
+        }).catch((err) => {
+            console.log(err)
+        })
+    }, [])
+    
+
+    const { phoneNumber } = useSelector((state: RootReducer) => state.authReducer);
+
+    const addConversation = async (chatFriend) => {
+        try {
+            const participants = [phoneNumber, chatFriend];
+            const conversationId = ParseConversationId(participants);
+            await firestore()
+                .collection('conversations_col')
+                .doc(conversationId)
+                .set({
+                    participants,
+                    messages: []
+                }, {
+                    merge: true
+                });
+            RootNavigation.navigate('ChatScreen', { data: { chatFriendPhone: chatFriend, participants, messages: [] } });
+        } catch (error) {
+            console.error('Error adding document: ', error);
+        }
+    };
+
     return (
         <View style={desc.container}>
             <View style={desc.logoContainer}>
@@ -23,8 +100,8 @@ export const Description = () => {
 
             <View style={desc.header_container}>
 
-                <Text style={desc.desc_text_1}>UI/UX Designer</Text>
-                <Text style={desc.desc_text_2}>Google    <Text style={{ fontSize: 10, textAlignVertical: 'center' }}>{'\u2B24'}</Text>   Carlifornia   <Text style={{ fontSize: 10, textAlignVertical: 'center' }}>{'\u2B24'}</Text>   1 day ago</Text>
+                <Text style={desc.desc_text_1}>{work?.name}</Text>
+                <Text style={desc.desc_text_2}>Google{'    '}<Text style={{ fontSize: 10, textAlignVertical: 'center' }}>{'\u2B24'}</Text>{'   '}{work?.address}{'   '}<Text style={{ fontSize: 10, textAlignVertical: 'center' }}>{'\u2B24'}</Text>{'   '}{formatRemainingTime(work?.createOn)}</Text>
             </View>
 
             <View style={{ paddingLeft: 25, paddingRight: 25, marginTop: 10 }}>
@@ -49,7 +126,7 @@ export const Description = () => {
                             <ScrollView showsVerticalScrollIndicator={false} style={{ height: 520 }}>
                                 <View>
                                     <Text style={[desc.desc_text_3, { color: colors.primary }]}>Job Description</Text>
-                                    <Text style={desc.desc_text_4}>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem...</Text>
+                                    <Text style={desc.desc_text_4}>{work?.description}</Text>
 
                                     <TouchableOpacity activeOpacity={0.8} style={{ height: 40, width: 120, backgroundColor: colors.tertiary_deep, marginTop: 10, borderRadius: 6, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                         <Text style={desc.desc_text_5}>Read more</Text>
@@ -69,19 +146,19 @@ export const Description = () => {
                                 </View>
                                 <View style={{ marginTop: 30 }}>
                                     <Text style={[desc.desc_text_3, { color: colors.primary }]}>Location</Text>
-                                    {/* Map */}<MapView
-                                        provider={PROVIDER_GOOGLE} // remove if not using Google Maps
+                                    {/* <MapView
+                                        provider={PROVIDER_GOOGLE}
                                         style={{ height: 200, marginTop: 20 }}
                                         minZoomLevel={10}
                                         scrollEnabled={false}
                                         region={{
-                                            latitude: 37.78825,
-                                            longitude: -122.4324,
+                                            latitude: 20.9832539,
+                                            longitude: 105.7873286,
                                             latitudeDelta: 0.015,
                                             longitudeDelta: 0.0121,
                                         }}
                                     >
-                                    </MapView>
+                                    </MapView> */}
                                 </View>
 
                                 <View style={{ marginTop: 30 }}>
@@ -140,32 +217,29 @@ export const Description = () => {
                         <ScrollView showsVerticalScrollIndicator={false} style={{ height: 520 }}>
                             <View>
                                 <Text style={[desc.desc_text_3, { color: colors.primary }]}>About Company</Text>
-                                <Text style={desc.desc_text_4}>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem.</Text>
-                                <Text style={desc.desc_text_4}>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto.</Text>
-
-                                <Text style={desc.desc_text_4}>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.</Text>
+                                <Text style={desc.desc_text_4}>{work?.company?.description}</Text>
 
 
                             </View>
 
                             <View style={{ marginTop: 30 }}>
                                 <Text style={[desc.desc_text_3, { color: colors.primary }]}>Website</Text>
-                                <Text style={[desc.desc_text_4, { color: colors.tertiary_deep }]}>https://www.google.com</Text>
+                                <Text style={[desc.desc_text_4, { color: colors.tertiary_deep }]}>{work?.company?.website}</Text>
 
                             </View>
                             <View style={{ marginTop: 30 }}>
                                 <Text style={[desc.desc_text_3, { color: colors.primary }]}>Industry</Text>
-                                <Text style={[desc.desc_text_4]}>Internet product</Text>
+                                <Text style={[desc.desc_text_4]}>{work?.company?.industry}</Text>
 
                             </View>
                             <View style={{ marginTop: 30 }}>
                                 <Text style={[desc.desc_text_3, { color: colors.primary }]}>Employmee size</Text>
-                                <Text style={[desc.desc_text_4]}>132,121 Employees</Text>
+                                <Text style={[desc.desc_text_4]}>{work?.company?.employeeSize} Employees</Text>
 
                             </View>
                             <View style={{ marginTop: 30 }}>
                                 <Text style={[desc.desc_text_3, { color: colors.primary }]}>Head office</Text>
-                                <Text style={[desc.desc_text_4]}>Mountain View, Carlifornia, Amerika Serikat</Text>
+                                <Text style={[desc.desc_text_4]}>{work?.company?.headOffice}</Text>
 
                             </View>
 
@@ -220,10 +294,11 @@ export const Description = () => {
 
             <View style={{ position: 'absolute', width: '100%', height: 70, backgroundColor: colors.background, bottom: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'row' }}>
                 {/* Bottom button */}
-                <Icon name="bookmark-border" color={colors.ultra} style={{ marginRight: 20 }} />
-                <TouchableOpacity onPress={() => { RootNavigation.navigate('UploadCV') }} style={{ height: 50, width: '80%', backgroundColor: colors.primary, display: 'flex', justifyContent: 'center', alignItems: 'center', borderRadius: 6 }} activeOpacity={0.8}>
+                <Icon name="bookmark-border" color={colors.ultra} style={{ marginRight: 20 }} onPress={() => {}} />
+                <TouchableOpacity onPress={() => { RootNavigation.navigate('UploadCV', { workId: work?.id }) }} style={{ height: 50, width: '60%', backgroundColor: colors.primary, display: 'flex', justifyContent: 'center', alignItems: 'center', borderRadius: 6 }} activeOpacity={0.8}>
                     <Text style={[desc.desc_text_3, { color: 'white' }]}>APPLY NOW</Text>
                 </TouchableOpacity>
+                <Icon name="link" color={colors.ultra} style={{ marginLeft: 20 }} onPress={() => addConversation(work?.company?.employer?.user?.phoneNumber)}/>
 
             </View>
 
