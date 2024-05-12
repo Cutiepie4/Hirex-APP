@@ -1,141 +1,320 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { View, Text, TouchableOpacity, TextInput, Modal, StyleSheet, ScrollView, SafeAreaView, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { colors } from '@/theme';  // Ensure this path matches your theme configuration file.
+import RootNavigation from '../../route/RootNavigation';
+import { BASE_API } from '../../services/BaseApi';
 
-const Skill = ({ route, navigation }) => {
-    const allSkills = ['Graphic Design', 'Graphic Thinking', 'UI/UX Design', 'Adobe Indesign', 'Web Design', 'InDesign', 'Canva Design', 'User Interface Design', 'Product Design', 'User Experience Design'];
+const Skill = ({ route }) => {
+    const { skillData, skillIndex, idEmployee } = route.params;
+    const [name, setName] = useState(skillData?.name ?? '');
+    const [note, setNote] = useState(skillData?.note ?? '');
     const [searchTerm, setSearchTerm] = useState('');
-    const { selectedSkills, updateSelectedSkills } = route.params;
-    const [localSelectedSkills, setLocalSelectedSkills] = useState(selectedSkills || []);
+    const [filteredSkills, setFilteredSkills] = useState([]);
+    const [dropdownVisible, setDropdownVisible] = useState(false);
+    const [selectedSkill, setSelectedSkill] = useState(name);
+
+    const allSkills = ['Kỹ năng giao tiếp', 'Kỹ năng viết', 'Kỹ năng thuyết trình', 'Kỹ năng giải quyết vấn đề', 'Kỹ năng chăm sóc trẻ em', 'Kỹ năng chụp ảnh', 'Kỹ năng edit', 'Kỹ năng Photoshop'];
+    const [modalVisible, setModalVisible] = useState(false);
+
 
     useEffect(() => {
-        if (selectedSkills) {
-            setLocalSelectedSkills(selectedSkills);
-        }
-    }, [selectedSkills]);
+        setFilteredSkills(allSkills);
+    }, []);
 
-    const addSkill = skill => {
-        if (!localSelectedSkills.includes(skill)) {
-            setLocalSelectedSkills([...localSelectedSkills, skill]);
+    const handleSave = async () => {
+
+        if (!name.trim()) {
+            alert('Hãy điền đủ thông tin');
+            setModalVisible(false);
+            return;
+        }
+        const newSkill = {
+            name: name.trim(),
+            note: note.trim(),
+            employeeId: idEmployee
+
+        };
+
+        const OldSkill = {
+            id: skillIndex,
+            name: name.trim(),
+            note: note.trim(),
+            employeeId: idEmployee
+        };
+
+        if (typeof skillIndex === 'number') {
+            try {
+                if (modalVisible) {
+                    const response = await BASE_API.put(`/skills/${skillIndex}`, OldSkill);
+                    setModalVisible(false);
+                    RootNavigation.pop();
+                } else {
+                    setModalVisible(true);
+                }
+            } catch (error) {
+                console.error('update Skill', error);
+            }
+
+        } else {
+            try {
+                if (modalVisible) {
+                    const response = await BASE_API.post(`/skills/create`, newSkill);
+                    setModalVisible(false);
+                    RootNavigation.pop();
+                } else {
+                    setModalVisible(true);
+                }
+            } catch (error) {
+                console.error('Create Skill', error);
+            }
         }
     };
 
-    const removeSkill = skill => {
-        setLocalSelectedSkills(localSelectedSkills.filter(s => s !== skill));
+    const handleSelectSkill = (skill) => {
+        setSelectedSkill(skill);
+        setName(skill);
+        setDropdownVisible(false);
     };
 
-    const handleSave = () => {
-        if (updateSelectedSkills) { // Kiểm tra xem updateSelectedSkills có phải là một hàm không
-            updateSelectedSkills(localSelectedSkills); // Cập nhật vào Profile
-            navigation.goBack(); // Quay lại màn hình trước đó
-        }
+    const handleBack = () => {
+        RootNavigation.pop();
+    };
+
+    const handleCancel = () => {
+        setModalVisible(false);
+    };
+
+    const handleModal = () => {
+        setModalVisible(true);
+    };
+
+    const dismissKeyboard = () => {
+        Keyboard.dismiss();
     };
 
     return (
-        <View style={styles.container}>
-            <View style={styles.searchSection}>
-                <AntDesign name="search1" size={20} color="grey" />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Search skills"
-                    onChangeText={setSearchTerm}
-                    value={searchTerm}
-                />
-                {searchTerm ? <AntDesign name="close" size={20} color="grey" onPress={() => setSearchTerm('')} /> : null}
-            </View>
+        <TouchableWithoutFeedback onPress={dismissKeyboard}>
 
-            <View style={styles.selectedSkills}>
-                {localSelectedSkills.map(skill => (
-                    <View key={skill} style={styles.selectedSkill}>
-                        <Text style={styles.skillText}>{skill}</Text>
-                        <AntDesign name="closecircle" size={20} color="red" onPress={() => removeSkill(skill)} />
+            <SafeAreaView style={{ flex: 1, backgroundColor: colors.grey_light }}>
+                <View style={{ flex: 1, marginHorizontal: 20 }}>
+                    <View style={{ marginVertical: 50 }}>
+                        <TouchableOpacity onPress={handleBack}>
+                            <Ionicons name="arrow-back" size={25} color="black" style={{ marginRight: 10 }} />
+                        </TouchableOpacity>
+                        <Text style={{
+                            fontSize: 22,
+                            fontWeight: '900',
+                            marginVertical: 5,
+                            textAlign: 'center',
+                            color: colors.black
+                        }}>
+                            {typeof skillIndex === 'number' ? 'Chỉnh sửa kỹ năng' : 'Thêm kỹ năng'}
+                        </Text>
                     </View>
-                ))}
-            </View>
-            <ScrollView style={styles.list}>
-                {searchTerm ? (
-                    allSkills.filter(skill => skill.toLowerCase().includes(searchTerm.toLowerCase())).length > 0 ? (
-                        allSkills.filter(skill => skill.toLowerCase().includes(searchTerm.toLowerCase())).map(skill => (
-                            <TouchableOpacity key={skill} style={styles.skill} onPress={() => addSkill(skill)}>
-                                <Text>{skill}</Text>
-                            </TouchableOpacity>
-                        ))
-                    ) : (
-                        <Text style={styles.noSkills}>Không tìm thấy kỹ năng</Text>
-                    )
-                ) : null}
-            </ScrollView>
 
-            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-                <Text style={styles.saveButtonText}>SAVE</Text>
-            </TouchableOpacity>
-        </View>
+                    <View style={{ marginBottom: 10, paddingLeft: 15, paddingRight: 15 }}>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 5, fontWeight: '900' }}>Kỹ năng cá nhân<Text style={{ color: 'red' }}>(*)</Text></Text>
+                        <TouchableOpacity onPress={() => setDropdownVisible(true)}>
+                            <TextInput
+                                style={styles.input}
+                                value={name}
+                                placeholder="Chọn trình độ học vấn"
+                                editable={false}
+                            />
+                        </TouchableOpacity>
+                    </View>
+
+                    <Modal
+                        animationType="slide"
+                        transparent={true}
+                        visible={dropdownVisible}
+                        onRequestClose={() => {
+                            setDropdownVisible(!dropdownVisible);
+                        }}
+                    >
+                        <TouchableOpacity
+                            style={styles.modalOverlay}
+                            activeOpacity={1}
+                            onPressOut={() => setDropdownVisible(false)}>
+                            <View style={styles.modal}>
+                                <ScrollView>
+                                    {filteredSkills.map((skill, index) => (
+                                        <TouchableOpacity
+                                            key={index}
+                                            style={styles.modalItem}
+                                            onPress={() => handleSelectSkill(skill)}
+                                        >
+                                            <Text style={styles.modalItemText}>{skill}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </ScrollView>
+                            </View>
+                        </TouchableOpacity>
+                    </Modal>
+
+
+                    <View style={{ marginBottom: 10, paddingLeft: 15, paddingRight: 15 }}>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 5, fontWeight: '900' }}>Ghi chú</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={note}
+                            onChangeText={setNote}
+                        />
+                    </View>
+
+                    <View style={styles.saveButtonContainer}>
+                        <TouchableOpacity style={styles.saveButton} onPress={handleModal}>
+                            <Text style={styles.saveButtonText}>Lưu</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <Modal
+                        animationType="slide"
+                        transparent={true}
+                        visible={modalVisible}
+                        onRequestClose={() => setModalVisible(false)}
+                    >
+                        <View style={styles.modalContainer1}>
+                            <View style={styles.modalContent1}>
+                                <Text style={styles.modalText}>
+                                    Bạn có chắc chắn muốn lưu?
+                                </Text>
+                                <View style={styles.buttonContainer}>
+                                    <TouchableOpacity style={styles.yesButton} onPress={handleSave}>
+                                        <Text style={styles.buttonText}>Có</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+                                        <Text style={styles.buttonText}>Không</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </View>
+                    </Modal>
+
+                </View>
+            </SafeAreaView>
+        </TouchableWithoutFeedback>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
+    fieldContainer: {
+        marginBottom: 20
     },
-    noSkills: {
-        textAlign: 'center',
-        padding: 20,
-      },
-      
-    searchSection: {
+    headerTitle: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        marginLeft: 10,
+        color: colors.black,
+    },
+    label: {
+        fontSize: 16,
+        marginBottom: 5,
+        fontWeight: 'bold',
+        color: colors.black
+    },
+    inputDropdown: {
         flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: '#f2f2f2',
         padding: 10,
-        borderRadius: 10,
-        width: '90%',
-        marginBottom: 20,
-        borderWidth: 0.2,
-
+        borderWidth: 1,
+        borderColor: colors.black,
+        borderRadius: 8,
+        backgroundColor: colors.white
+    },
+    inputText: {
+        fontSize: 16,
+        color: colors.background_3
+    },
+    modalOverlay: {
+        flex: 1,
+        justifyContent: 'flex-end'
+    },
+    modal: {
+        backgroundColor: colors.white,
+        padding: 60,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+    },
+    modalItem: {
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.grey_light,
+    },
+    modalItemText: {
+        fontSize: 16,
+        textAlign: 'center',
+        color: colors.black
     },
     input: {
-        marginLeft: 10,
-        flex: 1,
-    },
-    list: {
-        width: '90%',
-        maxHeight: '50%',
-    },
-    skill: {
-        backgroundColor: '#fff',
         padding: 10,
-        marginBottom: 5,
-        borderRadius: 5,
+        borderWidth: 1,
+        borderColor: colors.black,
+        borderRadius: 8,
+        backgroundColor: colors.white,
+        color: colors.black
     },
-    selectedSkills: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'center',
-        marginVertical: 20,
-    },
-    selectedSkill: {
-        flexDirection: 'row',
+    saveButtonContainer: {
         alignItems: 'center',
-        backgroundColor: '#e0e0e0',
-        borderRadius: 20,
-        padding: 10,
-        margin: 5,
-    },
-    skillText: {
-        marginRight: 10,
+        marginTop: 20
     },
     saveButton: {
-        backgroundColor: '#130160',
-        padding: 15,
+        backgroundColor: colors.primary,
         borderRadius: 10,
-        width: '60%',
+        padding: 12,
+        width: 200,
         alignItems: 'center',
     },
     saveButtonText: {
-        color: 'white',
+        color: colors.white,
+        fontSize: 16
+    },
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+    },
+    modalContainer1: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent1: {
+        backgroundColor: 'white',
+        borderRadius: 10,
+        padding: 20,
+        width: '80%',
+    },
+    modalHeaderText: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    modalText: {
         fontSize: 16,
+        marginBottom: 20,
+    },
+    yesButton: {
+        backgroundColor: '#130160',
+        borderRadius: 10,
+        padding: 15,
+        width: 90,
+        margin: 5,
+    },
+    cancelButton: {
+        backgroundColor: '#D6CDFE',
+        borderRadius: 10,
+        padding: 15,
+        width: 90,
+        margin: 5,
+    },
+    buttonText: {
+        color: 'white',
+        fontSize: 18,
+        textAlign: 'center',
     },
 });
 

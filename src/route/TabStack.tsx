@@ -9,7 +9,7 @@ import Messages from '../screens/chat/Messages';
 import CallActionBox from '../screens/chat/CallActionBox';
 import CallScreen from '../screens/chat/CallScreen';
 import { hideTabBar, showTabBar } from '../redux/slice/authSlice';
-import { Home, Description, UploadCV, UploadCVSuccess } from '@/screens/Home';
+import { Home, Description, Description2, UploadCV, UploadCVSuccess, Appreciation } from '@/screens/Home';
 import ChatScreen from '../screens/chat/ChatScreen';
 import Setting from '../screens/setting/Setting';
 import { Profile, AboutMeScreen, Experience, Education, Certification, Skill } from '../screens';
@@ -22,13 +22,17 @@ import Notifications from '@/screens/chat/Notifications';
 import NotificationDetail from '@/screens/chat/NotificationDetail';
 import Test from '@/screens/chat/Test';
 import VideoStream from '@/screens/chat/VideoStream';
+import ProfileHandler from '@/screens/profile/ProfileHandler';
+import Company from '@/screens/profile/Company';
 
 const homeScreenStack = {
     Home: Home,
     Description: Description,
+    Description2: Description2,
     UploadCV: UploadCV,
     UploadCVSuccess: UploadCVSuccess,
-
+    ChatScreen: ChatScreen,
+    Appreciation: Appreciation,
 }
 
 const chatScreenStack = {
@@ -44,12 +48,13 @@ const chatScreenStack = {
 }
 
 const pofileScreenStack = {
-    Profile,
+    ProfileHandler,
     AboutMeScreen,
     Experience,
     Education,
     Certification,
-    Skill
+    Skill,
+    Company
 }
 
 const settingScreenStack = {
@@ -115,7 +120,18 @@ const ChatStack = ({ navigation, route }: any) => {
 };
 
 
-const ProfileStack = () => {
+const ProfileStack = ({ navigation, route }: any) => {
+    const dispatch = useDispatch();
+
+    useLayoutEffect(() => {
+        const routeName = getFocusedRouteNameFromRoute(route);
+        if (routeName === 'ProfileHandler' || routeName == undefined) {
+            dispatch(showTabBar());
+        } else {
+            dispatch(hideTabBar());
+        }
+    }, [navigation, route]);
+
     return (
         <Stack.Navigator
             screenOptions={{
@@ -129,7 +145,17 @@ const ProfileStack = () => {
     );
 };
 
-const SettingStack = () => {
+const SettingStack = ({ navigation, route }: any) => {
+    const dispatch = useDispatch();
+
+    useLayoutEffect(() => {
+        const routeName = getFocusedRouteNameFromRoute(route);
+        if (routeName === 'Setting' || routeName == undefined) {
+            dispatch(showTabBar());
+        } else {
+            dispatch(hideTabBar());
+        }
+    }, [navigation, route]);
     return (
         <Stack.Navigator
             screenOptions={{

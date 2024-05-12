@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Platform, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Modal, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from '@/theme';
-import Button from '../../components/Button';
 import RootNavigation from '../../route/RootNavigation';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { BASE_API } from '../../services/BaseApi';
 
 const Experience = (props: any) => {
-    const {route} = props;
-    const { experienceData, addNewExperience, updateExperience, experienceIndex } = route.params;
+    const { route } = props;
+    const { experienceData, experienceIndex, idEmployee } = route.params;
 
     const [jobTitle, setJobTitle] = useState(experienceData?.jobTitle ?? '');
     const [company, setCompany] = useState(experienceData?.company ?? '');
@@ -20,10 +20,10 @@ const Experience = (props: any) => {
     const [showStartDatePicker, setShowStartDatePicker] = useState(false);
     const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
+    const [modalVisible, setModalVisible] = useState(false);
 
     const handleStartDateConfirm = (selectedDate: Date) => {
         setShowStartDatePicker(false);
-        // Lấy tháng và năm từ selectedDate
         const formattedDate = selectedDate.getMonth() + 1 + '/' + selectedDate.getFullYear();
         setStartDate(formattedDate);
     };
@@ -36,130 +36,190 @@ const Experience = (props: any) => {
     };
 
     useEffect(() => {
-        console.log('experienceData', experienceData);
     }, []);
-    const handleSave = () => {
 
-        if (!jobTitle.trim() || !company.trim() || !startDate.trim() || !endDate.trim()) {
-            alert('Please fill in all required fields.'); // Bạn có thể sử dụng Alert từ 'react-native' để hiển thị thông báo
-            return; // Dừng hàm nếu có trường nào đó bỏ trống
+    const handleSave = async () => {
+
+        if (!jobTitle.trim() || !company.trim()) {
+            alert('Hãy điền đủ thông tin');
+            setModalVisible(false);
+            return;
         }
+
         const newExperience = {
             jobTitle: jobTitle.trim(),
             company: company.trim(),
-            description: description.trim(), // Không bắt buộc nhưng vẫn nên trim()
+            description: description.trim(),
             startDate,
             endDate,
+            employeeId: idEmployee
+        };
+        const OldExperience = {
+            id: experienceIndex,
+            jobTitle: jobTitle.trim(),
+            company: company.trim(),
+            description: description.trim(),
+            startDate,
+            endDate,
+            employeeId: idEmployee
         };
 
-        // Check if we are updating an existing experience or adding a new one
         if (typeof experienceIndex === 'number') {
-            updateExperience(newExperience, experienceIndex);
-        } else {
-            addNewExperience(newExperience);
-        }
+            try {
+                if (modalVisible) {
+                    const response = await BASE_API.put(`/experiences/${experienceIndex}`, OldExperience);
+                    setModalVisible(false);
+                    RootNavigation.pop();
+                } else {
+                    setModalVisible(true);
+                }
+            } catch (error) {
+                console.error('update Experiences', error);
+            }
 
-        RootNavigation.pop();
+        } else {
+            try {
+                if (modalVisible) {
+                    const response = await BASE_API.post(`/experiences/create`, newExperience);
+                    setModalVisible(false);
+                    RootNavigation.pop();
+                } else {
+                    setModalVisible(true);
+                }
+            } catch (error) {
+                console.error('Create Experiences', error);
+            }
+        }
     };
 
     const handleBack = () => {
         RootNavigation.pop();
     };
+
+    const handleCancel = () => {
+        setModalVisible(false);
+    };
+
+    const handleModal = () => {
+        setModalVisible(true);
+    };
+
+    const dismissKeyboard = () => {
+        Keyboard.dismiss();
+    };
+
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
-            <View style={{ flex: 1, marginHorizontal: 22 }}>
-                <View style={{ marginVertical: 22 }}>
-                    <TouchableOpacity onPress={handleBack}>
-                        <Ionicons name="arrow-back" size={24} color="black" style={{ marginRight: 10 }} />
-                    </TouchableOpacity>
-                    <Text style={{
-                        fontSize: 22,
-                        fontWeight: 'bold',
-                        marginVertical: 12,
-                        textAlign: 'center',
-                        color: colors.black
-                    }}>
-                        {typeof experienceIndex === 'number' ? 'Change work experience' : 'Add work experience'}
-                    </Text>
-                </View>
+        <TouchableWithoutFeedback onPress={dismissKeyboard}>
 
-
-                <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Vị trí</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={jobTitle}
-                        onChangeText={setJobTitle}
-                    />
-                </View>
-
-                <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Tên công ty</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={company}
-                        onChangeText={setCompany}
-                    />
-                </View>
-
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <View style={{ flex: 1, marginRight: 10 }}>
-                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Bắt đầu</Text>
-                        <TouchableOpacity onPress={() => setShowStartDatePicker(true)}>
-                            <TextInput
-                                style={styles.input}
-                                value={startDate.toString()}
-                                editable={false}
-                            />
+            <SafeAreaView style={{ flex: 1, backgroundColor: colors.grey_light }}>
+                <View style={{ flex: 1, marginHorizontal: 22 }}>
+                    <View style={{ marginVertical: 22 }}>
+                        <TouchableOpacity onPress={handleBack}>
+                            <Ionicons name="arrow-back" size={24} color="black" style={{ marginRight: 10 }} />
                         </TouchableOpacity>
-                        <DateTimePickerModal
-                            isVisible={showStartDatePicker}
-                            mode="date"
-                            onConfirm={handleStartDateConfirm}
-                            onCancel={() => setShowStartDatePicker(false)}
+                        <Text style={{
+                            fontSize: 22,
+                            fontWeight: '900',
+                            marginVertical: 12,
+                            textAlign: 'center',
+                            color: colors.black
+                        }}>
+                            {typeof experienceIndex === 'number' ? 'Chỉnh sửa kinh nghiệm' : 'Thêm kinh nghiệm'}
+                        </Text>
+                    </View>
+
+                    <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Vị trí <Text style={{ color: 'red' }}>(*)</Text></Text>
+                        <TextInput
+                            style={styles.input}
+                            value={jobTitle}
+                            onChangeText={setJobTitle}
                         />
                     </View>
-                    <View style={{ flex: 1, marginLeft: 10 }}>
-                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Kết thức</Text>
-                        <TouchableOpacity onPress={() => setShowEndDatePicker(true)}>
-                            <TextInput
-                                style={styles.input}
-                                value={endDate.toString()}
-                                editable={false}
-                            />
-                        </TouchableOpacity>
-                        <DateTimePickerModal
-                            isVisible={showEndDatePicker}
-                            mode="date"
-                            onConfirm={handleEndDateConfirm}
-                            onCancel={() => setShowEndDatePicker(false)}
+
+                    <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Tên công ty <Text style={{ color: 'red' }}>(*)</Text> </Text>
+                        <TextInput
+                            style={styles.input}
+                            value={company}
+                            onChangeText={setCompany}
                         />
                     </View>
-                </View>
-                <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                    <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Mô tả</Text>
-                    <TextInput
-                        style={styles.input1}
-                        value={description}
-                        onChangeText={setDescription}
-                        multiline
-                    />
-                </View>
 
-                <Button
-                    title="Save"
-                    filled
-                    onPress={handleSave}
-                    style={{
-                        marginTop: 18,
-                        marginBottom: 4,
-                        height: 52,
-                        width: 250,
-                        alignSelf: 'center'
-                    }}
-                />
-            </View>
-        </SafeAreaView>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                        <View style={{ flex: 1, marginRight: 10 }}>
+                            <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Bắt đầu <Text style={{ color: 'red' }}>(*)</Text></Text>
+                            <TouchableOpacity onPress={() => setShowStartDatePicker(true)}>
+                                <TextInput
+                                    style={styles.input}
+                                    value={startDate.toString()}
+                                    editable={false}
+                                />
+                            </TouchableOpacity>
+                            <DateTimePickerModal
+                                isVisible={showStartDatePicker}
+                                mode="date"
+                                onConfirm={handleStartDateConfirm}
+                                onCancel={() => setShowStartDatePicker(false)}
+                            />
+                        </View>
+                        <View style={{ flex: 1, marginLeft: 10 }}>
+                            <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Kết thúc <Text style={{ color: 'red' }}>(*)</Text></Text>
+                            <TouchableOpacity onPress={() => setShowEndDatePicker(true)}>
+                                <TextInput
+                                    style={styles.input}
+                                    value={endDate.toString()}
+                                    editable={false}
+                                />
+                            </TouchableOpacity>
+                            <DateTimePickerModal
+                                isVisible={showEndDatePicker}
+                                mode="date"
+                                onConfirm={handleEndDateConfirm}
+                                onCancel={() => setShowEndDatePicker(false)}
+                            />
+                        </View>
+                    </View>
+
+                    <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Mô tả</Text>
+                        <TextInput
+                            style={styles.input1}
+                            value={description}
+                            onChangeText={setDescription}
+                            multiline
+                        />
+                    </View>
+                    <View style={styles.saveButtonContainer}>
+                        <TouchableOpacity style={styles.saveButton} onPress={handleModal}>
+                            <Text style={styles.saveButtonText}>Lưu</Text>
+                        </TouchableOpacity>
+                    </View>
+                    <Modal
+                        animationType="slide"
+                        transparent={true}
+                        visible={modalVisible}
+                        onRequestClose={() => setModalVisible(false)}
+                    >
+                        <View style={styles.modalContainer}>
+                            <View style={styles.modalContent}>
+                                <Text style={styles.modalText}>
+                                    Bạn có chắc chắn muốn lưu?
+                                </Text>
+                                <View style={styles.buttonContainer}>
+                                    <TouchableOpacity style={styles.yesButton} onPress={handleSave}>
+                                        <Text style={styles.buttonText}>Có</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+                                        <Text style={styles.buttonText}>Không</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </View>
+                    </Modal>
+                </View>
+            </SafeAreaView>
+        </TouchableWithoutFeedback>
     )
 }
 
@@ -183,6 +243,66 @@ const styles = StyleSheet.create({
         textAlignVertical: 'top',
         borderWidth: 1,
         borderColor: colors.black,
+    },
+    saveButtonContainer: {
+        alignItems: 'center',
+    },
+    saveButton: {
+        backgroundColor: '#130160',
+        borderRadius: 10,
+        padding: 10,
+        height: 52,
+        width: 200,
+        alignItems: 'center',
+    },
+    saveButtonText: {
+        color: 'white',
+        fontSize: 18,
+    },
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        borderRadius: 10,
+        padding: 20,
+        width: '80%',
+    },
+    modalHeaderText: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    modalText: {
+        fontSize: 16,
+        marginBottom: 20,
+    },
+    yesButton: {
+        backgroundColor: '#130160',
+        borderRadius: 10,
+        padding: 15,
+        width: 90,
+        margin: 5,
+    },
+    cancelButton: {
+        backgroundColor: '#D6CDFE',
+        borderRadius: 10,
+        padding: 15,
+        width: 90,
+        margin: 5,
+    },
+    buttonText: {
+        color: 'white',
+        fontSize: 18,
+        textAlign: 'center',
     },
 });
 
