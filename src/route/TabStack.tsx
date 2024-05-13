@@ -20,6 +20,8 @@ import IncomingCall from '@/screens/chat/IncomingCall';
 import JoinScreen from '@/screens/chat/JoinScreen';
 import Notifications from '@/screens/chat/Notifications';
 import NotificationDetail from '@/screens/chat/NotificationDetail';
+import ProfileHandler from '@/screens/profile/ProfileHandler';
+import Company from '@/screens/profile/Company';
 import Test from '@/screens/chat/Test';
 import VideoStream from '@/screens/chat/VideoStream';
 import HomeScreen from '@/screens/Home/HomeScreen';
@@ -27,6 +29,11 @@ import SaveJob from '@/screens/Home/SaveJob';
 import NoSave from '@/screens/Home/NoSave';
 import SearchJob from '@/screens/Home/SearchJob';
 import Filter from '@/screens/Home/Filter';
+import AddJob from '@/screens/Home/AddJob';
+import Companyq from '@/screens/Home/Companyq';
+import AllJob from '@/screens/Home/AlllJob';
+import FindJob from '@/screens/Home/FindJob';
+import NoFind from '@/screens/Home/NoFind';
 
 
 const homeScreenStack = {
@@ -34,7 +41,7 @@ const homeScreenStack = {
     Description: Description,
     UploadCV: UploadCV,
     UploadCVSuccess: UploadCVSuccess,
-
+    AllJob: AllJob
 }
 
 const chatScreenStack = {
@@ -50,12 +57,15 @@ const chatScreenStack = {
 }
 
 const pofileScreenStack = {
-    Profile,
+    ProfileHandler,
     AboutMeScreen,
     Experience,
     Education,
     Certification,
-    Skill
+    Skill,
+    Company,
+    AddJob : AddJob,
+    Companyq: Companyq
 }
 
 const settingScreenStack = {
@@ -64,14 +74,19 @@ const settingScreenStack = {
     UpdatePassword: UpdatePassword,
     Login: Login,
     Notifications: Notifications,
-    NotificationDetail: NotificationDetail
+    NotificationDetail: NotificationDetail,
+    SaveJob: SaveJob,
+    NoSave: NoSave,
+    // SearchJob: SearchJob,
+    // Filter: Filter
 }
 
 const settingBookmarkStack = {
-    SaveJob: SaveJob,
-    NoSave: NoSave,
     SearchJob: SearchJob,
-    Filter: Filter
+    Filter: Filter,
+    AllJob: AllJob,
+    FindJob: FindJob,
+    NoFind: NoFind
 }
 
 const Stack = createStackNavigator();
@@ -81,7 +96,7 @@ const HomeStack = ({ navigation, route }: any) => {
 
     useLayoutEffect(() => {
         const routeName = getFocusedRouteNameFromRoute(route);
-        if (routeName === 'HomeScreen' || routeName == undefined) {
+        if (routeName === 'HomeScreen' || routeName === 'SearchJob' || routeName == undefined) {
             dispatch(showTabBar());
         } else {
             dispatch(hideTabBar());

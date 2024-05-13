@@ -17,7 +17,7 @@ const NoSave = () => {
                 </View>
             </View>
             <Image source={require('../../assets/nosave.png')} style={styles.image}></Image>
-            <TouchableOpacity style={styles.button} onPress={() => RootNavigation.navigate('SearchJob')}>
+            <TouchableOpacity style={styles.button} >
                 <Text style={{color: '#ffffff', fontWeight: '500'}}>
                     TÌM KIẾM VIỆC LÀM
                 </Text>
@@ -25,6 +25,7 @@ const NoSave = () => {
         </SafeAreaView>
     )
 }
+// onPress={() => RootNavigation.navigate('SearchJob')}
 
 const styles = StyleSheet.create({
     container: {

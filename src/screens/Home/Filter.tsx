@@ -5,6 +5,8 @@ import MultiSlider from "@ptomasroos/react-native-multi-slider";
 import SliderCustomLabel from "../../components/SliderCustomLabel";
 import { useNavigation } from '@react-navigation/native';
 import { Dropdown } from 'react-native-element-dropdown';
+import { BASE_API } from '../../services/BaseApi';
+import RootNavigation from "@/route/RootNavigation";
 
 
 const { height: heightScreen } = Dimensions.get('window');
@@ -16,11 +18,47 @@ const textTransformer = (value: any) => {
 const TIME = { min: 0, max: 50 }
 const SliderPad = 12;
 
+export default function Filter() {
 
-const DoubleSlider = ({ }) => {
+    const jobType = [
+        {
+            id: 1,
+            title: 'On-site',
+        },
+
+        {
+            id: 2,
+            title: 'Hybird',
+        },
+
+        {
+            id: 3,
+            title: 'Remote',
+        },
+    ]
+
     const { min, max } = TIME;
     const [width, setWidth] = useState(280);
     const [selected, setSelected] = useState(null);
+    const [text, setText] = useState('');
+    const [text2, setText2] = useState('');
+    const [selectedWorkType, setSelectedWorkType] = useState('');
+    const [value, setValue] = useState('');
+    const [isFocus, setIsFocus] = useState(false);
+    const [foundWork, setFoundWork] = useState([])
+
+    const handleSelectJobType = (jobType) => {
+        setSelectedWorkType(jobType);
+    };
+
+    const handleChangeText = (inputText) => {
+        setText(inputText);
+    }
+
+    const handleChangeText2 = (inputText) => {
+        setText2(inputText);
+    }
+    console.log(text)
 
     if (!selected) {
         setSelected([min, max]);
@@ -31,58 +69,16 @@ const DoubleSlider = ({ }) => {
     };
     const onValuesChangeFinish = (values: any) => {
         setSelected(values);
+        // console.log(values[0])
     };
 
-    return (
-        <View onLayout={onLayout} style={styles.wrapper}>
-            <MultiSlider
-                min={min}
-                max={max}
-                allowOverlap
-                values={selected}
-                sliderLength={width}
-                onValuesChangeFinish={onValuesChangeFinish}
-                enableLabel={true}
-                customLabel={SliderCustomLabel(textTransformer)}
-                trackStyle={{
-                    height: 3,
-                    borderRadius: 8,
-                }}
-                markerOffsetY={3}
-                selectedStyle={{
-                    backgroundColor: "#FF9228",
-                }}
-                unselectedStyle={{
-                    backgroundColor: "#CCC4C2",
-                }}
-
-                markerStyle={{
-                    height: 20,
-                    width: 20,
-                    borderRadius: 10,
-                    backgroundColor: "#FFFFFF",
-                    borderWidth: 3,
-                    borderColor: "#000000",
-                }}
-            />
-        </View>
-    );
-}
-
-const DropDownList = () => {
-
-    const [value, setValue] = useState(null);
-    const [isFocus, setIsFocus] = useState(false);
-
     const data = [
-        { label: 'Item 1', value: '1' },
-        { label: 'Item 2', value: '2' },
-        { label: 'Item 3', value: '3' },
-        { label: 'Item 4', value: '4' },
-        { label: 'Item 5', value: '5' },
-        { label: 'Item 6', value: '6' },
-        { label: 'Item 7', value: '7' },
-        { label: 'Item 8', value: '8' },
+        { label: 'Design', value: 'Design' },
+        { label: 'Finance', value: 'Finance' },
+        { label: 'Education', value: 'Education' },
+        { label: 'Retaurant', value: 'Retaurant' },
+        { label: 'Health', value: 'Health' },
+        { label: 'Programmer', value: 'Programmer' }
     ];
 
     const renderItem = item => {
@@ -101,70 +97,50 @@ const DropDownList = () => {
         );
     };
 
-    return (
-        <Dropdown
-            style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
-            placeholderStyle={styles.placeholderStyle}
-            selectedTextStyle={styles.selectedTextStyle}
-            inputSearchStyle={styles.inputSearchStyle}
-            iconStyle={styles.iconStyle}
-            data={data}
-            search
-            maxHeight={300}
-            labelField="label"
-            valueField="value"
-            placeholder={!isFocus ? 'Tìm kiếm' : '...'}
-            searchPlaceholder="Search..."
-            value={value}
-            onFocus={() => setIsFocus(true)}
-            onBlur={() => setIsFocus(false)}
-            onChange={item => {
-                setValue(item.value);
-                setIsFocus(false);
-            }}
-            // renderLeftIcon={() => (
-            //     // <AntDesign
-            //     //     style={styles.icon}
-            //     //     color={isFocus ? 'blue' : 'black'}
-            //     //     name="Safety"
-            //     //     size={20}
-            //     // />
-            // )}
-            renderItem={renderItem}
-        />
-    )
-}
-
-
-export default function Filter() {
-
-    const jobType = [
-        {
-            index: 1,
-            title: 'On-site',
-        },
-
-        {
-            index: 2,
-            title: 'Hybird',
-        },
-
-        {
-            index: 3,
-            title: 'Remote',
-        },
-    ]
-
     const navigation = useNavigation();
     const [chosenCheckBox, setChosenCheckBox] = useState(-1);
+    const [typeJob, setTypeJob] = useState('')
 
-    const handleCheckBoxIndex = (index: any) => {
+
+    const handleCheckBoxIndex = (index: number) => {
         setChosenCheckBox(index === chosenCheckBox ? -1 : index);
+        setTypeJob(jobType[index - 1].title)
     }
 
     const reset = () => {
         setChosenCheckBox(-1)
     }
+
+    const filter = async () => {
+        try {
+            const response = await BASE_API.get(`/companies/search-work`, {
+                params: {
+                    jobPosition: text2,
+                    typeWork: selectedWorkType,
+                    jobLocation: text,
+                    typeJob: typeJob,
+                    minWage: selected[0],
+                    maxWage: selected[1],
+                    specialize: value,
+                }
+            });
+            console.log(response.data);
+            setFoundWork(response.data)
+            setTimeout(() => {
+                RootNavigation.navigate('FindJob', {foundwork: response.data});
+            }, 1000); 
+        } catch (error) {
+            console.error('Failed to fetch quantity:', error);
+            throw error;
+        }
+    };
+    // console.log(value)
+    // console.log(text)
+    // console.log(typeJob)
+    // console.log(selectedWorkType)
+    // console.log(value)
+    // console.log(selected[0])
+    // console.log(selected[1])
 
     return (
         <View style={{ backgroundColor: '#F5F5F5', height: '100%', justifyContent: 'space-between' }}>
@@ -176,46 +152,125 @@ export default function Filter() {
                     <Text style={{ color: '#150B3D', fontSize: 22, fontWeight: '600', textAlign: 'center', width: '100%' }}>Filter</Text>
                 </View>
                 <Text style={styles.text}>Chuyên môn</Text>
-                <DropDownList></DropDownList>
+                <Dropdown
+                    style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
+                    placeholderStyle={styles.placeholderStyle}
+                    selectedTextStyle={styles.selectedTextStyle}
+                    inputSearchStyle={styles.inputSearchStyle}
+                    iconStyle={styles.iconStyle}
+                    data={data}
+                    search
+                    maxHeight={300}
+                    labelField="label"
+                    valueField="value"
+                    placeholder={!isFocus ? 'Tìm kiếm' : '...'}
+                    searchPlaceholder="Search..."
+                    value={value}
+                    onFocus={() => setIsFocus(true)}
+                    onBlur={() => setIsFocus(false)}
+                    onChange={item => {
+                        setValue(item.value);
+                        setIsFocus(false);
+                    }}
+                    // renderLeftIcon={() => (
+                    //     // <AntDesign
+                    //     //     style={styles.icon}
+                    //     //     color={isFocus ? 'blue' : 'black'}
+                    //     //     name="Safety"
+                    //     //     size={20}
+                    //     // />
+                    // )}
+                    renderItem={renderItem}
+                />
 
                 <Text style={styles.text}>Nghề nghiệp</Text>
-                <DropDownList></DropDownList>
-
-                <Text style={styles.text}>Location</Text>
                 <View style={{ height: 45, borderWidth: 0.5, borderRadius: 10, width: '95%', alignSelf: 'center', borderColor: 'gray', justifyContent: 'center' }}>
-                    <TextInput style={{ marginLeft: 5 }}></TextInput>
+                    <TextInput
+                        style={{ marginLeft: 5 }}
+                        onChangeText={handleChangeText2}
+                        value={text2}
+                    />
+                </View>
+
+                <Text style={styles.text}>Địa chỉ</Text>
+                <View style={{ height: 45, borderWidth: 0.5, borderRadius: 10, width: '95%', alignSelf: 'center', borderColor: 'gray', justifyContent: 'center' }}>
+                    <TextInput
+                        style={{ marginLeft: 5 }}
+                        onChangeText={handleChangeText}
+                        value={text}
+                    />
                 </View>
                 <View>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                         <Text style={styles.text}>Lương thấp nhất</Text>
                         <Text style={styles.text}>Lương cao nhất</Text>
                     </View>
-                    <DoubleSlider />
+                    <View onLayout={onLayout} style={styles.wrapper}>
+                        <MultiSlider
+                            min={min}
+                            max={max}
+                            allowOverlap
+                            values={selected}
+                            sliderLength={width}
+                            onValuesChangeFinish={onValuesChangeFinish}
+                            enableLabel={true}
+                            customLabel={SliderCustomLabel(textTransformer)}
+                            trackStyle={{
+                                height: 3,
+                                borderRadius: 8,
+                            }}
+                            markerOffsetY={3}
+                            selectedStyle={{
+                                backgroundColor: "#FF9228",
+                            }}
+                            unselectedStyle={{
+                                backgroundColor: "#CCC4C2",
+                            }}
+
+                            markerStyle={{
+                                height: 20,
+                                width: 20,
+                                borderRadius: 10,
+                                backgroundColor: "#FFFFFF",
+                                borderWidth: 3,
+                                borderColor: "#000000",
+                            }}
+                        />
+                    </View>
                 </View>
 
                 <Text style={styles.text}>Loại hình làm việc</Text>
-                <View style={{ flexDirection: 'row', justifyContent: "space-between", alignItems: 'center' }}>
-                    <View style={styles.textJobType}>
-                        <Text style={{ fontSize: 13 }}>Full time</Text>
-                    </View >
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <TouchableOpacity
+                        style={[styles.textJobType, selectedWorkType === 'Full-time' && styles.selectedJobType]}
+                        onPress={() => handleSelectJobType('Full-time')}
+                    >
+                        <Text style={styles.text}>Full time</Text>
+                    </TouchableOpacity>
 
-                    <View style={styles.textJobType}>
-                        <Text style={{ fontSize: 13 }}>Past time</Text>
-                    </View>
+                    <TouchableOpacity
+                        style={[styles.textJobType, selectedWorkType === 'Past time' && styles.selectedJobType]}
+                        onPress={() => handleSelectJobType('Past time')}
+                    >
+                        <Text style={styles.text}>Past time</Text>
+                    </TouchableOpacity>
 
-                    <View style={styles.textJobType}>
-                        <Text style={{ fontSize: 13 }}>Remote</Text>
-                    </View>
+                    <TouchableOpacity
+                        style={[styles.textJobType, selectedWorkType === 'Remote' && styles.selectedJobType]}
+                        onPress={() => handleSelectJobType('Remote')}
+                    >
+                        <Text style={styles.text}>Remote</Text>
+                    </TouchableOpacity>
                 </View>
 
-                <Text style={styles.text}>Loại hình làm việc</Text>
+                <Text style={styles.text}>Nơi làm việc</Text>
                 {jobType.map((type, index) => (
-                    <View style={{ flexDirection: 'row', columnGap: 10, alignItems: 'center' }} key={type.index}>
-                        <TouchableOpacity onPress={() => handleCheckBoxIndex(type.index)}>
+                    <View style={{ flexDirection: 'row', columnGap: 10, alignItems: 'center' }} key={index}>
+                        <TouchableOpacity onPress={() => handleCheckBoxIndex(type.id)}>
                             <MaterialIcons
-                                name={chosenCheckBox === type.index ? "radio-button-checked" : "radio-button-unchecked"}
+                                name={chosenCheckBox === type.id ? "radio-button-checked" : "radio-button-unchecked"}
                                 size={24}
-                                color={chosenCheckBox === type.index ? "#FF9228" : "#524B6B"}
+                                color={chosenCheckBox === type.id ? "#FF9228" : "#524B6B"}
                             />
                         </TouchableOpacity>
                         <View style={{ rowGap: 5 }}>
@@ -233,14 +288,15 @@ export default function Filter() {
                 marginHorizontal: 20,
                 // position: 'absolute',
                 // bottom: 0,
+                paddingBottom: 5,
                 columnGap: 10,
                 alignSelf: 'center'
             }}>
                 <TouchableOpacity style={[styles.buttonApply, { backgroundColor: '#FFF', width: '30%' }]} onPress={reset}>
                     <Text style={{ color: 'red' }}>Reset</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.buttonApply, { backgroundColor: '#130160', width: '68%' }]}>
-                    <Text style={{ color: '#FFF' }}>Apply now</Text>
+                <TouchableOpacity style={[styles.buttonApply, { backgroundColor: '#130160', width: '68%' }]} onPress={() => filter()}>
+                    <Text style={{ color: '#FFF' }}>Tìm kiếm ngay</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -325,7 +381,7 @@ const styles = StyleSheet.create({
     },
 
     textJobType: {
-        backgroundColor: '#FFD6AD',
+        backgroundColor: '#FFFFFF',
         paddingVertical: 8,
         paddingHorizontal: 35,
         borderRadius: 6,
@@ -336,5 +392,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 15
+    },
+
+    selectedJobType: {
+        backgroundColor: '#FFD6AD',
     }
 });

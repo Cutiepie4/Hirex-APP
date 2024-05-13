@@ -1,60 +1,69 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Image, TextInput, Platform } from 'react-native';
-import { MaterialCommunityIcons, FontAwesome5, Ionicons } from '@expo/vector-icons';
+import React, { useState, useCallback } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, Image, TextInput, Dimensions, Modal } from 'react-native';
+import { MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useActionSheet } from '@expo/react-native-action-sheet';
-import RootNavigation from '../../route/RootNavigation';
-import Container from '../../components/Container';
-import { deepPurple } from '../../styles/styles'
-import { colors } from '@/theme'
+import { useFocusEffect } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { SafeAreaView } from "react-native-safe-area-context";
-import Button from '../../components/Button';
+import { BASE_API } from '../../services/BaseApi';
+import { RootReducer } from '@/redux/store/reducer';
+import { colors } from '@/theme';
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import BACKGROUND from '../../assets/images/background.jpg'
+import Toast from 'react-native-toast-message';
+import { Ionicons } from '@expo/vector-icons';
+import RootNavigation from '../../route/RootNavigation';
+const { height } = Dimensions.get('window');
 
 const Account = ({ route }) => {
-
-    const [date, setDate] = useState(new Date());
-    const [show, setShow] = useState(false);
-    const [gender, setGender] = useState('female');
-    const [image, setImage] = useState(null);
+    const { userId, phoneNumber } = useSelector((state: RootReducer) => state.authReducer);
     const { showActionSheetWithOptions } = useActionSheet();
-    const [isEditing, setIsEditing] = useState(true);
+    const [user, setUser] = useState(null);
+    const [image, setImage] = useState(null);
+    const [fullName, setFullName] = useState('');
+    const [birthday, setBirthday] = useState('');
+    const [email, setEmail] = useState('');
+    const [address, setAddress] = useState('');
+    const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
 
-    useEffect(() => {
-        const mockData = {
-            fullName: 'Nguyễn Phúc Quân',
-            birthDate: new Date('2002-04-19'),
-            gender: 'male',
-            email: 'quan@example.com',
-            phoneNumber: '0123456789',
-            address: '123 Đường Lý Thường Kiệt, Quận 10, TP.HCM',
-        };
+    const getUser = async () => {
+        try {
+            const response = await BASE_API.get(`/users/${userId}`);
+            const fetchedUser = response.data;
+            setUser(fetchedUser);
+            setFullName(fetchedUser.fullName);
+            setBirthday(fetchedUser.dateOfBirth);
+            setEmail(fetchedUser.mail);
+            setAddress(fetchedUser.address);
 
-        if (mockData.fullName) {
-            setUserData(mockData);
-            setDate(new Date(mockData.birthDate));
-            setGender(mockData.gender);
-            // setIsEditing(false);
+            console.log(fetchedUser.fullName)
+            const imageData = fetchedUser.imageBase64;
+            if (imageData) {
+                const uri = `data:image;base64,${imageData}`;
+                setImage(uri);
+            } else {
+                setImage(null);
+            }
+        } catch (error) {
+            console.error('Failed to fetch user:', error);
         }
-    }, []);
-
-    const toggleEditing = () => {
-        setIsEditing(!isEditing);
     };
-    const [userData, setUserData] = useState({
-        fullName: '',
-        birthDate: new Date(),
-        gender: 'male',
-        email: '',
-        phoneNumber: '',
-        address: '',
-    });
 
-    const onChange = (event, selectedDate) => {
-        const currentDate = selectedDate || date;
-        setShow(Platform.OS === 'ios');
-        setDate(currentDate);
+    const handleStartDateConfirm = (selectedDate) => {
+        setShowStartDatePicker(false);
+        const formattedDate = selectedDate.getDate() + '/' + (selectedDate.getMonth() + 1) + '/' + selectedDate.getFullYear();
+        setBirthday(formattedDate);
     };
+
+    useFocusEffect(
+        useCallback(() => {
+            getUser();
+            return () => {
+            };
+        }, [userId])
+    );
 
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
@@ -86,9 +95,6 @@ const Account = ({ route }) => {
             setImage(result.assets[0].uri);
         }
     };
-    const handleSave = () => {
-        RootNavigation.navigate('ChooseRole');
-    };
 
     const showImagePickerOptions = () => {
         const options = ['Chụp ảnh', 'Chọn ảnh từ thư viện', 'Hủy bỏ'];
@@ -113,248 +119,160 @@ const Account = ({ route }) => {
         );
     };
 
+    const handleSave = async () => {
+        try {
+            setModalVisible(false);
+            console.log(phoneNumber);
+            console.log(fullName);
+            console.log(email);
+            console.log(birthday);
+            console.log(address);
+
+            const response = await BASE_API.put("users/updateUser", {
+                phoneNumber: phoneNumber,
+                fullName: fullName,
+                dateOfBirth: birthday,
+                mail: email,
+                address: address
+            });
+            const data = response.data;
+            Toast.show({
+                type: 'success',
+                props: {
+                    title: 'Lưu thành công',
+                },
+            });
+        } catch (error) {
+            console.error('Failed to update user:', error);
+            // Handle error
+        }
+    };
+
+    const handleModal = () => {
+        setModalVisible(true);
+    };
+
+    const handleCancel = () => {
+        setModalVisible(false);
+    };
+
+    const handleBack = () => {
+        RootNavigation.pop();
+    };
+
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
             <View style={styles.container}>
                 <View style={styles.header}>
-                    <Image source={BACKGROUND} style={{ height: 140, width: '100%', position: 'absolute', top: 0 }}></Image>
+                    <Image source={BACKGROUND} style={{ height: height / 6.2, width: '100%', position: 'absolute', top: 0 }}></Image>
+                    <TouchableOpacity style={{left: 10}} onPress={handleBack}>
+                        <Ionicons name="arrow-back" size={25} color="black" style={{ marginRight: 10 }} />
+                    </TouchableOpacity>
                     <View style={styles.profileContainer}>
                         {image ? (
                             <Image source={{ uri: image }} style={styles.profileImage} />
                         ) : (
-                            <MaterialCommunityIcons name="account-circle" size={90} color="black" style={{ marginLeft: 15 }} />
+                            <MaterialCommunityIcons name="account-circle" size={100} color="black" style={{ marginLeft: '5%', position: 'absolute', top: -38 }} />
                         )}
                     </View>
                     <TouchableOpacity style={styles.cameraIcon} onPress={showImagePickerOptions}>
                         <FontAwesome5 name="camera" size={15} color="white" />
                     </TouchableOpacity>
                     <View style={styles.nameRoleContainer}>
-                        <Text style={styles.name}>Nguyễn Quân</Text>
+                        <Text style={styles.name}>{fullName}</Text>
                         <Text style={styles.role}>Applicant</Text>
                     </View>
                 </View>
-                <View style={{ marginHorizontal: 10, paddingTop: 20 }}>
+                <View style={{ marginHorizontal: 10, paddingTop: 50 }}>
                     <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 13, color: colors.black, marginBottom: 8, fontWeight: '900' }}>
-                            Họ và tên
-                        </Text>
-                        <View style={{
-                            width: "100%",
-                            height: 48,
-                            borderColor: colors.black,
-                            borderWidth: 1,
-                            borderRadius: 8,
-                            alignItems: "center",
-                            justifyContent: "center",
-                            paddingLeft: 22
-                        }}>
+                        <Text style={styles.label}>Họ và tên</Text>
+                        <View style={styles.input}>
                             <TextInput
-                                value={userData.fullName}
-                                onChangeText={(text) => setUserData({ ...userData, fullName: text })}
+                                value={fullName}
+                                onChangeText={setFullName}
                                 placeholder='Họ và tên'
-                                editable={!isEditing}
                                 placeholderTextColor={colors.black}
-                                style={{
-                                    width: "100%"
-                                }}
+                                style={styles.inputText}
                             />
                         </View>
                     </View>
-                    <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 13, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Ngày Sinh</Text>
-                        <View style={{
-                            flexDirection: 'row',
-                            width: '100%',
-                            height: 48,
-                            borderColor: colors.black,
-                            borderWidth: 1,
-                            borderRadius: 8,
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            paddingLeft: 22,
-                            paddingRight: 10
-                        }}>
-                            <Text>{date.toLocaleDateString()}</Text>
-                            <TouchableOpacity onPress={() => setShow(true)} disabled={isEditing}>
-                                <Ionicons name="calendar" size={24} color={colors.black} />
+                    <View style={{ flexDirection: 'row', marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                        <View style={{ flex: 1, marginRight: 10 }}>
+                            <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Ngày sinh</Text>
+                            <TouchableOpacity onPress={() => setShowStartDatePicker(true)}>
+                                <View style={{
+                                    width: "39%",
+                                    height: 48,
+                                    borderColor: colors.black,
+                                    borderWidth: 1,
+                                    borderRadius: 8,
+                                    justifyContent: "center",
+                                    paddingLeft: 22
+                                }}>
+                                    <TextInput
+                                        value={birthday}
+                                    />
+                                </View>
                             </TouchableOpacity>
-                        </View>
-                        {/* {show && (
-                                <DateTimePicker
-                                    testID="dateTimePicker"
-                                    value={date}
-                                    //   mode={mode}
-                                    is24Hour={true}
-                                    display="default"
-                                    onChange={onChange}
-                                />
-                            )} */}
-                    </View>
-                    <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 13, color: colors.black, marginBottom: 8, fontWeight: '900' }}> Giới tính </Text>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                            <View style={{
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                borderColor: colors.black,
-                                borderWidth: 1,
-                                borderRadius: 8,
-                                padding: 10
-                            }}>
-                                <TouchableOpacity style={{
-                                    height: 24,
-                                    width: 24,
-                                    borderRadius: 12,
-                                    borderWidth: 2,
-                                    borderColor: '#000',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    marginRight: 15,
-                                    opacity: !isEditing ? 1 : 0.5 // Làm mờ nút khi không ở chế độ chỉnh sửa
-
-                                }}
-                                    onPress={() => setGender('male')}>
-                                    {
-                                        gender === 'male' ?
-                                            <View style={{
-                                                height: 12,
-                                                width: 12,
-                                                borderRadius: 6,
-                                                backgroundColor: '#000',
-                                            }} />
-                                            : null
-                                    }
-                                </TouchableOpacity>
-                                <Text>Name</Text>
-                            </View>
-
-                            <View style={{
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                borderColor: colors.black,
-                                borderWidth: 1,
-                                borderRadius: 8,
-                                padding: 10
-                            }}>
-                                <TouchableOpacity style={{
-                                    height: 24,
-                                    width: 24,
-                                    borderRadius: 12,
-                                    borderWidth: 2,
-                                    borderColor: '#000',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    marginRight: 15,
-                                    opacity: !isEditing ? 1 : 0.5 // Làm mờ nút khi không ở chế độ chỉnh sửa
-                                }}
-                                    onPress={() => setGender('female')}>
-                                    {
-                                        gender === 'female' ?
-                                            <View style={{
-                                                height: 12,
-                                                width: 12,
-                                                borderRadius: 6,
-                                                backgroundColor: '#000',
-                                            }} />
-                                            : null
-                                    }
-                                </TouchableOpacity>
-                                <Text>Nữ</Text>
-                            </View>
+                            <DateTimePickerModal
+                                isVisible={showStartDatePicker}
+                                mode="date"
+                                onConfirm={handleStartDateConfirm}
+                                onCancel={() => setShowStartDatePicker(false)}
+                            />
                         </View>
                     </View>
                     <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 13, color: colors.black, marginBottom: 8, fontWeight: '900' }}>
-                            Email
-                        </Text>
-                        <View style={{
-                            width: "100%",
-                            height: 48,
-                            borderColor: colors.black,
-                            borderWidth: 1,
-                            borderRadius: 8,
-                            alignItems: "center",
-                            justifyContent: "center",
-                            paddingLeft: 22
-                        }}>
+                        <Text style={styles.label}>Email</Text>
+                        <View style={styles.input}>
                             <TextInput
-                                value={userData.email}
-                                onChangeText={(text) => setUserData({ ...userData, email: text })}
+                                value={email}
+                                onChangeText={setEmail}
                                 placeholder='Email'
-                                editable={!isEditing}
                                 placeholderTextColor={colors.black}
-                                style={{ width: "100%" }}
+                                style={styles.inputText}
                             />
                         </View>
                     </View>
                     <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 13, color: colors.black, marginBottom: 8, fontWeight: '900' }}>
-                            Số điện thoại
-                        </Text>
-                        <View style={{
-                            width: "100%",
-                            height: 48,
-                            borderColor: colors.black,
-                            borderWidth: 1,
-                            borderRadius: 8,
-                            alignItems: "center",
-                            justifyContent: "center",
-                            paddingLeft: 22
-                        }}>
+                        <Text style={styles.label}>Địa chỉ</Text>
+                        <View style={styles.input}>
                             <TextInput
-                                value={userData.phoneNumber}
-                                onChangeText={(text) => setUserData({ ...userData, phoneNumber: text })}
-                                placeholder='Số điện thoại'
-                                editable={!isEditing}
-                                placeholderTextColor={colors.black}
-                                style={{ width: "100%" }}
-                            />
-                        </View>
-                    </View>
-                    <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 13, color: colors.black, marginBottom: 8, fontWeight: '900' }}>
-                            Địa chỉ
-                        </Text>
-                        <View style={{
-                            width: "100%",
-                            height: 48,
-                            borderColor: colors.black,
-                            borderWidth: 1,
-                            borderRadius: 8,
-                            alignItems: "center",
-                            justifyContent: "center",
-                            paddingLeft: 22
-                        }}>
-                            <TextInput
-                                value={userData.address}
-                                onChangeText={(text) => setUserData({ ...userData, address: text })}
+                                value={address}
+                                onChangeText={setAddress}
                                 placeholder='Địa chỉ'
-                                editable={!isEditing}
                                 placeholderTextColor={colors.black}
-                                style={{ width: "100%" }}
+                                style={styles.inputText}
                             />
                         </View>
                     </View>
-
-                    <Button
-                        title={isEditing ? "Edit" : "Save"}
-                        filled
-                        onPress={() => {
-                            if (isEditing) {
-                                // Implement update logic here
-                            } else {
-                                // Implement save logic here
-                            }
-                            toggleEditing()
-                        }}
-                        style={{
-                            marginTop: 18,
-                            marginBottom: 4,
-                            height: 52,
-                            width: 250,
-                            alignSelf: 'center'
-                        }}
-                    />
+                    <View style={styles.saveButtonContainer}>
+                        <TouchableOpacity style={styles.saveButton} onPress={handleModal}>
+                            <Text style={styles.saveButtonText}>Lưu</Text>
+                        </TouchableOpacity>
+                    </View>
+                    <Modal
+                        animationType="slide"
+                        transparent={true}
+                        visible={modalVisible}
+                        onRequestClose={() => setModalVisible(false)}
+                    >
+                        <View style={styles.modalContainer1}>
+                            <View style={styles.modalContent1}>
+                                <Text style={styles.modalText}>
+                                    Bạn có chắc chắn muốn lưu?
+                                </Text>
+                                <View style={styles.buttonContainer}>
+                                    <TouchableOpacity style={styles.yesButton} onPress={handleSave}>
+                                        <Text style={styles.buttonText}>Có</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+                                        <Text style={styles.buttonText}>Không</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </View>
+                    </Modal>
                 </View>
             </View>
         </SafeAreaView>
@@ -364,64 +282,116 @@ const Account = ({ route }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        // backgroundColor: 'red'
+        backgroundColor: '#f2f2f2',
     },
     header: {
-
-        // flexDirection: 'row',
-        // justifyContent: 'flex-start', // Align items to the start of the container
-        // alignItems: 'center', // Center items vertically
-        // backgroundColor: '#6c5ce7',
-        // paddingHorizontal: 50,
-        paddingVertical: 25,
+        paddingVertical: '16%',
     },
     profileContainer: {
-        // justifyContent: 'center',
-        // alignItems: 'center',
-        position: 'relative',
-        top: 5,
+        position: 'absolute',
+        top: 50,
+        left: 15,
     },
     cameraIcon: {
         backgroundColor: 'grey',
         borderRadius: 30,
         padding: 10,
-        position: 'absolute', // Position the camera icon absolutely
-        left: 75, // Adjust according to your needs
-        top: 78, // Adjust based on the size of the profile image and header height
+        position: 'absolute',
+        left: 80,
+        top: 65,
     },
-
     profileImage: {
+        marginLeft: '6%',
         width: 80,
         height: 80,
         borderRadius: 60,
+        top: -30
     },
     nameRoleContainer: {
-        alignItems: 'center',
-        marginTop: -60,
+        position: 'absolute',
+        top: 30,
+        left: 150
     },
     name: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: 'black',
+        color: 'white',
     },
     role: {
         fontSize: 16,
         color: 'black',
-        // marginVertical: 10,
-    },
-    inputContainer: {
-        marginTop: 30,
-        paddingHorizontal: 20,
-        marginBottom: 12,
     },
     input: {
-        width: '100%',
+        width: "100%",
         height: 48,
         borderColor: colors.black,
         borderWidth: 1,
         borderRadius: 8,
-        paddingLeft: 22,
+        justifyContent: "center",
+        paddingLeft: 22
+    },
+    inputText: {
+        width: "100%",
+    },
+    label: {
+        fontSize: 13,
         color: colors.black,
+        marginBottom: 8,
+        fontWeight: '900'
+    },
+    saveButton: {
+        backgroundColor: '#130160',
+        borderRadius: 10,
+        padding: 10,
+        height: 52,
+        width: 200,
+        alignItems: 'center',
+    },
+    saveButtonText: {
+        color: 'white',
+        fontSize: 18,
+    },
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+    },
+    saveButtonContainer: {
+        alignItems: 'center',
+    },
+    modalContainer1: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent1: {
+        backgroundColor: 'white',
+        borderRadius: 10,
+        padding: 20,
+        width: '80%',
+    },
+    modalText: {
+        fontSize: 16,
+        marginBottom: 20,
+    },
+    yesButton: {
+        backgroundColor: '#130160',
+        borderRadius: 10,
+        padding: 15,
+        width: 90,
+        margin: 5,
+    },
+    cancelButton: {
+        backgroundColor: '#D6CDFE',
+        borderRadius: 10,
+        padding: 15,
+        width: 90,
+        margin: 5,
+    },
+    buttonText: {
+        color: 'white',
+        fontSize: 18,
+        textAlign: 'center',
     },
 });
 

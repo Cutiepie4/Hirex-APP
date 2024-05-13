@@ -16,7 +16,7 @@ const Signup = () => {
     const [password, setPassword] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [retryPassword, setRetryPassword] = useState('');
-
+    
 
     const handleSigupPress = () => {
         RootNavigation.navigate('ChooseRole', {
@@ -122,7 +122,7 @@ const Signup = () => {
                     }}
                 />
 
-                <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+                {/* <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
                     <TouchableOpacity
                         onPress={() => console.log('Pressed')}
                         style={{
@@ -147,7 +147,7 @@ const Signup = () => {
                         />
                         <Text style={{ fontSize: 15, fontWeight: '900', marginVertical: 12, color: colors.black }}>Đăng nhập với Google</Text>
                     </TouchableOpacity>
-                </View>
+                </View> */}
 
                 <View style={{
                     flexDirection: "row",

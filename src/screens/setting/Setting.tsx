@@ -1,24 +1,29 @@
 import React from 'react';
 import { View, Text, Switch, TouchableOpacity, StyleSheet, Modal, Pressable } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import RootNavigation from '../../route/RootNavigation';
 import { useDispatch } from 'react-redux';  // Import thêm useDispatch từ redux
-import { logout } from '../../redux/slice/authSlice';
+import { logout, showLoading } from '../../redux/slice/authSlice';
 import { clearChatRoom } from '@/redux/slice/chatSlice';
+import { useSelector } from 'react-redux';
+import { RootReducer } from '@/redux/store/reducer';
 
 const Setting = () => {
     const [isEnabled, setIsEnabled] = React.useState(false);
     const [modalVisible, setModalVisible] = React.useState(false);
     const toggleSwitch = () => setIsEnabled(previousState => !previousState);
     const dispatch = useDispatch();
+    const { userId, phoneNumber, role } = useSelector((state: RootReducer) => state.authReducer)
 
     const confirmLogout = () => {
         dispatch(logout()); // Dispatch action logout
+
         dispatch(clearChatRoom());
         // RootNavigation.popToTop(); // Điều hướng về màn hình đăng nhập
         RootNavigation.navigate('Login');
     };
+    // console.log(role)
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
@@ -29,7 +34,7 @@ const Setting = () => {
                     <View style={styles.settingItem}>
                         <TouchableOpacity onPress={() => RootNavigation.navigate('Notifications')} style={{ flex: 1, flexDirection: 'row' }}>
                             <Ionicons name="notifications-outline" size={24} color="black" />
-                            <Text style={styles.settingText}>Notifications</Text>
+                            <Text style={styles.settingText}>Thông báo</Text>
                         </TouchableOpacity>
                         <Switch
                             trackColor={{ false: "#767577", true: 'green' }}
@@ -48,11 +53,20 @@ const Setting = () => {
                         <Ionicons name="chevron-forward-outline" size={24} color="black" />
                     </TouchableOpacity>
                 </View>
+                {role === 'user' &&
+                    <View style={styles.settingSection}>
+                        <TouchableOpacity style={styles.settingItem} onPress={() => RootNavigation.navigate('SaveJob')}>
+                            <FontAwesome name="bookmark-o" size={24} color="black" />
+                            <Text style={styles.settingText}> Công việc lưu trữ</Text>
+                            <Ionicons name="chevron-forward-outline" size={24} color="black" />
+                        </TouchableOpacity>
+                    </View>
+                }
 
                 <View style={styles.settingSection}>
                     <TouchableOpacity style={styles.settingItem} onPress={() => RootNavigation.navigate('UpdatePassword')}>
                         <Ionicons name="key-outline" size={24} color="black" />
-                        <Text style={styles.settingText}>Password</Text>
+                        <Text style={styles.settingText}>Thay đổi mật khẩu</Text>
                         <Ionicons name="chevron-forward-outline" size={24} color="black" />
                     </TouchableOpacity>
                 </View>
@@ -60,7 +74,7 @@ const Setting = () => {
                 <View style={styles.settingSection}>
                     <TouchableOpacity style={styles.settingItem} onPress={() => setModalVisible(true)}>
                         <Ionicons name="exit-outline" size={24} color="black" />
-                        <Text style={styles.settingText}>Logout</Text>
+                        <Text style={styles.settingText}>Đăng Xuất</Text>
                         <Ionicons name="chevron-forward-outline" size={24} color="black" />
                     </TouchableOpacity>
                 </View>

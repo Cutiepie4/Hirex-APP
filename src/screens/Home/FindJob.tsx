@@ -6,15 +6,20 @@ import { useSelector } from 'react-redux';
 import { RootReducer } from '@/redux/store/reducer';
 import { useFocusEffect } from '@react-navigation/native';
 import { BASE_API } from '../../services/BaseApi';
-import { FontAwesome, FontAwesome5 } from '@expo/vector-icons';
+import { FontAwesome, FontAwesome5, Ionicons } from '@expo/vector-icons';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 const { height: heightScreen } = Dimensions.get('window');
 
-const HomeScreen = () => {
+const FindJob = ({route}) => {
+    const foundWork = route.params.foundwork;
     const { userId, phoneNumber, role } = useSelector((state: RootReducer) => state.authReducer)
-
-    const [works, setWorks] = useState([]);
+    const navigation = useNavigation();
     const [savedWork, setSavedWork] = useState([])
+    
+    useEffect(() => {
+        if(foundWork.length === 0) RootNavigation.navigate('NoFind')
+    },[])
 
     const clickSaveJob = async (userId, workId) => {
         try {
@@ -51,77 +56,24 @@ const HomeScreen = () => {
             saveWorks();
             return () => {
             };
-        }, [works])
+        }, [savedWork])
     );
 
-    const getAllWorks = async () => {
-        try {
-            const response = await BASE_API.get(`/companies/all-work`);
-            setWorks(response.data)
-        } catch (error) {
-            console.error('Failed to fetch user:', error);
-        }
-    };
-
-    useFocusEffect(
-        useCallback(() => {
-            getAllWorks();
-            return () => {
-            };
-        }, [works])
-    );
 
 
     return (
         <Container>
             <SafeAreaView style={styles.container}>
-                <View style={styles.title}>
-                    <View style={styles.indexTextHeader}>
-                        <Text style={styles.textHeader}>Xin chào</Text>
-                        <Text style={styles.textHeader}>Orlando Diggs.</Text>
-                    </View>
-                    <View>
-                        <Image source={require('../../assets/avata2.png')} style={{ width: 50, height: 50 }}></Image>
-                    </View>
-                </View>
-                <View>
-                    <View style={styles.joinNow}>
-                        <View>
-                            <Text style={styles.textJoinNow}>Tìm kiếm</Text>
-                            <Text style={styles.textJoinNow}>công việc ở mọi nơi</Text>
-                            <View style={styles.buttonJoinNow}>
-                                <TouchableOpacity  onPress={() =>  RootNavigation.navigate('AllJob')}>
-                                    <Text style={[styles.textJoinNow]}>Tìm kiếm</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    </View>
-                    <Image source={require('../../assets/people.png')} style={styles.imagePeople}></Image>
-                </View>
-                <ScrollView style={{ height: heightScreen / 1.8 }}>
-                    <View>
-                        <Text style={styles.textFindJob}>Tìm kiếm công việc</Text>
-                        <View style={styles.boxFindJob}>
-                            <View style={styles.boxRemoteJob}>
-                                <Image source={require('../../assets/headhunting.png')} style={{ width: '40%', height: '20%', marginBottom: 10 }} resizeMode='contain'></Image>
-                                <Text style={styles.textBoxFindJob}> 44.5K</Text>
-                                <Text> Remote Job</Text>
-                            </View>
-
-                            <View style={styles.boxOffJob}>
-                                <View style={styles.boxFullTimeJob}>
-                                    <Text style={styles.textBoxFindJob}>66.8K</Text>
-                                    <Text>Full Time</Text>
-                                </View>
-                                <View style={styles.boxPtJob}>
-                                    <Text style={styles.textBoxFindJob}>38.9K</Text>
-                                    <Text>Part Time</Text>
-                                </View>
-                            </View>
-                        </View>
-                    </View>
+                <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                        <Ionicons name="arrow-back" size={24} color="black" />
+                    </TouchableOpacity>
                     <Text style={styles.textFindJob}>Danh sách công việc gần đây</Text>
-                    {works.slice(0, 3).map((work, index) => (
+                    <Text></Text>
+                </View>
+
+                <ScrollView style={{ height: heightScreen / 1.1 }}>
+                    {foundWork.map((work, index) => (
                         <View style={{ width: '100%', height: heightScreen / 5.3, backgroundColor: '#FFFFFF', borderRadius: 20, marginBottom: 15 }} key={index}>
                             <View style={{ margin: 20 }}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -164,6 +116,7 @@ const HomeScreen = () => {
                                         </TouchableOpacity>
                                     }
                                 </View>
+                                <Text style={{ color: '#AAA6B9', fontSize: 10, fontStyle: 'italic', alignSelf: 'flex-end', marginTop: 5 }}>Hạn hết: {work.endTime}</Text>
                             </View>
                         </View>
                     ))}
@@ -287,4 +240,4 @@ const styles = StyleSheet.create({
     }
 })
 
-export default HomeScreen
+export default FindJob

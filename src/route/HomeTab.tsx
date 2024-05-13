@@ -4,7 +4,7 @@ import { BookmarkStack, ChatStack, HomeStack, ProfileStack, SettingStack } from 
 import { Entypo } from '@expo/vector-icons';
 import { orange, placeholderTextColor } from '../styles/styles';
 import { Feather } from '@expo/vector-icons';
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity, View, Text } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -36,13 +36,13 @@ const HomeTab = () => {
         },
         {
             name: 'Tab4',
-            component: SettingStack,
-            icon: <FontAwesome name="user" size={iconSize} color="black" />,
+            component: BookmarkStack,
+            icon: <MaterialCommunityIcons name="clipboard-search" size={iconSize} color="black" />
         },
         {
             name: 'Tab5',
-            component: BookmarkStack,
-            icon: <FontAwesome name="bookmark" size={iconSize} color="black" />
+            component: SettingStack,
+            icon: <FontAwesome name="user" size={iconSize} color="black" />,
         },
     ];
 
