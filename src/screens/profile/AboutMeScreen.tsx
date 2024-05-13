@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Modal, SafeAreaView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Modal, SafeAreaView, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { Ionicons } from "@expo/vector-icons";
 import RootNavigation from '../../route/RootNavigation';
 import { BASE_API } from '../../services/BaseApi';
@@ -40,53 +40,57 @@ const AboutMeScreen = ({ route }) => {
         setModalVisible(false);
     };
 
-
+    const dismissKeyboard = () => {
+        Keyboard.dismiss();
+    };
     return (
-        <SafeAreaView style={{ flex: 1 }}>
-            <View style={styles.container}>
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => RootNavigation.pop()}>
-                        <Ionicons name="arrow-back" size={24} color="black" style={{ marginRight: 10 }} />
-                    </TouchableOpacity>
-                </View>
-                <Text style={styles.headerText}>Giới thiệu bản thân</Text>
-                <TextInput
-                    style={styles.input}
-                    onChangeText={setAboutMeText}
-                    value={aboutMeText}
-                    placeholder="Tell me about you."
-                    multiline
-                />
-                <View style={styles.saveButtonContainer}>
-                    <TouchableOpacity style={styles.saveButton} onPress={handleModal}>
-                        <Text style={styles.saveButtonText}>Lưu</Text>
-                    </TouchableOpacity>
-                </View>
-                <Modal
-                    animationType="slide"
-                    transparent={true}
-                    visible={modalVisible}
-                    onRequestClose={() => setModalVisible(false)}
-                >
-                    <View style={styles.modalContainer}>
-                        <View style={styles.modalContent}>
-                            <Text style={styles.modalText}>
-                                Bạn có chắc chắn muốn lưu?
-                            </Text>
-                            <View style={styles.buttonContainer}>
-                                <TouchableOpacity style={styles.yesButton} onPress={handleSave}>
-                                    <Text style={styles.buttonText}>Có</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-                                    <Text style={styles.buttonText}>Không</Text>
-                                </TouchableOpacity>
+        <TouchableWithoutFeedback onPress={dismissKeyboard}>
+
+            <SafeAreaView style={{ flex: 1 }}>
+                <View style={styles.container}>
+                    <View style={styles.header}>
+                        <TouchableOpacity onPress={() => RootNavigation.pop()}>
+                            <Ionicons name="arrow-back" size={24} color="black" style={{ marginRight: 10 }} />
+                        </TouchableOpacity>
+                    </View>
+                    <Text style={styles.headerText}>Giới thiệu bản thân</Text>
+                    <TextInput
+                        style={styles.input}
+                        onChangeText={setAboutMeText}
+                        value={aboutMeText}
+                        placeholder="Tell me about you."
+                        multiline
+                    />
+                    <View style={styles.saveButtonContainer}>
+                        <TouchableOpacity style={styles.saveButton} onPress={handleModal}>
+                            <Text style={styles.saveButtonText}>Lưu</Text>
+                        </TouchableOpacity>
+                    </View>
+                    <Modal
+                        animationType="slide"
+                        transparent={true}
+                        visible={modalVisible}
+                        onRequestClose={() => setModalVisible(false)}
+                    >
+                        <View style={styles.modalContainer}>
+                            <View style={styles.modalContent}>
+                                <Text style={styles.modalText}>
+                                    Bạn có chắc chắn muốn lưu?
+                                </Text>
+                                <View style={styles.buttonContainer}>
+                                    <TouchableOpacity style={styles.yesButton} onPress={handleSave}>
+                                        <Text style={styles.buttonText}>Có</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+                                        <Text style={styles.buttonText}>Không</Text>
+                                    </TouchableOpacity>
+                                </View>
                             </View>
                         </View>
-                    </View>
-                </Modal>
-            </View>
-        </SafeAreaView>
-
+                    </Modal>
+                </View>
+            </SafeAreaView>
+        </TouchableWithoutFeedback>
     );
 };
 

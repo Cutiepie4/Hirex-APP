@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, Image, ScrollView, Dimensions, Alert } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, Image, ScrollView, Dimensions, Alert, Modal } from 'react-native';
 import { AntDesign, Entypo, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useActionSheet } from '@expo/react-native-action-sheet';
@@ -16,34 +16,33 @@ const { height, width } = Dimensions.get('window');
 
 const AddCompany = () => {
 
-    const { userId, phoneNumber, role } = useSelector((state: RootReducer) => state.authReducer)
+    const { userId, phoneNumber } = useSelector((state: RootReducer) => state.authReducer)
     const [image, setImage] = useState(null);
     const [companyLists, setCompanyLists] = useState([]);
     const [user, setUser] = useState(null)
     const [name, setName] = useState(null);
     const [idEmployer, setIdEmployer] = useState('');
+    const [modalVisible, setModalVisible] = useState(false);  // New state for modal visibility
 
     const { showActionSheetWithOptions } = useActionSheet();
-
 
     const getEmployer = async () => {
         try {
             const response = await BASE_API.get(`/employer/${userId}`);
 
             setCompanyLists(response.data.companies || [])
-
             setUser(response.data.user)
             setName(response.data.user?.fullName)
 
             setIdEmployer(response.data.id)
 
-            
+
             const imageData = response.data.user?.imageBase64;
 
             if (imageData) {
                 const uri = `data:image;base64,${imageData}`;
                 setImage(uri);
-            } 
+            }
         } catch (error) {
             console.error('Failed to fetch employee:', error);
         } finally {
@@ -129,7 +128,7 @@ const AddCompany = () => {
     };
 
     const showImagePickerOptions = () => {
-        const options = ['Chụp ảnh', 'Chọn ảnh từ thư viện', 'Hủy bỏ'];
+        const options = ['Chọn ảnh từ thư viện', 'Hủy bỏ'];
         const cancelButtonIndex = 2;
         showActionSheetWithOptions(
             {
@@ -139,9 +138,6 @@ const AddCompany = () => {
             buttonIndex => {
                 switch (buttonIndex) {
                     case 0:
-                        takePhoto();
-                        break;
-                    case 1:
                         uploadImageAndSaveData(phoneNumber);
                         break;
                     default:
@@ -154,7 +150,6 @@ const AddCompany = () => {
     const addNewCompany = (newCompany) => {
         setCompanyLists([...companyLists, newCompany]);
     };
-
 
     const deleteCompany = (index) => {
         // Hiển thị cửa sổ xác nhận trước khi xóa
@@ -185,9 +180,6 @@ const AddCompany = () => {
         setCompanyLists(updatedList);
     };
 
-
-
-
     const editCompany = (company, index) => {
         RootNavigation.navigate('Company', {
             companyData: company,
@@ -200,93 +192,152 @@ const AddCompany = () => {
             }
         });
     };
-
-
+    const toggleModal = () => {
+        setModalVisible(!modalVisible);  // Function to toggle the modal's visibility
+    };
     const companyScreen = () => {
-        RootNavigation.navigate('Company', { addNewCompany: addNewCompany,
+        RootNavigation.navigate('Company', {
+            addNewCompany: addNewCompany,
             idEmployer: idEmployer
 
         });
     };
 
     return (
-        <Container statusBarColor={deepPurple} statusBarContentColor='light'>
-            <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
-                <View style={styles.container}>
-                    <View style={styles.header}>
-                        <Image source={BACKGROUND} style={{ height: height / 5, width: '100%', position: 'absolute', top: 0 }}></Image>
-                        <View style={styles.profileContainer}>
-                            {image ? (
+
+        <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+            <View style={styles.container}>
+                <View style={styles.header}>
+                    <Image source={BACKGROUND} style={{ height: height / 5, width: '100%', position: 'absolute', top: 0 }}></Image>
+                    <View style={styles.profileContainer}>
+                        {image ? (
+                            <TouchableOpacity onPress={toggleModal}>
                                 <Image source={{ uri: image }} style={styles.profileImage} />
-                            ) : (
-                                <MaterialCommunityIcons name="account-circle" size={100} color="black" style={{ marginLeft: '5%', position: 'absolute' }} />
-                            )}
-                        </View>
-                        <TouchableOpacity style={styles.cameraIcon} onPress={showImagePickerOptions}>
-                            <FontAwesome5 name="camera" size={15} color="white" />
-                        </TouchableOpacity>
-                        <View style={styles.nameRoleContainer}>
-                            <Text style={styles.name}>{name}</Text>
-                            <Text style={styles.role}>Người tuyển dụng</Text>
-                        </View>
+                            </TouchableOpacity>
+                        ) : (
+                            <MaterialCommunityIcons name="account-circle" size={100} color="black" style={{ marginLeft: '5%', position: 'absolute' }} />
+                        )}
+                        <Modal
+                            animationType="slide"
+                            transparent={true}
+                            visible={modalVisible}
+                            onRequestClose={toggleModal}  // Handles hardware back button on Android
+                        >
+                            <View style={styles.centeredView}>
+                                <View style={styles.modalView}>
+                                    <Image source={{ uri: image }} style={styles.fullSizeImage} />
+                                    <TouchableOpacity
+                                        style={styles.buttonClose}
+                                        onPress={toggleModal}
+                                    >
+                                        <Text style={styles.textStyle}>Thoát</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </Modal>
                     </View>
-                    <ScrollView>
-                        <View style={{ margin: 20, top: 30 }}>
-                            <View style={styles.sectionContainer}>
-                                <View style={styles.section}>
-                                    <View style={styles.iconWithText}>
-                                        <MaterialCommunityIcons name="office-building-marker" size={28} color="#FF9228" />
-                                        <Text style={styles.sectionText}>Company</Text>
-                                        <View style={styles.editButtonContainer}>
-                                            <TouchableOpacity style={styles.addButton} onPress={companyScreen}>
-                                                <AntDesign name="plus" size={24} color="#FF9228" />
-                                            </TouchableOpacity>
-                                        </View>
+                    <TouchableOpacity style={styles.cameraIcon} onPress={showImagePickerOptions}>
+                        <FontAwesome5 name="camera" size={15} color="white" />
+                    </TouchableOpacity>
+                    <View style={styles.nameRoleContainer}>
+                        <Text style={styles.name}>{name}</Text>
+                        <Text style={styles.role}>Người tuyển dụng</Text>
+                    </View>
+                </View>
+                <ScrollView>
+                    <View style={{ margin: 20, top: 30 }}>
+                        <View style={styles.sectionContainer}>
+                            <View style={styles.section}>
+                                <View style={styles.iconWithText}>
+                                    <MaterialCommunityIcons name="office-building-marker" size={28} color="#FF9228" />
+                                    <Text style={styles.sectionText}>Company</Text>
+                                    <View style={styles.editButtonContainer}>
+                                        <TouchableOpacity style={styles.addButton} onPress={companyScreen}>
+                                            <AntDesign name="plus" size={24} color="#FF9228" />
+                                        </TouchableOpacity>
                                     </View>
+                                </View>
 
-                                    <View>
-                                        {companyLists.length > 0 && (
-                                            <>
-                                                <View style={styles.separator}></View>
-                                                {companyLists.map((company, index) => (
-                                                    <View key={index} style={styles.experienceItem}>
-                                                        <View style={styles.experienceInfo}>
-                                                            <Text style={styles.experienceText}>{company.name}</Text>
-                                                            {/* <Text>{company.company}</Text>
-                                                            <Text>{company.description}</Text> */}
-                                                        </View>
-
-                                                        <View style={styles.buttonsContainer1}>
-                                                            <TouchableOpacity
-                                                                style={styles.addButton}
-                                                                onPress={() => editCompany(company, company.id)}
-                                                            >
-                                                                <AntDesign name="edit" size={24} color="#FF9228" />
-                                                            </TouchableOpacity>
-                                                            <TouchableOpacity
-                                                                style={styles.addButton} 
-                                                                onPress={() => deleteCompany(company.id)}
-                                                            >
-                                                                <AntDesign name="delete" size={24} color="#FF9228" />
-                                                            </TouchableOpacity>
-                                                        </View>
+                                <View>
+                                    {companyLists.length > 0 && (
+                                        <>
+                                            <View style={styles.separator}></View>
+                                            {companyLists.map((company, index) => (
+                                                <View key={index} style={styles.experienceItem}>
+                                                    <View style={styles.experienceInfo}>
+                                                        <Text style={styles.experienceText}>{company.name}</Text>
+                                                        <Text>{company.industry}</Text>
+                                                        <Text>{company.description}</Text>
                                                     </View>
-                                                ))}
-                                            </>
-                                        )}
-                                    </View>
+
+                                                    <View style={styles.buttonsContainer1}>
+                                                        <TouchableOpacity
+                                                            style={styles.addButton}
+                                                            onPress={() => editCompany(company, company.id)}
+                                                        >
+                                                            <AntDesign name="edit" size={24} color="#FF9228" />
+                                                        </TouchableOpacity>
+                                                        <TouchableOpacity
+                                                            style={styles.addButton}
+                                                            onPress={() => deleteCompany(company.id)}
+                                                        >
+                                                            <AntDesign name="delete" size={24} color="#FF9228" />
+                                                        </TouchableOpacity>
+                                                    </View>
+                                                </View>
+                                            ))}
+                                        </>
+                                    )}
                                 </View>
                             </View>
                         </View>
+                    </View>
 
-                    </ScrollView>
-                </View>
-            </SafeAreaView >
-        </Container >
+                </ScrollView>
+            </View>
+        </SafeAreaView >
 
     );
 }
 const styles = StyleSheet.create({
+    centeredView: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        marginTop: 22
+    },
+    modalView: {
+        margin: 20,
+        backgroundColor: "white",
+        borderRadius: 20,
+        padding: 35,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5
+    },
+    fullSizeImage: {
+        width: 300,  // Set this according to your needs
+        height: 300,  // Set this according to your needs
+        resizeMode: 'contain'
+    },
+    buttonClose: {
+        backgroundColor: "#2196F3",
+        borderRadius: 20,
+        padding: 10,
+        elevation: 2,
+        marginTop: 15
+    },
+    textStyle: {
+        color: "white",
+        fontWeight: "bold",
+        textAlign: "center"
+    },
     profileContainer: {
         position: 'absolute',
         top: 50,
@@ -406,7 +457,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         shadowColor: '#000',
         elevation: 3,
-        marginBottom: 10, 
+        marginBottom: 10,
 
     },
     editButtonContainer: {

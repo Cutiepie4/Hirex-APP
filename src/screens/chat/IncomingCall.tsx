@@ -14,15 +14,27 @@ import RootNavigation from '@/route/RootNavigation';
 import JoinScreen from './JoinScreen';
 import { Audio } from 'expo-av';
 import Toast from 'react-native-toast-message';
+import { BASE_API } from '@/services/BaseApi';
+import AVATAR from '../../assets/images/avt.png'
 
 const IncomingCallScreen = (props) => {
     const { caller, acceptCall, refuseCall } = props;
-
+    const [friendInfo, setFriendInfo] = useState<{ fullName: string, imageBase64: string }>({ fullName: 'Người gọi', imageBase64: null })
     const [soundObject, setSoundObject] = useState(null);
 
     useEffect(() => {
         startPhoneRing();
     }, []);
+
+    useEffect(() => {
+        if (caller && caller != '') {
+            const fetchFriendName = async () => {
+                const response = await BASE_API.get(`/users/by-phone?phoneNumber=${caller}`);
+                response.status == 200 && setFriendInfo(response.data);
+            };
+            fetchFriendName();
+        }
+    }, [caller]);
 
     const startPhoneRing = async () => {
         const sound = new Audio.Sound();
@@ -66,7 +78,7 @@ const IncomingCallScreen = (props) => {
                     }}
                 >
                     <Image
-                        source={CAT}
+                        source={friendInfo?.imageBase64 ? { uri: `data:image;base64,${friendInfo.imageBase64}` } : AVATAR}
                         resizeMode='cover'
                         style={{
                             width: '100%',

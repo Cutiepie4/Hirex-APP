@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Image, StyleSheet, ScrollView, Modal } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { View, Text, TouchableOpacity, TextInput, Image, StyleSheet, ScrollView, Modal, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from '@/theme';
 import * as ImagePicker from 'expo-image-picker';
 import RootNavigation from '../../route/RootNavigation';
 import { BASE_API } from '../../services/BaseApi';
+import * as FileSystem from 'expo-file-system';
 
 const Company = ({ route }) => {
 
@@ -18,13 +20,53 @@ const Company = ({ route }) => {
     const [industry, setIndustry] = useState(companyData?.industry ?? '');
     const [website, setWebsite] = useState(companyData?.website ?? '');
     const [image, setImage] = useState(null);
+    const [company, setCompany] = useState(null);
+
 
     const [description, setDescription] = useState(companyData?.description ?? '');
 
     const [modalVisible, setModalVisible] = useState(false);
 
-    useEffect(() => {
-    }, []);
+    const saveBase64AsFile = async (base64String) => {
+        try {
+            const fileName = `photo_${new Date().getTime()}.jpg`;
+            const filePath = `${FileSystem.cacheDirectory}${fileName}`;
+            await FileSystem.writeAsStringAsync(filePath, base64String, {
+                encoding: FileSystem.EncodingType.Base64,
+            });
+            return filePath;
+        } catch (error) {
+            console.error('Error saving the image file:', error);
+        }
+    };
+
+    const getCompany = async () => {
+        try {
+            const response = await BASE_API.get(`/companies/${companyIndex}`);
+            const fetchedCompany = response.data;
+            setCompany(fetchedCompany);
+
+            const imageData = fetchedCompany.imageBase64;
+            if (imageData) {
+                const uri = await saveBase64AsFile(imageData);
+                setImage(uri);
+            } else {
+                setImage(null);
+            }
+        } catch (error) {
+            console.error('Failed to fetch Company:', error);
+        }
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            if (typeof companyIndex === 'number') {
+                getCompany();
+            }
+            return () => {
+            };
+        }, [])
+    );
 
 
     const handleSave = async () => {
@@ -57,8 +99,12 @@ const Company = ({ route }) => {
         if (image) {
             const uriParts = image.split('.');
             const fileType = uriParts[uriParts.length - 1];
-            console.log(image)
             formDataOld.append('image', {
+                uri: image,
+                name: `photo.${fileType}`,
+                type: `image/${fileType}`,
+            });
+            formData.append('image', {
                 uri: image,
                 name: `photo.${fileType}`,
                 type: `image/${fileType}`,
@@ -78,7 +124,7 @@ const Company = ({ route }) => {
                 } else {
                     setModalVisible(true);
                 }
-            } else { 
+            } else {
                 if (modalVisible) {
 
                     const response = await BASE_API.post('/companies/create', formData, {
@@ -122,125 +168,134 @@ const Company = ({ route }) => {
         setModalVisible(false);
     };
 
+    const dismissKeyboard = () => {
+        Keyboard.dismiss();
+    };
+
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
-            <ScrollView>
-                <View style={{ flex: 1, marginHorizontal: 22 }}>
-                    <View style={{ marginVertical: 22 }}>
-                        <TouchableOpacity onPress={handleBack}>
-                            <Ionicons name="arrow-back" size={24} color="black" style={{ marginRight: 10 }} />
-                        </TouchableOpacity>
-                        <Text style={{
-                            fontSize: 22,
-                            fontWeight: 'bold',
-                            marginVertical: 12,
-                            textAlign: 'center',
-                            color: colors.black
-                        }}>
-                            {typeof companyIndex === 'number' ? 'Thay đổi công ty' : 'Thêm công ty'}
-                        </Text>
-                    </View>
+        <TouchableWithoutFeedback onPress={dismissKeyboard}>
 
-                    <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Tên ngắn</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={name}
-                            onChangeText={setName}
-                        />
-                    </View>
-
-                    <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Tên công ty</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={shortName}
-                            onChangeText={setSortName}
-                        />
-                    </View>
-
-                    <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Quy mô công ty</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={employeeSize}
-                            onChangeText={setEmployeeSize}
-                        />
-                    </View>
-                    <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Địa điểm</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={headOffice}
-                            onChangeText={setHeadOffice}
-                        />
-                    </View>
-
-                    <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Ngành nghề</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={industry}
-                            onChangeText={setIndustry}
-                        />
-                    </View>
-
-                    <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Website</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={website}
-                            onChangeText={setWebsite}
-                        />
-                    </View>
-
-                    <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Mô tả</Text>
-                        <TextInput
-                            style={styles.input1}
-                            value={description}
-                            onChangeText={setDescription}
-                            multiline
-                        />
-                    </View>
-                    <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
-                        <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
-                            <Text style={styles.uploadButtonText}>Upload Logo</Text>
-                        </TouchableOpacity>
-                        {image && <Image source={{ uri: image }} style={{ width: 80, height: 80, marginBottom: 12, alignItems: 'center', justifyContent: 'center' }} />}
-                    </View>
-
-
-                    <View style={styles.saveButtonContainer}>
-                        <TouchableOpacity style={styles.saveButton} onPress={handleModal}>
-                            <Text style={styles.saveButtonText}>Lưu</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-                <Modal
-                    animationType="slide"
-                    transparent={true}
-                    visible={modalVisible}
-                    onRequestClose={() => setModalVisible(false)}
-                >
-                    <View style={styles.modalContainer1}>
-                        <View style={styles.modalContent1}>
-                            <Text style={styles.modalText}>
-                                Bạn có chắc chắn muốn lưu?
+            <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
+                <ScrollView>
+                    <View style={{ flex: 1, marginHorizontal: 22 }}>
+                        <View style={{ marginVertical: 22 }}>
+                            <TouchableOpacity onPress={handleBack}>
+                                <Ionicons name="arrow-back" size={24} color="black" style={{ marginRight: 10 }} />
+                            </TouchableOpacity>
+                            <Text style={{
+                                fontSize: 22,
+                                fontWeight: 'bold',
+                                marginVertical: 12,
+                                textAlign: 'center',
+                                color: colors.black
+                            }}>
+                                {typeof companyIndex === 'number' ? 'Thay đổi công ty' : 'Thêm công ty'}
                             </Text>
-                            <View style={styles.buttonContainer}>
-                                <TouchableOpacity style={styles.yesButton} onPress={handleSave}>
-                                    <Text style={styles.buttonText}>Có</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-                                    <Text style={styles.buttonText}>Không</Text>
-                                </TouchableOpacity>
-                            </View>
+                        </View>
+
+                        <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                            <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Tên ngắn</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={name}
+                                onChangeText={setName}
+                            />
+                        </View>
+
+                        <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                            <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Tên công ty</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={shortName}
+                                onChangeText={setSortName}
+                            />
+                        </View>
+
+                        <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                            <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Quy mô công ty</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={employeeSize.toString()}
+                                onChangeText={setEmployeeSize}
+                                keyboardType="numeric"
+                            />
+                        </View>
+
+                        <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                            <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Địa điểm</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={headOffice}
+                                onChangeText={setHeadOffice}
+                            />
+                        </View>
+
+                        <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                            <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Ngành nghề</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={industry}
+                                onChangeText={setIndustry}
+                            />
+                        </View>
+
+                        <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                            <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Website</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={website}
+                                onChangeText={setWebsite}
+                            />
+                        </View>
+
+                        <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                            <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Mô tả</Text>
+                            <TextInput
+                                style={styles.input1}
+                                value={description}
+                                onChangeText={setDescription}
+                                multiline
+                            />
+                        </View>
+                        <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                            <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
+                                <Text style={styles.uploadButtonText}>Upload Logo</Text>
+                            </TouchableOpacity>
+                            {image && <Image source={{ uri: image }} style={{ width: 80, height: 80, marginBottom: 12, alignItems: 'center', justifyContent: 'center' }} />}
+                        </View>
+
+
+                        <View style={styles.saveButtonContainer}>
+                            <TouchableOpacity style={styles.saveButton} onPress={handleModal}>
+                                <Text style={styles.saveButtonText}>Lưu</Text>
+                            </TouchableOpacity>
                         </View>
                     </View>
-                </Modal>
-            </ScrollView>
-        </SafeAreaView>
+                    <Modal
+                        animationType="slide"
+                        transparent={true}
+                        visible={modalVisible}
+                        onRequestClose={() => setModalVisible(false)}
+                    >
+                        <View style={styles.modalContainer1}>
+                            <View style={styles.modalContent1}>
+                                <Text style={styles.modalText}>
+                                    Bạn có chắc chắn muốn lưu?
+                                </Text>
+                                <View style={styles.buttonContainer}>
+                                    <TouchableOpacity style={styles.yesButton} onPress={handleSave}>
+                                        <Text style={styles.buttonText}>Có</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+                                        <Text style={styles.buttonText}>Không</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </View>
+                    </Modal>
+                </ScrollView>
+            </SafeAreaView>
+        </TouchableWithoutFeedback>
     )
 }
 
@@ -269,7 +324,7 @@ const styles = StyleSheet.create({
         color: 'black'
     },
     input1: {
-        height: 150,
+        height: 120,
         padding: 10,
         marginBottom: 20,
         backgroundColor: '#FFFFFF',
