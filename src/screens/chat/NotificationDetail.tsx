@@ -6,10 +6,15 @@ import GOOGLE from '../../assets/images/google_logo.png'
 import { placeholderTextColor, regularPadding, titleFontStyle } from '../../styles/styles'
 import Group from '../../components/Group'
 import { Notification } from './Notifications'
+import { BASE_API } from '@/services/BaseApi'
 
 
 const NotificationDetail = ({ route }) => {
     const { notification }: { notification: Notification } = route.params;
+
+    useEffect(() => {
+        BASE_API.post(`/notifications/read/${notification.id}`);
+    }, []);
 
     return (
         <Container>
@@ -30,6 +35,4 @@ const NotificationDetail = ({ route }) => {
     )
 }
 
-export default NotificationDetail
-
-const styles = StyleSheet.create({})
+export default NotificationDetail;

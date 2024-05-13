@@ -32,6 +32,14 @@ const Messages = () => {
     const [textSearch, setTextSearch] = useState('');
     const [selectedMessage, setSelectedMessage] = useState<string[]>();
 
+    const fetchInfo = useCallback(async () => {
+
+    }, [filteredChatRoom]);
+
+    useEffect(() => {
+
+    }, [filteredChatRoom]);
+
     const deleteConversation = async (conversationId) => {
         try {
             await firestore()
