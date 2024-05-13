@@ -12,8 +12,8 @@ export interface Notification {
     id: number,
     notificationTitle: string,
     notificationContent: string,
-    notificationCompanyDetail: string,
-    notificationJobDetail: string,
+    notificationCompanyDetail: string[],
+    notificationJobDetail: string[],
     createdAt?: string,
     read?: boolean,
 };
