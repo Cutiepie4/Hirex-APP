@@ -56,7 +56,7 @@ const HomeScreen = () => {
 
     const getAllWorks = async () => {
         try {
-            const response = await BASE_API.get(`/companies/all-work`);
+            const response = await BASE_API.get('/companies/all-work');
             setWorks(response.data)
         } catch (error) {
             console.error('Failed to fetch user:', error);

@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { SafeAreaView, View, StyleSheet, Platform, Dimensions, TouchableOpacity, Text, Image, ScrollView } from "react-native";
 import { Ionicons, EvilIcons, Feather } from '@expo/vector-icons';
 import Search from "../../components/Search";
 import { useNavigation } from '@react-navigation/native';
 import RootNavigation from "@/route/RootNavigation";
-
+import { BASE_API } from '../../services/BaseApi';
 const heightScreen = Dimensions.get('window').height;
+import { useFocusEffect } from '@react-navigation/native';
+
 
 const Companyq = (props) => {
     const navigation = useNavigation();
@@ -15,26 +17,28 @@ const Companyq = (props) => {
         setSearchValue('');
     };
     
-    const companys = [
-        { title: "UI/UX Designer", subtitle: "Google inc . Carlifonia, USA", icon: require('../../assets/job1.png') },
-        { title: "Lead Designer", subtitle: "Dribble inc . Carlifonia, USA", icon: require('../../assets/job2.png') },
-        { title: "UI/UX Designer", subtitle: "Google inc . Carlifonia, USA", icon: require('../../assets/job3.png') },
-        { title: "Apple", subtitle: "Dribble inc . Carlifonia, USA", icon: require('../../assets/job4.png') },
-        { title: "UI/UX Designer", subtitle: "Google inc . Carlifonia, USA", icon: require('../../assets/job5.png') },
-        { title: "Lead Designer", subtitle: "Dribble inc . Carlifonia, USA", icon: require('../../assets/job2.png') },
-        { title: "UI/UX Designer", subtitle: "Google inc . Carlifonia, USA", icon: require('../../assets/job1.png') },
-        { title: "Adobe", subtitle: "Company inc . Computer software", icon: require('../../assets/job5.png') },
-    ];
+    const [companies, setCompanies] = useState([])
+    const saveWorks = async () => {
+        try {
+            const response = await BASE_API.get('/companies/all-company');
+            // console.log(savedWork)
+            setCompanies(response.data);
+        } catch (error) {
+            console.error('Failed to fetch favorite works:', error);
+        }
+    };
 
-    // const addJob = () => {
-    //     RootNavigation.navigate('AddJob', {
-    //         idEmployer: idEmployer
-    //     });
-    // };
+    useFocusEffect(
+        useCallback(() => {
+            saveWorks();
+            return () => {
+            };
+        }, [])
+    );
 
-    const filteredCompanies = companys.filter(company => {
-        return company.title.toLowerCase().includes(searchValue.toLowerCase());
-    });
+    // const filteredCompanies = companies.filter(company => {
+    //     return companys.title.toLowerCase().includes(searchValue.toLowerCase());
+    // });
 
     return (
         <SafeAreaView style={styles.container}>
@@ -60,14 +64,14 @@ const Companyq = (props) => {
             <View>
                 <ScrollView>
                     <View style={{ rowGap: 15 }}>
-                        {filteredCompanies.map((company, index) => (
-                            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', columnGap: 10 }} key={index} onPress={() => RootNavigation.navigate('AddJob', {companyId: index})}>
+                        {companies.map((company, index) => (
+                            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', columnGap: 10}} key={index} onPress={() => RootNavigation.navigate('AddJob', {companyId: company.id, companyName: company.name},)}>
                                 <View key={index}>
-                                    <Image source={company.icon} style={{ width: 50, height: 50 }}></Image>
+                                    <Image source={require('../../assets/job1.png')} style={{ width: 50, height: 50 }}></Image>
                                 </View>
                                 <View style={{ rowGap: 5 }}>
-                                    <Text>{company.title}</Text>
-                                    <Text style={{ color: '#AAA6B9' }}>{company.subtitle}</Text>
+                                    <Text>{company.name}</Text>
+                                    <Text style={{ color: '#AAA6B9' }}>{company.description}</Text>
                                 </View>
                             </TouchableOpacity>
                         ))}

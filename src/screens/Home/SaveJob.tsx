@@ -142,9 +142,10 @@ const SaveJob = () => {
                                 <Ionicons name="arrow-back" size={24} color="black" />
                             </TouchableOpacity>
                             <Text style={{ color: '#150B3D', fontSize: 22, fontWeight: '600' }}>Save Job</Text>
-                            <TouchableOpacity onPress={() => RootNavigation.navigate('NoSave')}>
+                            {/* <TouchableOpacity onPress={() => RootNavigation.navigate('NoSave')}>
                                 <Text style={{ color: '#FF9228' }}>Delete all</Text>
-                            </TouchableOpacity>
+                            </TouchableOpacity> */}
+                            <Text>               </Text>
                         </View>
 
                         {savedWork && savedWork.map((work, index) => (
@@ -161,9 +162,9 @@ const SaveJob = () => {
                                         <Text>{work.jobLocation}</Text>
                                     </View>
 
-                                    <View style={{ flexDirection: 'row', columnGap: 20, marginHorizontal: 10 }}>
+                                    <View style={{ flexDirection: 'row', columnGap: 10, marginHorizontal: 10 }}>
                                         <TouchableOpacity style={{ paddingHorizontal: 20, paddingVertical: 5, backgroundColor: '#f2f1ed', borderRadius: 10 }}>
-                                            <Text style={{ color: '#003B40' }}>{work.name}</Text>
+                                            <Text style={{ color: '#003B40' }}>{work.jobPosition}</Text>
                                         </TouchableOpacity>
 
                                         <TouchableOpacity style={{ paddingHorizontal: 20, paddingVertical: 5, backgroundColor: '#f2f1ed', borderRadius: 10 }} >
@@ -176,7 +177,7 @@ const SaveJob = () => {
                                     </View>
                                     <View style={{ marginHorizontal: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <Text style={{ color: '#AAA6B9', fontSize: 10, fontStyle: 'italic' }}>
-                                            {work.startTime}
+                                            Hạn hết: {work.endTime}
                                         </Text>
 
                                         <Text>${work.wage}k/Tháng</Text>

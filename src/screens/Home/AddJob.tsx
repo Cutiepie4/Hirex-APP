@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Dimensions, SafeAreaView, StyleSheet, Platform, TouchableOpacity, Text, View, ScrollView, TextInput } from 'react-native';
+import { Dimensions, SafeAreaView, StyleSheet, Platform, TouchableOpacity, Text, View, ScrollView, TextInput, Alert } from 'react-native';
 import { Feather, MaterialIcons, FontAwesome5, Ionicons, AntDesign } from '@expo/vector-icons';
 import CustomModal from "../../components/CustomModal";
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -19,6 +19,7 @@ const AddJob = ({route}) => {
     const { userId, phoneNumber, role } = useSelector((state: RootReducer) => state.authReducer);
     // const route = useRoute();
     const companyId = route.params?.companyId;
+    const companyName = route.params?.companyName;
 
     const navigation = useNavigation();
 
@@ -28,8 +29,10 @@ const AddJob = ({route}) => {
     const [chosenTimeCheckBox, setTimeChosenCheckBox] = useState(-1);
     const [textTimeWork, setTextTimeWork] = useState('')
 
-    const [mota, setMota] = useState('')
-    const [address, setAddress] = useState('')
+    const [mota, setMota] = useState(false)
+    const [address, setAddress] = useState(false)
+    const [jobPosition, setJobPosition] = useState(false)
+    const [wage, setWage] = useState(false)
     const [date, setDate] = useState<Date>(new Date());
     const [show, setShow] = useState(false);
 
@@ -47,6 +50,14 @@ const AddJob = ({route}) => {
         setAddress(!address)
     }
 
+    const handleJobPosition = () => {
+        setJobPosition(!jobPosition)
+    }
+
+    const handleWage = () => {
+        setWage(!wage)
+    }
+
     const [text, setText] = useState('');
 
     const handleTextChange = newText => {
@@ -58,6 +69,19 @@ const AddJob = ({route}) => {
     const handleTextAddressChange = newText => {
         setTextAddress(newText);
     };
+
+    const [textJobPosition, setTextJobPosition] = useState('');
+
+    const handleTextJobPositionChange = newText => {
+        setTextJobPosition(newText);
+    };
+
+    const [textWage, setTextWage] = useState('');
+
+    const handleTextWageChange = newText => {
+        setTextWage(newText);
+    };
+
 
     const [value, setValue] = useState('');
     const [isFocus, setIsFocus] = useState(false);
@@ -142,42 +166,55 @@ const AddJob = ({route}) => {
 
     const workData = {
         specialize: value,
-        jobPosition: "Software Developer",
-        wage: 50000, 
+        jobPosition: textJobPosition,
+        wage: textWage, 
         typeWork: textTimeWork,
         jobLocation: textAddress,
         typeJob: textTypeWork,
         description: text,
-        companyId: 1, 
+        companyId: companyId, 
         employerId: 1, 
         endTime: date, 
     };
     
 
     const createWork = async () => {
-        await BASE_API.post(`companies/creatework`, workData)
-            .then((res) => {
-                console.log(res);
-            }).catch((err) => {
-                console.log(err);
-                
-            })
+        Alert.alert(
+            'Xác nhận',
+            'Bạn có chắc muốn tạo công việc?',
+            [
+                {
+                    text: 'OK',
+                    onPress: async () => {
+                        try {
+                            await BASE_API.post(`companies/creatework`, workData);
+                            RootNavigation.navigate('AllJob');
+                        } catch (error) {
+                            console.log(error);
+                        }
+                    },
+                },
+                {
+                    text: 'Cancel',
+                    onPress: () => console.log('Cancelled'),
+                    style: 'cancel',
+                },
+            ],
+            { cancelable: false }
+        );
     };
     
-
-    console.log(value);
-    // console.log(tex
-    // console.log(textAddress)
-    // console.log(textTimeWork);
-    // console.log(textTypeWork);
-    // console.log(date)
-    // console.log(companyId)
     
-  
 
-    console.log(workData)
-    
-    createWork()
+    // console.log(value);
+    // // console.log(tex
+    // // console.log(textAddress)
+    // // console.log(textTimeWork);
+    console.log(textTypeWork);
+    // // console.log(date)
+    // // console.log(companyId)
+    // console.log(workData)
+    // createWork() 
         
 
 
@@ -222,6 +259,30 @@ const AddJob = ({route}) => {
                             />
                         </View>
 
+                        <View style={{
+                            paddingVertical: heightScreen / 38,
+                            width: '100%',
+                            backgroundColor: '#FFFFFF',
+                            paddingHorizontal: 15,
+                            borderRadius: 15,
+                            rowGap: 5
+                        }} >
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <View>
+                                    <Text style={styles.text}>Vị trí công việc</Text>
+                                    {textJobPosition && !jobPosition && <Text style={{ color: '#524B6B', fontSize: 12 }}>{textJobPosition}</Text>}
+                                </View>
+                                <TouchableOpacity style={styles.circle} onPress={handleJobPosition}>
+                                    {!textJobPosition ? <MaterialIcons name="add" size={24} color="#FF9228" /> : <FontAwesome5 name="pencil-alt" size={14} color="#FF9228" />}
+                                </TouchableOpacity>
+                            </View>
+                            {jobPosition && (
+                                <View style={{ height: 50, width: '100%', borderColor: '#9D97B5', borderWidth: 1, borderStyle: 'dashed', borderRadius: 10, justifyContent: 'center', alignItems: 'center', alignSelf: 'center' }}>
+                                    <TextInput style={{ width: '100%', height: 50, textAlignVertical: 'top', padding: 5 }} multiline={true} onChangeText={handleTextJobPositionChange} value={textJobPosition}></TextInput>
+                                </View>
+                            )}
+                        </View>
+
                         <View style={styles.boxJob} >
                             <View style={{ rowGap: 5 }}>
                                 <Text style={styles.text}>Cách làm việc</Text>
@@ -263,7 +324,7 @@ const AddJob = ({route}) => {
                             <View style={{ rowGap: 5 }}>
                                 <Text style={styles.text}>Công ty</Text>
                                 {companyId != null && (
-                                    <Text style={{ color: '#524B6B', fontSize: 12 }}>{companyId}</Text>
+                                    <Text style={{ color: '#524B6B', fontSize: 12 }}>{companyName}</Text>
                                 )}
                             </View>
 
@@ -282,6 +343,30 @@ const AddJob = ({route}) => {
                             <TouchableOpacity style={styles.circle} onPress={() => handleButtonTypeWorkplace(4)}>
                                 {!textTimeWork ? <MaterialIcons name="add" size={24} color="#FF9228" /> : <FontAwesome5 name="pencil-alt" size={14} color="#FF9228" />}
                             </TouchableOpacity>
+                        </View>
+
+                        <View style={{
+                            paddingVertical: heightScreen / 38,
+                            width: '100%',
+                            backgroundColor: '#FFFFFF',
+                            paddingHorizontal: 15,
+                            borderRadius: 15,
+                            rowGap: 5
+                        }} >
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <View>
+                                    <Text style={styles.text}>Mức lương</Text>
+                                    {textWage && !wage && <Text style={{ color: '#524B6B', fontSize: 12 }}>{textWage} VNĐ</Text>}
+                                </View>
+                                <TouchableOpacity style={styles.circle} onPress={handleWage}>
+                                    {!textWage ? <MaterialIcons name="add" size={24} color="#FF9228" /> : <FontAwesome5 name="pencil-alt" size={14} color="#FF9228" />}
+                                </TouchableOpacity>
+                            </View>
+                            {wage && (
+                                <View style={{ height: 50, width: '100%', borderColor: '#9D97B5', borderWidth: 1, borderStyle: 'dashed', borderRadius: 10, justifyContent: 'center', alignItems: 'center', alignSelf: 'center' }}>
+                                    <TextInput style={{ width: '100%', height: 50, textAlignVertical: 'top', padding: 5 }} multiline={true} onChangeText={handleTextWageChange} value={textWage}></TextInput>
+                                </View>
+                            )}
                         </View>
 
                         <View style={{
@@ -347,7 +432,7 @@ const AddJob = ({route}) => {
                         </View>
                     </View>
 
-                    <TouchableOpacity style={styles.buttonCreate} >
+                    <TouchableOpacity style={styles.buttonCreate} onPress={() => createWork()}>
                         <Text style={styles.textButtonCreate}>Xác nhận</Text>
                     </TouchableOpacity>
 
