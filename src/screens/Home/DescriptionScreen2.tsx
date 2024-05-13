@@ -55,10 +55,10 @@ export const Description2 = () => {
             <View style={{ paddingLeft: 25, paddingRight: 25, marginTop: 10 }}>
                 <View style={{ display: 'flex', flexDirection: 'row', height: 40 }}>
                     <TouchableOpacity onPress={() => { setInfo(false) }} activeOpacity={0.8} style={[desc.tab_button, { backgroundColor: info == false ? colors.primary : colors.tertiary_deep }]}>
-                        <Text style={[desc.desc_text_3, { color: info == false ? 'white' : colors.primary }]}>Employee</Text>
+                        <Text style={[desc.desc_text_3, { color: info == false ? 'white' : colors.primary }]}>Nhân viên</Text>
                     </TouchableOpacity>
                     <TouchableOpacity activeOpacity={0.8} onPress={() => { setInfo(true) }} style={[desc.tab_button, { backgroundColor: info == true ? colors.primary : colors.tertiary_deep }]}>
-                        <Text style={[desc.desc_text_3, { color: info == true ? 'white' : colors.primary }]}>Resume</Text>
+                        <Text style={[desc.desc_text_3, { color: info == true ? 'white' : colors.primary }]}>Đơn ứng tuyển</Text>
                     </TouchableOpacity>
                 </View>
 
