@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput 
 import { colors, fonts, sizes } from '@/theme';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { BASE_API } from '@/services/BaseApi';
+import Toast from 'react-native-toast-message';
+import { toastResponse } from '@/utils/toastResponse';
 
 type AppreciationProps = {
     award: string
@@ -29,10 +31,11 @@ export const Appreciation = ({ route }) => {
             companyId: companyId,
         })
             .then(res => {
-                console.log(res.data)
+                toastResponse({type: 'success', content: res.data})
             })
             .catch(err => {
-                console.log(err)
+                console.log(err.message)
+                toastResponse({type: 'error', content: err.message})
             })
     }
 
@@ -40,7 +43,7 @@ export const Appreciation = ({ route }) => {
         <View style={appre.container}>
             <KeyboardAwareScrollView>
                 <View>
-                    <Text style={appre.appre_text_1}>Add Appreciation</Text>
+                    <Text style={appre.appre_text_1}>Đánh giá</Text>
                 </View>
 
                 <ScrollView showsVerticalScrollIndicator={false} style={{ marginTop: 10 }}>
