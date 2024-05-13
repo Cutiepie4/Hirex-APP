@@ -133,8 +133,7 @@ const IncomingCall = () => {
                 props: {
                     title: remoteMessage.notification.title,
                     content: remoteMessage.notification.body
-                },
-                autoHide: false
+                }
             })
         }
     });

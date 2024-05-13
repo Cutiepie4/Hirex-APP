@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from '@expo/vector-icons';
 import RootNavigation from '../../route/RootNavigation';
 import { useDispatch } from 'react-redux';  // Import thêm useDispatch từ redux
-import { logout, showLoading } from '../../redux/slice/authSlice';
+import { clearDeviceToken, logout, showLoading } from '../../redux/slice/authSlice';
 import { clearChatRoom } from '@/redux/slice/chatSlice';
 
 const Setting = () => {
@@ -16,7 +16,8 @@ const Setting = () => {
     const confirmLogout = () => {
         dispatch(logout()); // Dispatch action logout
 
-       dispatch(clearChatRoom());
+        dispatch(clearChatRoom());
+        dispatch(clearDeviceToken());
         // RootNavigation.popToTop(); // Điều hướng về màn hình đăng nhập
         RootNavigation.navigate('Login');
     };

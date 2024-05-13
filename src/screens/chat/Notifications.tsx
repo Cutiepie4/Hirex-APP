@@ -12,8 +12,8 @@ export interface Notification {
     id: number,
     notificationTitle: string,
     notificationContent: string,
-    notificationCompanyDetail: string,
-    notificationJobDetail: string,
+    notificationCompanyDetail: string[],
+    notificationJobDetail: string[],
     createdAt?: string,
     read?: boolean,
 };
@@ -45,6 +45,10 @@ const Notifications = () => {
         }
     };
 
+    const readAllNotifications = async () => {
+        await BASE_API.post('/notifications/read-all').then(res => setNoti(prev => prev.map(item => { return { ...item, read: true } })));
+    }
+
     useEffect(() => {
         const fetchData = async () => {
             const response = await BASE_API.get('/notifications');
@@ -68,7 +72,7 @@ const Notifications = () => {
                 marginTop: 10,
                 marginHorizontal: regularPadding,
                 width: width - regularPadding * 2,
-            }, item.read && styles.isRead]}
+            }, !item.read && styles.isRead]}
             onPress={() => RootNavigation.navigate('NotificationDetail', { notification: item })}
         >
             <View style={{
@@ -98,7 +102,9 @@ const Notifications = () => {
                 title='Thông báo'
                 backArrow
                 rightHeaderComponent={
-                    <TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={readAllNotifications}
+                    >
                         <Text style={{
                             color: orange
                         }}>

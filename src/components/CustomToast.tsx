@@ -9,6 +9,7 @@ import GOOGLE from '../assets/google.png'
 interface ToastProps {
     title: string;
     content: string;
+    base64?: string;
 }
 
 const toastConfig = {
@@ -45,7 +46,7 @@ const toastConfig = {
         );
     },
     notification: ({ props }: { props: ToastProps }) => {
-        const { title = '', content = '' } = props;
+        const { title = '', content = '', base64 } = props;
         const width = useWindowDimensions().width;
         return (
             <TouchableOpacity
@@ -82,7 +83,7 @@ const toastConfig = {
                     alignItems: 'center',
                     marginRight: 8,
                 }}>
-                    <Image source={GOOGLE} resizeMode='contain' style={{
+                    <Image source={base64 ? `data:image;base64,${base64}` : GOOGLE} resizeMode='contain' style={{
                         width: '60%',
                         height: '60%'
                     }} />
