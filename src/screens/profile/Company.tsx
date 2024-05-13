@@ -7,6 +7,7 @@ import { colors } from '@/theme';
 import * as ImagePicker from 'expo-image-picker';
 import RootNavigation from '../../route/RootNavigation';
 import { BASE_API } from '../../services/BaseApi';
+import * as FileSystem from 'expo-file-system';
 
 const Company = ({ route }) => {
 
@@ -26,16 +27,28 @@ const Company = ({ route }) => {
 
     const [modalVisible, setModalVisible] = useState(false);
 
+    const saveBase64AsFile = async (base64String) => {
+        try {
+            const fileName = `photo_${new Date().getTime()}.jpg`;
+            const filePath = `${FileSystem.cacheDirectory}${fileName}`;
+            await FileSystem.writeAsStringAsync(filePath, base64String, {
+                encoding: FileSystem.EncodingType.Base64,
+            });
+            return filePath;
+        } catch (error) {
+            console.error('Error saving the image file:', error);
+        }
+    };
 
     const getCompany = async () => {
         try {
             const response = await BASE_API.get(`/companies/${companyIndex}`);
-            const fetchedUser = response.data;
-            setCompany(fetchedUser);
+            const fetchedCompany = response.data;
+            setCompany(fetchedCompany);
 
-            const imageData = fetchedUser.imageBase64;
+            const imageData = fetchedCompany.imageBase64;
             if (imageData) {
-                const uri = `data:image;base64,${imageData}`;
+                const uri = await saveBase64AsFile(imageData);
                 setImage(uri);
             } else {
                 setImage(null);
@@ -49,7 +62,7 @@ const Company = ({ route }) => {
         useCallback(() => {
             if (typeof companyIndex === 'number') {
                 getCompany();
-             }
+            }
             return () => {
             };
         }, [])
@@ -202,11 +215,12 @@ const Company = ({ route }) => {
                             <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Quy mô công ty</Text>
                             <TextInput
                                 style={styles.input}
-                                value={employeeSize}
+                                value={employeeSize.toString()}
                                 onChangeText={setEmployeeSize}
                                 keyboardType="numeric"
                             />
                         </View>
+
                         <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
                             <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>Địa điểm</Text>
                             <TextInput

@@ -31,9 +31,6 @@ const AddCompany = () => {
             const response = await BASE_API.get(`/employer/${userId}`);
 
             setCompanyLists(response.data.companies || [])
-
-            console.log(response.data.companies)
-            console.log(response.data.companies.employeeSize)
             setUser(response.data.user)
             setName(response.data.user?.fullName)
 

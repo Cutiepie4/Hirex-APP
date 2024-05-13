@@ -45,6 +45,7 @@ const Information = ({ route }) => {
             password,
             retype_password: retryPassword,
             date_of_birth: date.toISOString().split('T')[0],
+            mail: email,
             role_id: role,
         };
 
@@ -106,7 +107,7 @@ const Information = ({ route }) => {
                             paddingLeft: 22
                         }}>
                             <TextInput
-                                placeholder='Học và tên'
+                                placeholder='Họ và tên'
                                 placeholderTextColor={colors.black}
                                 value={fullname}
                                 onChangeText={setFullname}
