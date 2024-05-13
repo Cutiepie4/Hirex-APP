@@ -18,6 +18,8 @@ export type ExtendedAgendaEntry = AgendaEntry & {
   end: string;
   title: string;
   type: string;
+  notification: string;
+  type_notif: string;
 };
 const generateRandomId = () => `newId_${Math.random().toString(36).substring(2, 9)}`;
 
@@ -51,12 +53,14 @@ const AgendaScreen: React.FC = () => {
           title: reservationPick.title,
           type: reservationPick.type,
           notes: reservationPick.notes,
+          notification: reservationPick.notification,
+          type_notif: reservationPick.type_notif,
         },
       };
 
       let response;
       if (isNew) {
-        response = await scheduleService.addItem(item);
+        response = await scheduleService.addItem(phoneNumber, item);
         updateWorkIds(dayPick, response.data.work_id);
         dayItems.push(reservationPick);
         Toast.show({
@@ -163,12 +167,13 @@ const AgendaScreen: React.FC = () => {
             id: subItem.id.toString(),
             name: subItem.id.toString(),
             notes: subItem.notes,
-            height: 100,
             day: dateStr,
             start: convertToMoment(subItem.startTime),
             end: convertToMoment(subItem.endTime),
             title: subItem.title,
-            type: subItem.type
+            type: subItem.type,
+            notification: subItem.notification,
+            type_notif: subItem.type_notif, 
           }));
         });
 
@@ -292,7 +297,7 @@ const AgendaScreen: React.FC = () => {
         </View>
       </Swipeable>
     );
-  }, [items, setItems]);
+  }, [items, setItems, reservationPick]);
 
   const renderEmptyDate = () => {
     return (
@@ -354,6 +359,8 @@ const AgendaScreen: React.FC = () => {
             end: '10:00',
             title: '',
             type: 'personal',
+            notification: '',
+            type_notif: 'Không có',
           })}
         >
           <Ionicons name="add-circle-outline" size={60} color="#50C7C7" />

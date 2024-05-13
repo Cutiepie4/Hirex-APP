@@ -3,7 +3,7 @@ import { BASE_URL } from '@/config/config';
 import axios from 'axios';
 
 const baseUrl = `${BASE_URL}`;
-const token = 'eyJhbGciOiJIUzI1NiJ9.eyJwaG9uZU51bWJlciI6IjEyMyIsInN1YiI6IjEyMyIsImV4cCI6MTcxNDg5NjQ1NH0.s1GRzGW4JYPLu2iwOFrhBYAJtX82BgCEx6MRsE4wBrI';
+const token = 'eyJhbGciOiJIUzI1NiJ9.eyJwaG9uZU51bWJlciI6IjEyMyIsInN1YiI6IjEyMyIsImV4cCI6MTcxNzcyODI1OX0.68LnlXQypTsM-Q-WQRK3jeUB2hoAGXgBVgOJ-WOq_zA';
 
 // Cấu hình Axios headers
 const axiosConfig = {
@@ -18,8 +18,8 @@ const scheduleService = {
         return axios.get(`${baseUrl}/schedules_by_user/${phoneNumber}`, axiosConfig);
     },
 
-    addItem: (item) => {
-        return axios.post(`${baseUrl}/schedules`, item, axiosConfig);
+    addItem: (phoneNumber, item) => {
+        return axios.post(`${baseUrl}/schedules/${phoneNumber}`, item, axiosConfig);
     },
 
     updateItem: (id, item) => {

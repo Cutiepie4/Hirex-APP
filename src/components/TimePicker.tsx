@@ -18,6 +18,9 @@ const TimePicker = (props: any) => {
     const handleConfirm = (time: any) => {
         const timePicked = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
         setTimePicker(timePicked);
+        if(props.selectOption){
+            props.handleOptionSelect(props.selectOption)
+        }
         props.timeStart !== undefined ? props.setTime({ ...props.reservationPick, start: timePicked }) : props.setTime({ ...props.reservationPick, end: timePicked })
         console.log("A time has been picked: ", time);
         hideTimePicker();

@@ -47,18 +47,20 @@ const ScheduleEmployerScreen: React.FC = () => {
                     title: reservationPick.title,
                     type: reservationPick.type,
                     notes: reservationPick.notes,
+                    notification: reservationPick.notification,
+                    type_notif: reservationPick.type_notif,
                 },
             };
 
             let response;
             if (isNew) {
-                response = await scheduleService.addItem(item);
+                response = await scheduleService.addItem(phoneNumber, item);
                 const newWorkIds = { ...workIds };
                 console.log(response)
                 if (response.status == 200 && response.data) {
                     newWorkIds[dayPick] = response.data.work_id;
                     setWorkIds(newWorkIds);
-                    dayItems.push(reservationPick);
+                    dayItems.push({ ...reservationPick, id: response.data.id } as AgendaEntry);
                     Toast.show({
                         type: 'success',
                         props: {
@@ -70,7 +72,13 @@ const ScheduleEmployerScreen: React.FC = () => {
             } else {
                 response = await scheduleService.updateItem(reservationPick.id, item);
                 updateDayItems(dayItems, reservationPick);
-                Toast.show({ type: 'success', text2: 'Cập nhật sự kiện thành công' });
+                Toast.show({
+                    type: 'success',
+                    props: {
+                        title: 'Thành công',
+                        content: 'Cập nhật sự kiện thành công',
+                    },
+                });
             }
             setItems(prevItems => ({ ...prevItems, [dayPick]: dayItems }));
         } catch (error) {
@@ -107,9 +115,10 @@ const ScheduleEmployerScreen: React.FC = () => {
         const itemIndex = dayItems.findIndex(item => item.name === reservationPick.name);
         if (itemIndex > -1) {
             dayItems[itemIndex] = reservationPick;
+            console.log(reservationPick)
         }
     };
-
+    console.log(reservationPick)
     // xóa sự kiện
     const handleDeleteItem = useCallback(async (reservation: ExtendedAgendaEntry) => {
         try {
@@ -148,7 +157,6 @@ const ScheduleEmployerScreen: React.FC = () => {
                 const newWorkIds = {};
                 const newItems = {};
                 const noReasonUpdates = {};
-
                 const itemPromises = response.data.map(item => {
                     const dateStr = formatDate(item.date);
                     newWorkIds[dateStr] = item.work_id;
@@ -180,13 +188,15 @@ const ScheduleEmployerScreen: React.FC = () => {
                     return Promise.all(subItemPromises).then(subItemsWithCounts => {
                         newItems[dateStr] = subItemsWithCounts.map(subItem => ({
                             id: subItem.id.toString(),
-                            name: subItem.name,
+                            name: subItem.id,
                             notes: subItem.notes,
                             day: dateStr,
                             start: convertToMoment(subItem.startTime),
                             end: convertToMoment(subItem.endTime),
                             title: subItem.title,
                             type: subItem.type,
+                            notification: subItem.notification,
+                            type_notif: subItem.type_notif,
                             ...(subItem.noReasonCount && { noReasonCount: subItem.noReasonCount })
                         }));
                     });
@@ -216,8 +226,11 @@ const ScheduleEmployerScreen: React.FC = () => {
                 });
             });
     }, []);
-    const loadItems = (day: DateData) => {
-
+    const handleReason = (id) => {
+        setNoReason(prevNoReason => ({
+            ...prevNoReason,
+            [id]: prevNoReason[id] - 1,
+        }));
     };
     const handleSetValue = useCallback((isShow: boolean, isNew: boolean, day: string, reservation: ExtendedAgendaEntry) => {
         setReservationPick({ ...reservation })
@@ -274,7 +287,7 @@ const ScheduleEmployerScreen: React.FC = () => {
                         onPress={
                             reservation.type === 'personal'
                                 ? () => handleSetValue(true, false, reservation.day, reservation)
-                                : () => RootNavigation.navigate('ReasonListScreen', { reservation: reservation })
+                                : () => RootNavigation.navigate('ReasonListScreen', { reservation: reservation, handleReason: handleReason })
                         }
                     >
                         <View style={styles.textContainer}>
@@ -405,6 +418,8 @@ const ScheduleEmployerScreen: React.FC = () => {
                         end: '10:00',
                         title: '',
                         type: 'personal',
+                        notification: '',
+                        type_notif: 'Không có',
                     })}
                 >
                     <Ionicons name="add-circle-outline" size={60} color="#50C7C7" />

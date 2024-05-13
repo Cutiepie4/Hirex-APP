@@ -5,11 +5,12 @@ import { ExtendedAgendaEntry } from '../screens/ScheduleScreen';
 import TakeOffModal from './TakeOffModal';
 import debounce from 'lodash.debounce';
 import scheduleService from '../services/ScheduleService';
+import moment from 'moment';
 
 
 const ItemsDetail = (props: any) => {
     const [showOptions, setShowOptions] = useState<boolean>(false);
-    const [selectedOption, setSelectedOption] = useState<any>('Không có');
+    const [selectedOption, setSelectedOption] = useState<any>(props.reservationPick.type_notif);
     const [showTakeOffModal, setShowTakeOffModal] = useState<boolean>(false);
     const [title, setTitle] = useState<string>(props.reservationPick.title);
     const [notes, setNotes] = useState<string>(props.reservationPick.notes);
@@ -50,20 +51,29 @@ const ItemsDetail = (props: any) => {
             itemId: props.reservationPick.id,
         }
         scheduleService.createLeave(leave).then(res => {
+            setIsShowTakeOff(false)
             console.log('Item added:', res.data);
         }).catch(error => {
-            console.error('Error adding item:', error);
+            console.error('Error create leave:', error);
         });
         handleHideTakeOffModal();
     };
 
     const handleOptionSelect = (optionKey) => {
+        const dateTimeString = `${props.dayPick} ${props.reservationPick.start}`;
+        const notificationMoment = moment(dateTimeString, "YYYY-MM-DD HH:mm").add(options[optionKey], 'minutes');
+        let notificationString = ''
+        if (typeof options[optionKey] === 'number') {
+            notificationString = notificationMoment.format('YYYY-MM-DD[T]HH:mm');
+        }
+        console.log(notificationString);
+        props.setReservationPick(() => ({
+            ...props.reservationPick,
+            notification: notificationString,
+            type_notif: optionKey,
+        }));
         setSelectedOption(optionKey);
-        console.log(options[optionKey])
-        // Gán giá trị tương ứng từ object options vào state hoặc biến để xử lý logic
         const optionValue = options[optionKey];
-        // Lưu giá trị này để sử dụng trong logic ứng dụng của bạn
-        // ...
         setShowOptions(false);
     };
     const debouncedOnChange = useCallback(
@@ -124,13 +134,13 @@ const ItemsDetail = (props: any) => {
                         alignItems: 'center',
                         marginTop: 3
                     }}>
-                        <Text><TimePicker editable={props.reservationPick.type !== 'working'} timeStart={props.reservationPick.start} reservationPick={props.reservationPick} setTime={props.setReservationPick} /></Text>
+                        <Text><TimePicker editable={props.reservationPick.type !== 'working'} selectOption ={selectedOption} handleOptionSelect = {handleOptionSelect} timeStart={props.reservationPick.start} reservationPick={props.reservationPick} setTime={props.setReservationPick} /></Text>
                         <Text style={{
                             color: '#9CAAC4',
                             fontSize: 16,
                             fontWeight: '600'
                         }}>-</Text>
-                        <Text><TimePicker editable={props.reservationPick.type !== 'working'} timeEnd={props.reservationPick.end} reservationPick={props.reservationPick} setTime={props.setReservationPick} /></Text>
+                        <Text><TimePicker editable={props.reservationPick.type !== 'working'} selectOption={selectedOption} handleOptionSelect={handleOptionSelect} timeEnd={props.reservationPick.end} reservationPick={props.reservationPick} setTime={props.setReservationPick} /></Text>
                     </View>
                 </View>
                 <View style={styles.notesContent} />

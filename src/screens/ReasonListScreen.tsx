@@ -7,6 +7,7 @@ import Toast from 'react-native-toast-message';
 const ReasonListScreen = ({ navigation, route }) => {
     const [leaveList, setLeaveList] = useState();
     const [leaveStatus, setLeaveStatus] = useState({});
+    const { handleReason } = route.params;
     const scrollY = React.useRef(new Animated.Value(0)).current;
     const handleGoBack = () => {
         navigation.goBack();
@@ -42,6 +43,7 @@ const ReasonListScreen = ({ navigation, route }) => {
         try {
             const response = await scheduleService.acceptReason(id);
             setLeaveStatus(prevStatus => ({ ...prevStatus, [id]: true }));
+            handleReason(id)
         } catch (error) {
             Toast.show({
                 type: 'error',
@@ -132,6 +134,7 @@ const ReasonListScreen = ({ navigation, route }) => {
     };
     return (
         <SafeAreaView style={styles.container}>
+            {/* <StatusBar /> */}
             {/* <Text style={styles.summary}>Number of Employees at Work: {employeesAtWork}</Text> */}
             {/* <Image
                 source={require('../../assets/STRAY KIDS REACTION.jpeg')}
@@ -149,7 +152,7 @@ const ReasonListScreen = ({ navigation, route }) => {
                 renderItem={renderEmployee}
                 contentContainerStyle={{
                     padding: 20,
-                    paddingTop: StatusBar.currentHeight || 42
+                    paddingTop: 70
                 }}
                 showsVerticalScrollIndicator={false}
             />
@@ -209,7 +212,7 @@ const styles = StyleSheet.create({
     },
     backButton: {
         position: 'absolute',
-        top: 20,
+        top: 40,
         left: 10,
     },
     backButtonText: {

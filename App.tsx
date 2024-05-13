@@ -78,7 +78,6 @@ const EntryNavigation = () => {
         else {
             console.log('Permission messaging not granted: ');
         };
-
         messaging().getInitialNotification().then(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
             if (remoteMessage) {
                 console.log('Notification caused app to open from quit state:', remoteMessage.notification)

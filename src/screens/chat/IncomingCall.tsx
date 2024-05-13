@@ -12,6 +12,7 @@ import { deepPurple, titleFontStyle } from '@/styles/styles';
 import { StatusBar } from 'expo-status-bar';
 import RootNavigation from '@/route/RootNavigation';
 import JoinScreen from './JoinScreen';
+import Toast from 'react-native-toast-message';
 
 const IncomingCallScreen = (props) => {
     const { caller, acceptCall, refuseCall } = props;
@@ -79,9 +80,18 @@ const IncomingCall = () => {
     const [showJoinScreen, setShowJoinScreen] = useState(false);
 
     messaging().onMessage(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-        dispatch(showIncommingCall());
-        setCaller(remoteMessage.notification.title);
-        setRoomId(remoteMessage.notification.body);
+        if (remoteMessage.data.notificationType === 'videoCall') {
+            dispatch(showIncommingCall());
+            setCaller(remoteMessage.notification.title);
+            setRoomId(remoteMessage.notification.body);
+        }
+        else if (remoteMessage.data.notificationType === 'schedule'){
+            Toast.show({
+                type: 'info',
+                text1: remoteMessage.notification.title,
+                text2: remoteMessage.notification.body,
+            });
+        }
     });
 
     const acceptCall = useCallback(() => {
