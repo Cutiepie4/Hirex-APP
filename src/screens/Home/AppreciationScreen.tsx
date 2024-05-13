@@ -7,6 +7,7 @@ import Toast from 'react-native-toast-message';
 import { toastResponse } from '@/utils/toastResponse';
 
 type AppreciationProps = {
+    id: number
     award: string
     achievement: string
     endDate: string
@@ -15,26 +16,33 @@ type AppreciationProps = {
 
 export const Appreciation = ({ route }) => {
     let employeeId = route.params.employeeId || null;
-    let companyId = route.params.companyId || null;
+    let workId = route.params.workId || null;
     const appre = appreStyle
     const [appreciation, setAppreciation] = React.useState<AppreciationProps>(null)
+
+    React.useEffect(() => {
+        BASE_API.get(`/appreciations?employeeId=${employeeId}&workId=${workId}`)
+            .then((res) => {
+                setAppreciation(res.data)
+            }).catch((err) => {
+                toastResponse({type: 'error', content: err.message})
+            })
+    }, [])
     
     const handleChangeAprreciation = (name, value) => {
         setAppreciation({ ...appreciation, [name]: value })
-        console.log(appreciation)
     }
 
     const saveAprreciation = async () => {
         await BASE_API.post("appreciations", {
             ...appreciation,
             employeeId: employeeId,
-            companyId: companyId,
+            workId: workId,
         })
             .then(res => {
-                toastResponse({type: 'success', content: res.data})
+                toastResponse({type: 'success', content: 'Lưu thành công'})
             })
             .catch(err => {
-                console.log(err.message)
                 toastResponse({type: 'error', content: err.message})
             })
     }
