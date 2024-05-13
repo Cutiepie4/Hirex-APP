@@ -8,6 +8,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import RootNavigation from "@/route/RootNavigation";
 import BottomModal from "@/components/BottomModal";
 import { BASE_API } from "@/services/BaseApi";
+import { toastResponse } from "@/utils/toastResponse";
 
 type Resume = {
     id: number
@@ -27,7 +28,7 @@ export const UploadCV = ({ route }) => {
         BASE_API.get("resumes").then((res) => {
             setResumes(res.data)
         }).catch((err) => {
-            console.log(err)
+            toastResponse({type: 'error', content: err.message})
         })
     }, [])
 
@@ -126,7 +127,7 @@ export const UploadCV = ({ route }) => {
                                         filename: selected?.nameFile, filesize: 1000
                                     })
                                 }).catch((err) => {
-                                    Alert.alert('ERROR', 'vcl')
+                                    toastResponse({type: 'error', content: err.message})
                                 })
                         } else {
                             Alert.alert('NO FILE SELECTED', 'Please select a file for upload')
