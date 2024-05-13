@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Image, TextInput, Dimensions, Modal, SafeAreaView } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Image, TextInput, Dimensions, Modal, SafeAreaView, Pressable } from 'react-native';
 import { MaterialCommunityIcons, FontAwesome5, Feather, AntDesign } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useActionSheet } from '@expo/react-native-action-sheet';
@@ -13,12 +13,15 @@ import BACKGROUND from '../../assets/images/background.jpg'
 import Toast from 'react-native-toast-message';
 import { Ionicons } from '@expo/vector-icons';
 import RootNavigation from '../../route/RootNavigation';
+import { deepPurple } from '../../styles/styles';
+
 const { height } = Dimensions.get('window');
 
 const Account = ({ route }) => {
     const { userId, phoneNumber, role, fullname } = useSelector((state: RootReducer) => state.authReducer);
     const { showActionSheetWithOptions } = useActionSheet();
     const [user, setUser] = useState(null);
+    const [gender, setGender] = useState('Nam');
     const [image, setImage] = useState(null);
     const [fullName, setFullName] = useState('');
     const [birthday, setBirthday] = useState('');
@@ -30,8 +33,10 @@ const Account = ({ route }) => {
 
     const [modalVisible1, setModalVisible1] = useState(false);
     const toggleModal = () => {
-        setModalVisible1(!modalVisible1);  // Function to toggle the modal's visibility
+        setModalVisible1(!modalVisible1);  
     };
+
+    const [modalVisible2, setModalVisible2] = useState(false);
 
     const getUser = async () => {
         try {
@@ -41,6 +46,7 @@ const Account = ({ route }) => {
             setFullName(fetchedUser.fullName);
             setBirthday(fetchedUser.dateOfBirth);
             setEmail(fetchedUser.mail);
+            setGender(fetchedUser.gender);
             setAddress(fetchedUser.address);
             setName(fetchedUser.fullName)
             const imageData = fetchedUser.imageBase64;
@@ -167,6 +173,7 @@ const Account = ({ route }) => {
                 phoneNumber: phoneNumber,
                 fullName: fullName,
                 dateOfBirth: birthday,
+                gender:gender,
                 mail: email,
                 address: address
             });
@@ -193,6 +200,13 @@ const Account = ({ route }) => {
 
     const handleBack = () => {
         RootNavigation.navigate('Setting');
+    };
+
+    const closeModal = () => setModalVisible2(false);
+
+    const selectGender = (newGender) => {
+        setGender(newGender);
+        closeModal();
     };
 
     return (
@@ -280,6 +294,54 @@ const Account = ({ route }) => {
                             />
                         </View>
                     </View>
+
+                    <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
+                        <Text style={{ fontSize: 12, color: colors.black, marginBottom: 8, fontWeight: '900' }}>
+                            Giới tính
+                        </Text>
+                        <TouchableOpacity
+                            style={{
+                                width: "20%",
+                                height: 48,
+                                borderColor: colors.black,
+                                borderWidth: 1,
+                                borderRadius: 8,
+                                alignItems: "center",
+                                justifyContent: "center",
+                            }}
+                            onPress={() => setModalVisible2(true)} 
+                        >
+                            <Text style={{ color: colors.black }}>{gender}</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <Modal
+                        animationType="slide"
+                        transparent={true}
+                        visible={modalVisible2}
+                        onRequestClose={() => {
+                            setModalVisible2(!modalVisible2);
+                        }}
+                    >
+                        <View style={styles.centeredView}>
+                            <View style={styles.modalContent}>
+                                <Text style={styles.modalText}>Chọn giới tính</Text>
+                                <Pressable
+                                    style={[styles.button, { backgroundColor: gender === 'Nam' ? deepPurple : colors.white }]}
+                                    onPress={() => selectGender('Nam')}
+                                >
+                                    <Text style={[styles.textStyle, { color: gender === 'Nam' ? 'white' : 'black' }]}>Nam</Text>
+                                </Pressable>
+                                <Pressable
+                                    style={[styles.button, { backgroundColor: gender === 'Nữ' ? deepPurple : colors.white }]}
+                                    onPress={() => selectGender('Nữ')}
+                                >
+                                    <Text style={[styles.textStyle, { color: gender === 'Nữ' ? 'white' : 'black' }]}>Nữ</Text>
+                                </Pressable>
+                            </View>
+                        </View>
+                    </Modal>
+
                     <View style={{ marginBottom: 12, paddingLeft: 15, paddingRight: 15 }}>
                         <Text style={styles.label}>Email</Text>
                         <View style={styles.input}>
@@ -354,6 +416,30 @@ const Account = ({ route }) => {
 }
 
 const styles = StyleSheet.create({
+    modalContent: {
+        margin: 20,
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 35,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    button: {
+        borderRadius: 10,
+        padding: 12,
+        elevation: 2,
+        marginBottom: 10,
+        backgroundColor: deepPurple,
+        width: 80,
+        
+    },
     centeredView: {
         flex: 1,
         justifyContent: "center",

@@ -23,6 +23,7 @@ import { BASE_API } from '@/services/BaseApi';
 import { hideIncommingCall, showIncommingCall } from '@/redux/slice/chatSlice';
 import IncomingCall from '@/screens/chat/IncomingCall';
 import Toast from 'react-native-toast-message';
+import { LogBox } from 'react-native';
 
 const Stack = createStackNavigator();
 
@@ -103,6 +104,11 @@ const EntryNavigation = () => {
 };
 
 const App = () => {
+
+    LogBox.ignoreLogs([
+        'Non-serializable values were found in the navigation state',
+      ]);
+      
     const [showBanner, setShowBanner] = useState(true);
 
     useEffect(() => {
