@@ -105,7 +105,7 @@ const Login = () => {
                                 borderRadius: 8,
                                 alignItems: "center",
                                 justifyContent: "flex-start",
-                                flexDirection: 'row', 
+                                flexDirection: 'row',
                                 paddingLeft: 22,
                                 backgroundColor: colors.grey_sur
 

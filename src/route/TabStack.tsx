@@ -20,6 +20,8 @@ import IncomingCall from '@/screens/chat/IncomingCall';
 import JoinScreen from '@/screens/chat/JoinScreen';
 import Notifications from '@/screens/chat/Notifications';
 import NotificationDetail from '@/screens/chat/NotificationDetail';
+import Test from '@/screens/chat/Test';
+import VideoStream from '@/screens/chat/VideoStream';
 import ProfileHandler from '@/screens/profile/ProfileHandler';
 import Company from '@/screens/profile/Company';
 
@@ -40,7 +42,9 @@ const chatScreenStack = {
     CallScreen: CallScreen,
     IncomingCall: IncomingCall,
     JoinScreen: JoinScreen,
-    Setting: Setting
+    Setting: Setting,
+    Test: Test,
+    VideoStream: VideoStream
 }
 
 const pofileScreenStack = {
@@ -127,7 +131,7 @@ const ProfileStack = ({ navigation, route }: any) => {
             dispatch(hideTabBar());
         }
     }, [navigation, route]);
-    
+
     return (
         <Stack.Navigator
             screenOptions={{

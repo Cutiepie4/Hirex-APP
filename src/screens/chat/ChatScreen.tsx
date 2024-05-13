@@ -22,6 +22,7 @@ import CHAT_HERE from '../../assets/images/chat-here.png'
 import { Feather } from '@expo/vector-icons';
 import { Video } from 'expo-av';
 import { AntDesign } from '@expo/vector-icons';
+import { BASE_API } from '@/services/BaseApi';
 
 export interface Message {
     id: string,
@@ -47,6 +48,7 @@ export interface AttachedFile {
 const ChatScreen = (props) => {
     const { phoneNumber } = useSelector((state: RootReducer) => state.authReducer);
     const { messages: initMessages, participants: initParticipants, chatFriendPhone } = props.route.params.data;
+    const [friendInfo, setFriendInfo] = useState<{ fullName: String, imageBase64: string }>({ fullName: chatFriendPhone, imageBase64: null });
     const [participants, setParticipants] = useState(initParticipants);
     const [sendLoading, setSendLoading] = useState(false);
     const [messages, setMessages] = useState<IChatMessage[]>(
@@ -113,10 +115,16 @@ const ChatScreen = (props) => {
 
     useEffect(() => {
         const unsubscribe = fetchData();
+        fetchFriendName();
         return () => {
             unsubscribe();
         };
     }, [fetchData]);
+
+    const fetchFriendName = async () => {
+        const response = await BASE_API.get(`/users/by-phone?phoneNumber=${chatFriendPhone}`);
+        response.status == 200 && setFriendInfo(response.data);
+    };
 
     const onSend = useCallback(async (messages: IChatMessage[] = [], image?: string, video?: string, file?: AttachedFile) => {
         console.log('vide', video)
@@ -468,8 +476,8 @@ const ChatScreen = (props) => {
             <Header
                 leftHeaderComponent={
                     <>
-                        <Image source={AVATAR} style={styles.imageBox} />
-                        <Text style={[titleFontStyle, { fontSize: 16 }]}>{chatFriendPhone}</Text>
+                        <Image source={friendInfo?.imageBase64 ? { uri: `data:image;base64,${friendInfo.imageBase64}` } : AVATAR} style={styles.imageBox} />
+                        <Text style={[titleFontStyle, { fontSize: 16 }]}>{friendInfo.fullName}</Text>
                     </>
                 }
                 backArrow
