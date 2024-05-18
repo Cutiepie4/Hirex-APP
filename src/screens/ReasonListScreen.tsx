@@ -7,7 +7,7 @@ import Toast from 'react-native-toast-message';
 const ReasonListScreen = ({ navigation, route }) => {
     const [leaveList, setLeaveList] = useState();
     const [leaveStatus, setLeaveStatus] = useState({});
-    const { handleReason } = route.params;
+    // const { handleReason } = route.params;
     const scrollY = React.useRef(new Animated.Value(0)).current;
     const handleGoBack = () => {
         navigation.goBack();
@@ -15,7 +15,8 @@ const ReasonListScreen = ({ navigation, route }) => {
     useEffect(() => {
         const fetchLeaveReasons = async () => {
             try {
-                const response = await scheduleService.getLeaveReasonByItem(route.params?.reservation?.id);
+                // console.log(route.params)
+                const response = await scheduleService.getLeaveReasonByItem(route.params?.reservation?.work_id, route.params?.reservation?.day);
                 const newLeaveStatus = response.data.reduce((acc, reason) => {
                     acc[reason.id] = reason.isAccept;
                     return acc;
@@ -43,7 +44,7 @@ const ReasonListScreen = ({ navigation, route }) => {
         try {
             const response = await scheduleService.acceptReason(id);
             setLeaveStatus(prevStatus => ({ ...prevStatus, [id]: true }));
-            handleReason(id)
+            // handleReason(id)
         } catch (error) {
             Toast.show({
                 type: 'error',
@@ -109,19 +110,19 @@ const ReasonListScreen = ({ navigation, route }) => {
                     justifyContent: 'space-between',
                 }}
                 >
-                    <Text style={{ fontSize: 22, fontWeight: '700' }}>{item.employee.firstName} {item.employee.lastName}</Text>
+                    <Text style={{ fontSize: 22, fontWeight: '700' }}>{item.employee.user.fullName} </Text>
                     {!leaveStatus[item.id] && item.reason && <TouchableOpacity onPress={() => handleAcceptLeave(item.id)} >
                         <AntDesign name="check" size={24} color="green" />
                     </TouchableOpacity>}
 
                 </View>
-                <Text style={{ fontSize: 18, opacity: .7 }}>Địa chỉ: {item.employee.address}</Text>
+                <Text style={{ fontSize: 18, opacity: .7 }}>Địa chỉ: {item.employee.user.address}</Text>
                 <View style={{
                     flexDirection: 'row',
                     justifyContent: 'space-between',
                 }}
                 >
-                    <Text style={{ fontSize: 12, opacity: .8, color: '#0099cc' }}>{item.employee.email}</Text>
+                    <Text style={{ fontSize: 12, opacity: .8, color: '#0099cc' }}>{item.employee.user.mail}</Text>
                     {!leaveStatus[item.id] && item.reason && <TouchableOpacity onPress={() => handleRejectLeave(item.id)}>
                         <Feather name="x" size={24} color="red" />
                     </TouchableOpacity>}

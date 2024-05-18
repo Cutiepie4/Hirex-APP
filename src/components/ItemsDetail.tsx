@@ -17,16 +17,18 @@ const ItemsDetail = (props: any) => {
     const [isShowTakeOff, setIsShowTakeOff] = useState<boolean>(false);
 
     useEffect(() => {
-        scheduleService.getCheckExistReason(props.reservationPick.id).then(res => {
-            if (res.data === true) {
-                setIsShowTakeOff(false)
-            }
-            else {
-                setIsShowTakeOff(true)
-            }
-        }).catch(error => {
-            console.error('Error check item:', error);
-        });
+        if (props.reservationPick.type === 'working'){
+            scheduleService.getCheckExistReason(props.reservationPick.work_id, props.reservationPick.day).then(res => {
+                if (res.data === true) {
+                    setIsShowTakeOff(false)
+                }
+                else {
+                    setIsShowTakeOff(true)
+                }
+            }).catch(error => {
+                console.error('Error check item:', error);
+            });
+        }
     }, [])
     const options = {
         'Không có': false,
@@ -49,6 +51,8 @@ const ItemsDetail = (props: any) => {
         const leave = {
             leaveReason: reason,
             itemId: props.reservationPick.id,
+            work_id: props.reservationPick.work_id,
+            dateReason: props.reservationPick.day
         }
         scheduleService.createLeave(leave).then(res => {
             setIsShowTakeOff(false)
@@ -81,7 +85,7 @@ const ItemsDetail = (props: any) => {
             props.setReservationPick((prev) => ({ ...prev, [key]: value }));
             props.setSubmit(false);
         }, 500),
-        []
+        [props.reservationPick]
     );
 
     const onTitleChange = (value) => {

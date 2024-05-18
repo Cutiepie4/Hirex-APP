@@ -24,19 +24,6 @@ export const Home = () => {
                 <View>
                     <Text style={home.home_text_1}>Hello {"\n"}Orlando Diggs.</Text>
                 </View>
-
-                <View style={{ marginTop: 30 }}>
-                    <View style={home.home_banner}>
-                        <View >
-                            <Text style={home.home_text_2}>50% off {"\n"}take any courses</Text>
-                            <TouchableOpacity activeOpacity={0.8} style={home.home_banner_button}>
-                                <Text style={home.home_banner_button_text}>Join Now</Text>
-                            </TouchableOpacity>
-                        </View>
-                        <Image style={{ position: "absolute", bottom: 0, right: 0, width: 200, height: 200 }} source={woman} />
-
-                    </View>
-                </View>
                 <ScrollView showsVerticalScrollIndicator={false} style={{ marginTop: 10 }}>
                     <View style={{ marginTop: 10 }}>
                         <Text style={home.home_text_3}>Find Your Job</Text>
@@ -96,7 +83,7 @@ export const Home = () => {
                                     name="Product Design"
                                     address="Carlifonia, USA"
                                     salary="$15k"
-                                    onPress={() => { RootNavigation.navigate('Description') }}
+                                    onPress={() => { RootNavigation.navigate('Description2') }}
                                 />
                             </View>)
                         })}

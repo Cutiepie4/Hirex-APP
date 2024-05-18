@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, Image, Modal, TouchableOpacity } from 'react-native'
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import Container from '@/components/Container'
 import CAT from '../../assets/ccat.jpg';
 import { Feather } from '@expo/vector-icons';
@@ -12,10 +12,52 @@ import { deepPurple, titleFontStyle } from '@/styles/styles';
 import { StatusBar } from 'expo-status-bar';
 import RootNavigation from '@/route/RootNavigation';
 import JoinScreen from './JoinScreen';
+import { Audio } from 'expo-av';
 import Toast from 'react-native-toast-message';
+import { BASE_API } from '@/services/BaseApi';
+import AVATAR from '../../assets/images/avt.png'
 
 const IncomingCallScreen = (props) => {
     const { caller, acceptCall, refuseCall } = props;
+    const [friendInfo, setFriendInfo] = useState<{ fullName: string, imageBase64: string }>({ fullName: 'Người gọi', imageBase64: null })
+    const [soundObject, setSoundObject] = useState(null);
+
+    useEffect(() => {
+        startPhoneRing();
+    }, []);
+
+    useEffect(() => {
+        if (caller && caller != '') {
+            const fetchFriendName = async () => {
+                const response = await BASE_API.get(`/users/by-phone?phoneNumber=${caller}`);
+                response.status == 200 && setFriendInfo(response.data);
+            };
+            fetchFriendName();
+        }
+    }, [caller]);
+
+    const startPhoneRing = async () => {
+        const sound = new Audio.Sound();
+        try {
+            await sound.loadAsync(require('@/assets/sounds/ringtune.mp3'));
+            await sound.playAsync();
+            setSoundObject(sound);
+        } catch (error) {
+            console.log('Failed to load the sound', error);
+        }
+    };
+
+    const stopPhoneRing = async () => {
+        if (soundObject) {
+            try {
+                await soundObject.stopAsync();
+                await soundObject.unloadAsync();
+            } catch (error) {
+                console.log('Failed to stop the sound', error);
+            }
+            setSoundObject(null);
+        }
+    };
 
     return (
         <>
@@ -36,7 +78,7 @@ const IncomingCallScreen = (props) => {
                     }}
                 >
                     <Image
-                        source={CAT}
+                        source={friendInfo?.imageBase64 ? { uri: `data:image;base64,${friendInfo.imageBase64}` } : AVATAR}
                         resizeMode='cover'
                         style={{
                             width: '100%',
@@ -60,12 +102,12 @@ const IncomingCallScreen = (props) => {
                 flexDirection: 'row',
                 justifyContent: 'space-between',
             }}>
-                <TouchableOpacity style={[styles.circle, { backgroundColor: 'green' }]} onPress={acceptCall}>
+                <TouchableOpacity style={[styles.circle, { backgroundColor: 'green' }]} onPress={() => { acceptCall(); stopPhoneRing(); }}>
                     <Feather name="phone" size={28} color="white" />
                 </TouchableOpacity>
 
                 <TouchableOpacity style={[styles.circle]}>
-                    <MaterialCommunityIcons name="phone-hangup" size={28} color="white" onPress={refuseCall} />
+                    <MaterialCommunityIcons name="phone-hangup" size={28} color="white" onPress={() => { refuseCall(); stopPhoneRing(); }} />
                 </TouchableOpacity>
             </View>
         </>
@@ -80,12 +122,24 @@ const IncomingCall = () => {
     const [showJoinScreen, setShowJoinScreen] = useState(false);
 
     messaging().onMessage(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-        if (remoteMessage.data.notificationType === 'videoCall') {
+        if (remoteMessage.data.type == 'VIDEO_CALL') {
+            if (remoteMessage.data.notificationType === 'videoCall') {
             dispatch(showIncommingCall());
-            setCaller(remoteMessage.notification.title);
-            setRoomId(remoteMessage.notification.body);
+                setCaller(remoteMessage.notification.title);
+                setRoomId(remoteMessage.notification.body);
         }
-        else if (remoteMessage.data.notificationType === 'schedule'){
+        // if (remoteMessage.data.type == 'INFO') {
+        //     Toast.show({
+        //         type: 'notification',
+        //         props: {
+        //             title: remoteMessage.notification.title,
+        //             content: remoteMessage.notification.body
+        //         },
+        //         autoHide: false
+        //     })
+        // }
+        }
+        if (remoteMessage.data.notificationType === 'schedule'){
             Toast.show({
                 type: 'info',
                 text1: remoteMessage.notification.title,
@@ -106,7 +160,7 @@ const IncomingCall = () => {
     return (
         <Modal visible={incommingCallShow}>
             <StatusBar backgroundColor={deepPurple} style='light' />
-            {showJoinScreen
+            {showJoinScreen && incommingCallShow
                 ? <JoinScreen roomId={roomId} refuseCall={refuseCall} />
                 : <IncomingCallScreen caller={caller} acceptCall={acceptCall} refuseCall={refuseCall} />}
         </Modal>

@@ -3,31 +3,56 @@ import React, { useCallback, useEffect, useState } from 'react'
 import Container from '../../components/Container'
 import Header from '../../components/Header'
 import SearchInput from '../../components/SearchInput'
-import { backgroundColor, orange, placeholderTextColor, regularPadding, titleFontStyle } from '../../styles/styles'
+import { deepPurple, orange, placeholderTextColor, regularPadding, titleFontStyle } from '../../styles/styles'
 import AVATAR from '../../assets/images/avt.png'
 import NO_MESSAGES from '../../assets/images/no_messages.png'
 import { Feather } from '@expo/vector-icons';
 import RootNavigation from '../../route/RootNavigation'
 import { useFocusEffect } from '@react-navigation/native'
 import { useDispatch, useSelector } from 'react-redux'
-import { hideLoading, showLoading } from '../../redux/slice/authSlice'
 import { RootReducer } from '../../redux/store/reducer'
 import { SimpleLineIcons } from '@expo/vector-icons';
 import { saveChatRoom } from '../../redux/slice/chatSlice'
 import { ChatRoom } from './ChatScreen'
-import Toast from 'react-native-toast-message'
-
 import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore'
+import BottomModal from '@/components/BottomModal'
+import { debounce } from 'lodash'
+import Toast from 'react-native-toast-message'
+import { ParseConversationId } from '@/utils/utils'
+
 
 const Messages = () => {
     const dispatch = useDispatch();
     const { chatRoom: initChatRoom } = useSelector((state: RootReducer) => state.chatReducer);
     const [chatRoom, setChatRoom] = useState<ChatRoom[]>([]);
-    const { phoneNumber, isLoading } = useSelector((state: RootReducer) => state.authReducer);
+    const [filteredChatRoom, setFilteredChatRoom] = useState<ChatRoom[]>([]);
+    const { phoneNumber } = useSelector((state: RootReducer) => state.authReducer);
     const width = useWindowDimensions().width;
+    const [showBottomModal, setShowBottomModal] = useState(false);
+    const [textSearch, setTextSearch] = useState('');
+    const [selectedMessage, setSelectedMessage] = useState<string[]>();
+
+    const deleteConversation = async (conversationId) => {
+        try {
+            await firestore()
+                .collection('conversations_col')
+                .doc(ParseConversationId(conversationId))
+                .delete();
+
+            Toast.show({
+                type: 'notification',
+                props: {
+                    title: 'Thông báo',
+                    content: 'Đã xóa tin nhắn.'
+                }
+            });
+        } catch (error) {
+            console.error('Error deleting conversation: ', error);
+        }
+    };
 
     useEffect(() => {
-        setChatRoom(initChatRoom?.map(item => {
+        const data = initChatRoom?.map(item => {
             return {
                 ...item,
                 messages: item.messages.map(message => {
@@ -37,32 +62,50 @@ const Messages = () => {
                     }
                 })
             }
-        }) || []);
+        }) || [];
+        setChatRoom(data);
     }, [initChatRoom]);
+
+    const filterList = () => {
+        if (textSearch.trim() == '') {
+            setFilteredChatRoom(chatRoom);
+        } else {
+            setFilteredChatRoom(chatRoom.filter(item => {
+                const chatFriend = item.participants.filter(friend => friend != phoneNumber)[0];
+                return chatFriend.includes(textSearch);
+            }))
+        };
+    };
+
+    useEffect(() => {
+        const debounceSearch = debounce(filterList, 300);
+        debounceSearch();
+        return debounceSearch.cancel;
+    }, [textSearch, chatRoom]);
 
     useFocusEffect(
         useCallback(() => {
-            const fetchData = async () => {
-                // dispatch(showLoading());
-                let tempChatRoom = [];
-                const q = firestore().collection('conversations_col').where('participants', 'array-contains', phoneNumber);
-                const querySnapshot = await q.get();
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    tempChatRoom = [
-                        ...tempChatRoom,
-                        {
-                            ...data,
-                            messages: data.messages.map(item => {
-                                return { ...item, sentAt: item.sentAt.toDate().toISOString() }
-                            })
-                        }
-                    ];
+            const unsubscribe = firestore()
+                .collection('conversations_col')
+                .where('participants', 'array-contains', phoneNumber)
+                .onSnapshot((querySnapshot) => {
+                    let tempChatRoom = [];
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        tempChatRoom = [
+                            ...tempChatRoom,
+                            {
+                                ...data,
+                                messages: data.messages.map((item) => {
+                                    return { ...item, sentAt: item.sentAt.toDate().toISOString() };
+                                }),
+                            },
+                        ];
+                    });
+                    dispatch(saveChatRoom(tempChatRoom));
                 });
-                // dispatch(hideLoading());
-                dispatch(saveChatRoom(tempChatRoom));
-            };
-            fetchData();
+
+            return unsubscribe;
         }, [phoneNumber])
     );
 
@@ -96,11 +139,16 @@ const Messages = () => {
                 pagingEnabled
                 scrollToOverflowEnabled
                 showsHorizontalScrollIndicator={false}
+                bounces={false}
             >
                 <View style={{
                     flexDirection: 'row',
                 }}>
                     <TouchableOpacity
+                        onLongPress={() => {
+                            setShowBottomModal(true);
+                            setSelectedMessage(item.participants);
+                        }}
                         onPress={() => RootNavigation.navigate('ChatScreen', { data: { ...item, chatFriendPhone } })}
                         style={{
                             flexDirection: 'row',
@@ -143,10 +191,10 @@ const Messages = () => {
                             <View style={[styles.row, { marginTop: 8 }]}>
                                 <View>
                                     <Text>
-                                        {messages.length > 0 && messages[messages.length - 1].content || 'Da gui mot anh'}
+                                        {messages.length > 0 ? (messages[messages.length - 1].content || `Đã gửi một ${messages[messages.length - 1]?.image == '' ? 'file' : 'ảnh'}`) : 'Chưa có tin nhắn'}
                                     </Text>
                                 </View>
-                                <View style={{
+                                {/* <View style={{
                                     backgroundColor: orange,
                                     width: 20,
                                     height: 20,
@@ -159,7 +207,7 @@ const Messages = () => {
                                     ]}>
                                         {2}
                                     </Text>
-                                </View>
+                                </View> */}
                             </View>
                         </View >
                     </TouchableOpacity>
@@ -181,14 +229,15 @@ const Messages = () => {
     };
 
     return (
-        <Container backgroundColor={'#f9f9f9'}>
+        <Container>
             <Header
                 title='Trò chuyện'
                 rightHeaderComponent={<SimpleLineIcons name="options-vertical" size={16} color="black" />}
+                rightHeaderCallback={() => RootNavigation.navigate('Test')}
             />
 
             <FlatList
-                data={chatRoom}
+                data={filteredChatRoom}
                 renderItem={renderItem}
                 style={{
                     height: '100%'
@@ -197,7 +246,7 @@ const Messages = () => {
                     <View style={[styles.container]}>
                         <SearchInput
                             placeholder="Tìm kiếm"
-                            onChangeText={(text) => console.log(text)}
+                            onChangeText={setTextSearch}
                             style={{
                                 borderWidth: 0,
                                 backgroundColor: 'white',
@@ -225,7 +274,26 @@ const Messages = () => {
                     </View>
                 }
             />
-
+            <BottomModal
+                showBottomModal={showBottomModal}
+                setShowBottomModal={setShowBottomModal}
+                options={[
+                    {
+                        icon: <Feather name="trash-2" size={24} color={deepPurple} />,
+                        title: 'Xóa tin nhắn',
+                        onPressOption: () => {
+                            deleteConversation(selectedMessage)
+                        }
+                    },
+                    {
+                        icon: <Feather name="settings" size={24} color={deepPurple} />,
+                        title: 'Cài đặt',
+                        onPressOption: () => {
+                            RootNavigation.navigate('Setting')
+                        }
+                    }
+                ]}
+            />
         </Container >
     )
 };
@@ -234,7 +302,6 @@ export default Messages;
 
 const styles = StyleSheet.create({
     container: {
-        // paddingHorizontal: 20,
         flexDirection: 'column',
     },
     inbox: {

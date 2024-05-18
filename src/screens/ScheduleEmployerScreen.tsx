@@ -29,7 +29,6 @@ const ScheduleEmployerScreen: React.FC = () => {
     const [refreshing, setRefreshing] = useState<boolean>(false);
     const [reservationPick, setReservationPick] = useState<ExtendedAgendaEntry>(undefined);
     const [submit, setSubmit] = useState<boolean>(true);
-    const [workIds, setWorkIds] = useState({});
     const [noReason, setNoReason] = useState({});
     const { phoneNumber, role } = useSelector((state: RootReducer) => state.authReducer);
 
@@ -40,8 +39,7 @@ const ScheduleEmployerScreen: React.FC = () => {
             const dayItems = items[dayPick] ? [...items[dayPick]] : [];
             const item = {
                 date: reservationPick.day,
-                work_id: workIds[reservationPick.day],
-                items: {
+                itemsDTO: {
                     startTime: reservationPick.start,
                     endTime: reservationPick.end,
                     title: reservationPick.title,
@@ -49,17 +47,15 @@ const ScheduleEmployerScreen: React.FC = () => {
                     notes: reservationPick.notes,
                     notification: reservationPick.notification,
                     type_notif: reservationPick.type_notif,
+                    work_id: reservationPick.work_id,
                 },
             };
 
             let response;
             if (isNew) {
                 response = await scheduleService.addItem(phoneNumber, item);
-                const newWorkIds = { ...workIds };
                 console.log(response)
                 if (response.status == 200 && response.data) {
-                    newWorkIds[dayPick] = response.data.work_id;
-                    setWorkIds(newWorkIds);
                     dayItems.push({ ...reservationPick, id: response.data.id } as AgendaEntry);
                     Toast.show({
                         type: 'success',
@@ -105,11 +101,7 @@ const ScheduleEmployerScreen: React.FC = () => {
             dispatch(hideLoading());
         }
     };
-
-    const updateWorkIds = (dayPick, workId) => {
-        const newWorkIds = { ...workIds, [dayPick]: workId };
-        setWorkIds(newWorkIds);
-    };
+    console.log(reservationPick)
 
     const updateDayItems = (dayItems, reservationPick) => {
         const itemIndex = dayItems.findIndex(item => item.name === reservationPick.name);
@@ -118,7 +110,7 @@ const ScheduleEmployerScreen: React.FC = () => {
             console.log(reservationPick)
         }
     };
-    console.log(reservationPick)
+    // console.log(items)
     // xóa sự kiện
     const handleDeleteItem = useCallback(async (reservation: ExtendedAgendaEntry) => {
         try {
@@ -151,81 +143,69 @@ const ScheduleEmployerScreen: React.FC = () => {
         const [hour, minute] = timeArray;
         return moment({ hour, minute }).format('HH:mm');
     };
-    useEffect(() => {
-        scheduleService.fetchItemsByUser(phoneNumber)
-            .then(response => {
-                const newWorkIds = {};
-                const newItems = {};
-                const noReasonUpdates = {};
-                const itemPromises = response.data.map(item => {
-                    const dateStr = formatDate(item.date);
-                    newWorkIds[dateStr] = item.work_id;
-                    newItems[dateStr] = [];
+    const fetchItems = async () => {
+        try {
+            const response = await scheduleService.fetchItemsByUser(phoneNumber);
+            const newWorkIds = {};
+            const newItems = {};
 
-                    const subItemPromises = (item.items || []).map(subItem => {
-                        if (subItem.type === 'working') {
-                            return scheduleService.countReason(subItem.id)
-                                .then(response => {
-                                    noReasonUpdates[subItem.id] = response.data;
-                                    return {
-                                        ...subItem,
-                                        noReasonCount: response.data
-                                    };
-                                }).catch(() => {
-                                    Toast.show({
-                                        type: 'error',
-                                        props: {
-                                            title: 'Lỗi',
-                                            content: 'Có lỗi xảy ra trong việc đếm lý do',
-                                        },
-                                    });
-                                });
-                        } else {
-                            return Promise.resolve(subItem);
-                        }
-                    });
+            for (const item of response.data) {
+                const dateStr = item.date;
+                newWorkIds[dateStr] = item.work_id;
+                // for (const subitem of item.items) {
+                //     if (subitem.type === 'working') {
+                //         try {
+                //             const countResponse = await scheduleService.countReason(subitem.work.id, dateStr);
+                //             setNoReason(prevState => ({
+                //                 ...prevState,
+                //                 [subitem.id]: countResponse.data
+                //             }));
+                //         } catch (error) {
+                //             console.log(error.message)
+                //             Toast.show({
+                //                 type: 'error',
+                //                 props: {
+                //                     title: 'Lỗi',
+                //                     content: error.message,
+                //                 },
+                //             });
+                //         }
+                //     }
+                // }
 
-                    return Promise.all(subItemPromises).then(subItemsWithCounts => {
-                        newItems[dateStr] = subItemsWithCounts.map(subItem => ({
-                            id: subItem.id.toString(),
-                            name: subItem.id,
-                            notes: subItem.notes,
-                            day: dateStr,
-                            start: convertToMoment(subItem.startTime),
-                            end: convertToMoment(subItem.endTime),
-                            title: subItem.title,
-                            type: subItem.type,
-                            notification: subItem.notification,
-                            type_notif: subItem.type_notif,
-                            ...(subItem.noReasonCount && { noReasonCount: subItem.noReasonCount })
-                        }));
-                    });
-                });
+                newItems[dateStr] = (item.itemsDTO || []).map(subItem => ({
+                    id: subItem.id.toString(),
+                    name: subItem.id.toString(),
+                    notes: subItem.notes,
+                    day: dateStr,
+                    start: convertToMoment(subItem.startTime),
+                    end: convertToMoment(subItem.endTime),
+                    title: subItem.title,
+                    type: subItem.type,
+                    notification: subItem.notification,
+                    type_notif: subItem.type_notif,
+                    work_id: subItem.work?.id,
+                }));
+            }
 
-                Promise.all(itemPromises).then(() => {
-                    setNoReason(previousNoReason => ({
-                        ...previousNoReason,
-                        ...noReasonUpdates
-                    }));
-                    setWorkIds(prevWorkIds => ({
-                        ...prevWorkIds,
-                        ...newWorkIds
-                    }));
-                    setItems(prevItems => ({
-                        ...prevItems,
-                        ...newItems
-                    }));
-                });
-            }).catch(error => {
-                Toast.show({
-                    type: 'error',
-                    props: {
-                        title: 'Lỗi',
-                        content: 'Lỗi không thể lấy danh sách sự kiện',
-                    },
-                });
+            setItems(prevItems => ({
+                ...prevItems,
+                ...newItems
+            }));
+        } catch (error) {
+            Toast.show({
+                type: 'error',
+                props: {
+                    title: 'Lỗi',
+                    content: 'Lỗi không thể lấy danh sách sự kiện',
+                },
             });
+        }
+    };
+    useEffect(() => {
+        fetchItems();
     }, []);
+    // console.log(items)
     const handleReason = (id) => {
         setNoReason(prevNoReason => ({
             ...prevNoReason,
@@ -344,7 +324,7 @@ const ScheduleEmployerScreen: React.FC = () => {
                                         fontSize: 10,
                                     }}>
                                         {/* {reservation.id} */}
-                                        {noReason[reservation.id]}
+                                        {reservation.totalReason}
                                     </Text>
                                 </View>
                             }
@@ -356,7 +336,7 @@ const ScheduleEmployerScreen: React.FC = () => {
                 </View>
             </Swipeable >
         );
-    }, [reservationPick, noReason]);
+    }, [reservationPick, noReason, items]);
 
     const renderEmptyDate = () => {
         return (
@@ -392,6 +372,7 @@ const ScheduleEmployerScreen: React.FC = () => {
                     // maxDate={moment().endOf('month').format('YYYY-MM-DD')}
                     onRefresh={() => {
                         console.log('refresh')
+                        fetchItems
                     }}
                     onDayChange={day => {
                         setDayPick(day.dateString);
@@ -420,6 +401,8 @@ const ScheduleEmployerScreen: React.FC = () => {
                         type: 'personal',
                         notification: '',
                         type_notif: 'Không có',
+                        work_id: -1,
+                        totalReason: 0,
                     })}
                 >
                     <Ionicons name="add-circle-outline" size={60} color="#50C7C7" />

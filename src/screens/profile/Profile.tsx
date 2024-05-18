@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, Image, ScrollView } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, Image, Dimensions, Alert, Modal } from 'react-native';
 import { AntDesign, Entypo, MaterialCommunityIcons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
+import { ScrollView } from 'react-native-gesture-handler';
 import * as ImagePicker from 'expo-image-picker';
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import RootNavigation from '../../route/RootNavigation';
@@ -9,54 +11,132 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import BACKGROUND from '../../assets/images/background.jpg';
+import { BASE_API } from '../../services/BaseApi';
+import { hideLoading, login, showLoading } from '../../redux/slice/authSlice';
+import { useSelector } from 'react-redux';
+import { RootReducer } from '@/redux/store/reducer';
+import FileViewer from 'react-native-file-viewer'; // Import thư viện FileViewer
+import { colors } from '@/theme';
 
+
+const { height, width } = Dimensions.get('window');
 const Profile = () => {
 
+
+    const { userId, phoneNumber, role } = useSelector((state: RootReducer) => state.authReducer)
     const [aboutMe, setAboutMe] = useState('');
     const [image, setImage] = useState(null);
     const [experienceLists, setExperienceLists] = useState([]);
     const [educationLists, setEducationLists] = useState([]);
-    const [selectedSkills, setSelectedSkills] = useState([]);
-    const [showAllSkills, setShowAllSkills] = useState(false);
+    const [skillLists, setSkillLists] = useState([]);
+    const [selectedFiles, setSelectedFiles] = useState([]);
+    const [user, setUser] = useState(null)
+    const [name, setName] = useState(null);
+
+    const [modalVisible, setModalVisible] = useState(false);
     const [certificationLists, setCertificationLists] = useState([]);
     const [isPickingDocument, setIsPickingDocument] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
     const { showActionSheetWithOptions } = useActionSheet();
+    const [idEmployee, setIdEmployee] = useState('');
 
-    const handleSeeMore = () => {
-        setShowAllSkills(!showAllSkills);
-    };
+    const getEmployee = async () => {
+        try {
+            const response = await BASE_API.get(`/employees/${userId}`);
 
-    const pickImage = async () => {
-        let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 1,
-        });
+            setAboutMe(response.data.about)
+            setExperienceLists(response.data.experiences || []);
+            setEducationLists(response.data.educations || []);
+            setCertificationLists(response.data.certification || [])
+            setSkillLists(response.data.skills || [])
 
-        if (!result.canceled) {
-            setImage(result.assets[0].uri);
+            setUser(response.data.user)
+            setName(response.data.user?.fullName)
+
+            setIdEmployee(response.data.id)
+            const imageData = response.data.user?.imageBase64;
+
+            if (imageData) {
+                const uri = `data:image;base64,${imageData}`;
+                setImage(uri);
+            } else {
+                setImage(null);
+            }
+            if (response.data.resumes) {
+                setSelectedFiles(response.data.resumes);
+            }
+
+        } catch (error) {
+            console.error('Failed to fetch employee:', error);
+        } finally {
         }
     };
-    const saveFile = async () => {
-        if (selectedFile) {
+
+    useFocusEffect(
+        useCallback(() => {
+            getEmployee();
+            return () => {
+            };
+        }, [userId])
+    );
+
+    const uploadImageAndSaveData = async (phoneNumber) => {
+        let imageResult = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            allowsEditing: true,
+            quality: 0.2,
+        });
+
+        if (!imageResult.canceled) {
+            setImage(imageResult.assets[0].uri);
+            try {
+                const uri = imageResult.assets[0].uri;
+                const uriParts = uri.split('.');
+                const fileType = uriParts[uriParts.length - 1];
+
+                const formData = new FormData();
+                formData.append('image', {
+                    uri: uri,
+                    name: `photo.${fileType}`,
+                    type: `image/${fileType}`
+                });
+                formData.append('phoneNumber', phoneNumber);
+
+                const uploadResponse = await BASE_API.post('/users/uploadImage', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+
+                if (uploadResponse.status === 200) {
+                    console.log('Upload thành công, message:', uploadResponse.data);
+                } else {
+                    throw new Error('Upload không thành công: ' + uploadResponse.data);
+                }
+            } catch (error) {
+                console.error('Lỗi khi upload ảnh: ', error);
+            }
+        }
+    };
+
+    const saveFile = async (fileToSave) => {
+        if (fileToSave) {
             const { status } = await MediaLibrary.requestPermissionsAsync();
             if (status !== 'granted') {
                 alert('Permission required to save files');
                 return;
             }
 
-            const fileUri = FileSystem.cacheDirectory + selectedFile.name;
+            const fileUri = FileSystem.cacheDirectory + fileToSave.name;
 
             try {
                 await FileSystem.copyAsync({
-                    from: selectedFile.uri,
+                    from: fileToSave.uri,
                     to: fileUri
                 });
 
-                const asset = await MediaLibrary.createAssetAsync(fileUri);
-                await MediaLibrary.createAlbumAsync('Download', asset, false);
+                await FileViewer.open(fileUri, { displayName: fileToSave.name });
+
                 alert('File saved successfully!');
             } catch (error) {
                 console.error('Error saving the file', error);
@@ -64,30 +144,97 @@ const Profile = () => {
             }
         }
     };
-    const pickDocument = async () => {
-        if (isPickingDocument) {
-            return;
-        }
-        setIsPickingDocument(true);
 
+    const pickDocument = async () => {
         try {
             let result = await DocumentPicker.getDocumentAsync({
                 type: 'application/pdf',
+                multiple: false
             });
-            console.log(result);
-            if (!result.canceled && result.assets && result.assets.length > 0) {
-                setSelectedFile(result.assets[0]);
-            }
 
+            if (!result.canceled && result.assets && result.assets.length > 0) {
+                const file = result.assets[0];
+
+                let formData = new FormData();
+                formData.append('file', {
+                    uri: file.uri, // File's URI
+                    type: file.mimeType || 'application/pdf',
+                    name: file.name
+                });
+                formData.append('employerId', userId);
+
+                try {
+                    const response = await BASE_API.post(`/resumes/upload`, formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data',
+                        }
+                    });
+                    alert('Tải lên hồ sơ thành công');
+                    if (response.status === 200) {
+                        getEmployee()
+                    }
+
+                } catch (error) {
+                    console.error('Lỗi khi tải lên hồ sơ:', error);
+                    alert('Đã xảy ra lỗi khi tải lên hồ sơ.');
+                }
+            }
         } catch (error) {
-            console.error("Document picking error:", error);
-        } finally {
-            setIsPickingDocument(false);
+            console.error("Lỗi khi chọn tài liệu:", error);
+            alert('Đã xảy ra lỗi khi chọn tài liệu.');
         }
     };
+
+    const deleteFile = async (id) => {
+        try {
+            const response = await BASE_API.delete(`/resumes/${id}`);
+            if (response.status === 200) {
+                alert('Xóa tệp thành công');
+                // Filter out the file using the file's id property
+                setSelectedFiles(prevFiles => prevFiles.filter(file => file.id !== id));
+            } else {
+                throw new Error('Xóa tệp không thành công');
+            }
+        } catch (error) {
+            console.error('Lỗi khi xóa tệp:', error);
+            alert('Đã xảy ra lỗi khi xóa tệp.');
+        }
+    }
+
     const formatFileSize = (sizeInBytes) => {
         return (sizeInBytes / 1024).toFixed(0) + ' KB';
     };
+
+    const save = async (file) => {
+        if (file && file.fileBase64) {
+            const { status } = await MediaLibrary.requestPermissionsAsync();
+            if (status !== 'granted') {
+                alert('Permission required to save files');
+                return;
+            }
+
+            const fileUri = FileSystem.cacheDirectory + file.nameFile;
+
+            try {
+                await FileSystem.writeAsStringAsync(
+                    fileUri,
+                    file.fileBase64,
+                    {
+                        encoding: FileSystem.EncodingType.Base64,
+                    }
+                );
+                const asset = await MediaLibrary.createAssetAsync(fileUri);
+                await MediaLibrary.createAlbumAsync('Download', asset, false);
+                alert('Lưu file thành công!');
+            } catch (error) {
+                console.error('Error saving the file', error);
+                alert('An error occurred while saving the file.');
+            }
+        } else {
+            alert('Invalid file data.');
+        }
+    };
+
 
     const takePhoto = async () => {
         const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
@@ -108,9 +255,8 @@ const Profile = () => {
     };
 
     const showImagePickerOptions = () => {
-        const options = ['Chụp ảnh', 'Chọn ảnh từ thư viện', 'Hủy bỏ'];
+        const options = ['Chọn ảnh từ thư viện', 'Hủy bỏ'];
         const cancelButtonIndex = 2;
-        console.log('ssss');
         showActionSheetWithOptions(
             {
                 options,
@@ -119,11 +265,11 @@ const Profile = () => {
             buttonIndex => {
                 switch (buttonIndex) {
                     case 0:
-                        takePhoto();
+                        uploadImageAndSaveData(phoneNumber);
                         break;
-                    case 1:
-                        pickImage();
-                        break;
+                    // case 1:
+                    //     uploadImageAndSaveData(phoneNumber);
+                    //     break;
                     default:
                         break; // Cancel action
                 }
@@ -132,87 +278,223 @@ const Profile = () => {
     };
 
     const addNewExperience = (newExperience) => {
-        // Thêm newExperience vào cuối mảng của các trải nghiệm làm việc
         setExperienceLists([...experienceLists, newExperience]);
     };
+
     const deleteExperience = (index) => {
-        const updatedList = [...experienceLists];
-        updatedList.splice(index, 1);
+        // Hiển thị cửa sổ xác nhận trước khi xóa
+        Alert.alert(
+            "Xác nhận xóa",
+            "Bạn có chắc chắn muốn xóa ?",
+            [
+                {
+                    text: "Hủy",
+                    onPress: () => console.log("Cancel Pressed"),
+                    style: "cancel"
+                },
+                {
+                    text: "Xác nhận",
+                    onPress: () => confirmDeleteExperience(index)
+                }
+            ],
+            { cancelable: false }
+        );
+    };
+
+    const confirmDeleteExperience = async (id) => {
+        try {
+            const response = await BASE_API.delete(`/experiences/${id}`);
+        } catch (error) {
+        }
+        const updatedList = experienceLists.filter(experience => experience.id !== id);
         setExperienceLists(updatedList);
     };
-    const editExperience = (experience, index) => {
+
+    const deleteEducation = (index) => {
+        // Hiển thị cửa sổ xác nhận trước khi xóa
+        Alert.alert(
+            "Xác nhận xóa",
+            "Bạn có chắc chắn muốn xóa ?",
+            [
+                {
+                    text: "Hủy",
+                    onPress: () => console.log("Cancel Pressed"),
+                    style: "cancel"
+                },
+                {
+                    text: "Xác nhận",
+                    onPress: () => confirmDeletedeleteEducation(index)
+                }
+            ],
+            { cancelable: false }
+        );
+    };
+
+    const confirmDeletedeleteEducation = async (id) => {
+        try {
+            const response = await BASE_API.delete(`/educations/${id}`);
+        } catch (error) {
+        }
+        const updatedList = educationLists.filter(education => education.id !== id);
+        setEducationLists(updatedList);
+    };
+
+    const deleteCertification = (index) => {
+        // Hiển thị cửa sổ xác nhận trước khi xóa
+        Alert.alert(
+            "Xác nhận xóa",
+            "Bạn có chắc chắn muốn xóa ?",
+            [
+                {
+                    text: "Hủy",
+                    onPress: () => console.log("Cancel Pressed"),
+                    style: "cancel"
+                },
+                {
+                    text: "Xác nhận",
+                    onPress: () => confirmDeletedeleteCertification(index)
+                }
+            ],
+            { cancelable: false }
+        );
+    };
+
+    const confirmDeletedeleteCertification = async (id) => {
+        try {
+            const response = await BASE_API.delete(`/certifications/${id}`);
+        } catch (error) {
+        }
+        const updatedList = certificationLists.filter(certification => certification.id !== id);
+        setCertificationLists(updatedList);
+    };
+
+    const editExperience = (experience, id) => {
+
         RootNavigation.navigate('Experience', {
             experienceData: experience,
-            experienceIndex: index,
-            updateExperience: (updatedExperience, index) => {
+            experienceIndex: id,
+            idEmployee: idEmployee,
+            updateExperience: (updatedExperience, id) => {
                 const updatedList = [...experienceLists];
-                updatedList[index] = updatedExperience;
+                updatedList[id] = updatedExperience;
                 setExperienceLists(updatedList);
             }
         });
     };
 
     const addNewEducation = (newEducation) => {
-        // Thêm newEducation vào cuối mảng của các trải nghiệm làm việc
         setEducationLists([...educationLists, newEducation]);
     };
-    const deleteEducation = (index) => {
-        const updatedList = [...educationLists];
-        updatedList.splice(index, 1);
-        setEducationLists(updatedList);
-    };
-    const editEducation = (education, index) => {
+
+    const editEducation = (education, id) => {
         RootNavigation.navigate('Education', {
             educationData: education,
-            educationIndex: index,
-            updateEducation: (updateEducation, index) => {
+            educationIndex: id,
+            idEmployee: idEmployee,
+            updateEducation: (updateEducation, id) => {
                 const updatedList = [...educationLists];
-                updatedList[index] = updateEducation;
+                updatedList[id] = updateEducation;
                 setEducationLists(updatedList);
             }
         });
     };
 
+
     const addNewCertification = (newCertification) => {
         setCertificationLists([...certificationLists, newCertification]);
     };
-    const deleteCertification = (index) => {
-        const updatedList = [...certificationLists];
-        updatedList.splice(index, 1);
-        setCertificationLists(updatedList);
+
+    const addNewSkill = (addNewSkill) => {
+        setSkillLists([...skillLists, addNewSkill]);
     };
-    const editCertification = (certification, index) => {
+
+    const editSkill = (skill, id) => {
+        RootNavigation.navigate('Skill', {
+            skillData: skill,
+            skillIndex: id,
+            idEmployee: idEmployee,
+            updateSkill: (updateSkill, id) => {
+                const updatedList = [...skillLists];
+                updatedList[id] = updateSkill;
+                setSkillLists(updatedList);
+            }
+        });
+    };
+
+    const deleteSkill = (index) => {
+        Alert.alert(
+            "Xác nhận xóa",
+            "Bạn có chắc chắn muốn xóa ?",
+            [
+                {
+                    text: "Hủy",
+                    onPress: () => console.log("Cancel Pressed"),
+                    style: "cancel"
+                },
+                {
+                    text: "Xác nhận",
+                    onPress: () => confirmDeletedeleteSkill(index)
+                }
+            ],
+            { cancelable: false }
+        );
+    };
+
+    const confirmDeletedeleteSkill = async (id) => {
+        try {
+            const response = await BASE_API.delete(`/skills/${id}`);
+        } catch (error) {
+        }
+        const updatedList = skillLists.filter(skill => skill.id !== id);
+        setSkillLists(updatedList);
+    };
+
+    const editCertification = (certification, id) => {
         RootNavigation.navigate('Certification', {
             certificationData: certification,
-            certificationIndex: index,
-            updateCertification: (updateCertification, index) => {
+            certificationIndex: id,
+            idEmployee: idEmployee,
+            updateCertification: (updateCertification, id) => {
                 const updatedList = [...certificationLists];
-                updatedList[index] = updateCertification;
+                updatedList[id] = updateCertification;
                 setCertificationLists(updatedList);
             }
         });
     };
 
     const experienceScreen = () => {
-        RootNavigation.navigate('Experience', { addNewExperience: addNewExperience });
+        RootNavigation.navigate('Experience', {
+            addNewExperience: addNewExperience,
+            idEmployee: idEmployee
+        });
     };
+
     const aboutScreen = () => {
-        RootNavigation.navigate('AboutMeScreen', { saveAboutMe: setAboutMe, aboutMe });
+        RootNavigation.navigate('AboutMeScreen', {
+            saveAboutMe: setAboutMe, aboutMe,
+            idEmployee: idEmployee
+        });
     };
 
     const educationScreen = () => {
-        RootNavigation.navigate('Education', { addNewEducation: addNewEducation });
+        RootNavigation.navigate('Education', {
+            addNewEducation: addNewEducation,
+            idEmployee: idEmployee
+        });
     };
 
     const skillScreen = () => {
         RootNavigation.navigate('Skill', {
-            selectedSkills: selectedSkills,
-            updateSelectedSkills: setSelectedSkills
+            addNewSkill: addNewSkill,
+            idEmployee: idEmployee
         });
     };
 
     const certificationScreen = () => {
-        RootNavigation.navigate('Certification', { addNewCertification: addNewCertification });
+        RootNavigation.navigate('Certification', {
+            addNewCertification: addNewCertification,
+            idEmployee: idEmployee
+        });
     };
 
     const renderAboutMeSection = () => {
@@ -220,17 +502,21 @@ const Profile = () => {
             <View style={styles.section}>
                 <View style={styles.iconWithText}>
                     <AntDesign name="user" size={24} color="#FF9228" />
-                    <Text style={styles.sectionText}>About me</Text>
+                    <Text style={styles.sectionText}>Giới thiệu</Text>
                     {aboutMe ? (
-                        <View style={styles.editButtonContainer}>
-                            <TouchableOpacity style={styles.addButton} onPress={aboutScreen}>
-                                <AntDesign name="edit" size={24} color="orange" />
-                            </TouchableOpacity>
-                        </View>
+                        role === 'user' && (
+                            <View style={styles.editButtonContainer}>
+                                <TouchableOpacity style={styles.addButton} onPress={aboutScreen}>
+                                    <AntDesign name="edit" size={24} color="orange" />
+                                </TouchableOpacity>
+                            </View>
+                        )
                     ) : (
-                        <TouchableOpacity style={[styles.addButton, { marginLeft: 'auto' }]} onPress={aboutScreen}>
-                            <AntDesign name="plus" size={24} color="orange" />
-                        </TouchableOpacity>
+                        role === 'user' && (
+                            <TouchableOpacity style={[styles.addButton, { marginLeft: 'auto' }]} onPress={aboutScreen}>
+                                <AntDesign name="plus" size={24} color="orange" />
+                            </TouchableOpacity>
+                        )
                     )}
                 </View>
                 {aboutMe ? (
@@ -248,12 +534,14 @@ const Profile = () => {
             <View style={styles.section}>
                 <View style={styles.iconWithText}>
                     <Entypo name="briefcase" size={24} color="orange" />
-                    <Text style={styles.sectionText}>Work experience</Text>
-                    <View style={styles.editButtonContainer}>
-                        <TouchableOpacity style={styles.addButton} onPress={experienceScreen}>
-                            <AntDesign name="plus" size={24} color="#FF9228" />
-                        </TouchableOpacity>
-                    </View>
+                    <Text style={styles.sectionText}>Kinh nghiệm làm việc</Text>
+                    {role === 'user' && (
+                        <View style={styles.editButtonContainer}>
+                            <TouchableOpacity style={styles.addButton} onPress={experienceScreen}>
+                                <AntDesign name="plus" size={24} color="#FF9228" />
+                            </TouchableOpacity>
+                        </View>
+                    )}
                 </View>
                 <View>
                     {experienceLists.length > 0 && (
@@ -266,20 +554,22 @@ const Profile = () => {
                                         <Text>{experience.company}</Text>
                                         <Text>{experience.startDate} - {experience.endDate}</Text>
                                     </View>
-                                    <View style={styles.buttonsContainer1}>
-                                        <TouchableOpacity
-                                            style={styles.addButton}
-                                            onPress={() => editExperience(experience, index)}
-                                        >
-                                            <AntDesign name="edit" size={24} color="#FF9228" />
-                                        </TouchableOpacity>
-                                        <TouchableOpacity
-                                            style={styles.addButton}
-                                            onPress={() => deleteExperience(index)}
-                                        >
-                                            <AntDesign name="delete" size={24} color="#FF9228" />
-                                        </TouchableOpacity>
-                                    </View>
+                                    {role === 'user' && (
+                                        <View style={styles.buttonsContainer1}>
+                                            <TouchableOpacity
+                                                style={styles.addButton}
+                                                onPress={() => editExperience(experience, experience.id)}
+                                            >
+                                                <AntDesign name="edit" size={24} color="#FF9228" />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                style={styles.addButton}
+                                                onPress={() => deleteExperience(experience.id)}
+                                            >
+                                                <AntDesign name="delete" size={24} color="#FF9228" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    )}
                                 </View>
                             ))}
                         </>
@@ -294,12 +584,14 @@ const Profile = () => {
             <View style={styles.section}>
                 <View style={styles.iconWithText}>
                     <MaterialCommunityIcons name="book-education" size={24} color="orange" />
-                    <Text style={styles.sectionText}>Education</Text>
-                    <View style={styles.editButtonContainer}>
-                        <TouchableOpacity style={styles.addButton} onPress={educationScreen}>
-                            <AntDesign name="plus" size={24} color="orange" />
-                        </TouchableOpacity>
-                    </View>
+                    <Text style={styles.sectionText}>Học vấn</Text>
+                    {role === 'user' && (
+                        <View style={styles.editButtonContainer}>
+                            <TouchableOpacity style={styles.addButton} onPress={educationScreen}>
+                                <AntDesign name="plus" size={24} color="orange" />
+                            </TouchableOpacity>
+                        </View>
+                    )}
                 </View>
                 <View>
                     {educationLists.length > 0 && (
@@ -312,20 +604,22 @@ const Profile = () => {
                                         <Text>{education.institution}</Text>
                                         <Text>{education.startDate} - {education.endDate}</Text>
                                     </View>
-                                    <View style={styles.buttonsContainer1}>
-                                        <TouchableOpacity
-                                            style={styles.addButton}
-                                            onPress={() => editEducation(education, index)}
-                                        >
-                                            <AntDesign name="edit" size={24} color="#FF9228" />
-                                        </TouchableOpacity>
-                                        <TouchableOpacity
-                                            style={styles.addButton}
-                                            onPress={() => deleteEducation(index)}
-                                        >
-                                            <AntDesign name="delete" size={24} color="#FF9228" />
-                                        </TouchableOpacity>
-                                    </View>
+                                    {role === 'user' && (
+                                        <View style={styles.buttonsContainer1}>
+                                            <TouchableOpacity
+                                                style={styles.addButton}
+                                                onPress={() => editEducation(education, education.id)}
+                                            >
+                                                <AntDesign name="edit" size={24} color="#FF9228" />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                style={styles.addButton}
+                                                onPress={() => deleteEducation(education.id)}
+                                            >
+                                                <AntDesign name="delete" size={24} color="#FF9228" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    )}
                                 </View>
                             ))}
                         </>
@@ -340,29 +634,45 @@ const Profile = () => {
             <View style={styles.section}>
                 <View style={styles.iconWithText}>
                     <AntDesign name="staro" size={24} color="#FF9228" />
-                    <Text style={styles.sectionText}>Skill</Text>
-                    <View style={styles.editButtonContainer}>
-                        <TouchableOpacity style={styles.addButton} onPress={skillScreen}>
-                            <AntDesign name="plus" size={24} color="orange" />
-                        </TouchableOpacity>
-                    </View>
+                    <Text style={styles.sectionText}>Kỹ năng</Text>
+                    {role === 'user' && (
+                        <View style={styles.editButtonContainer}>
+                            <TouchableOpacity style={styles.addButton} onPress={skillScreen}>
+                                <AntDesign name="plus" size={24} color="orange" />
+                            </TouchableOpacity>
+                        </View>
+                    )}
                 </View>
                 <View>
-                    {selectedSkills.length > 0 && (
+                    {skillLists.length > 0 && (
                         <>
                             <View style={styles.separator}></View>
-                            <View style={styles.skillsContainer}>
-                                {selectedSkills.slice(0, showAllSkills ? selectedSkills.length : 5).map((skill, index) => (
-                                    <View key={index} style={styles.skillItem}>
-                                        <Text style={styles.skillText}>{skill}</Text>
+                            {skillLists.map((skill, index) => (
+                                <View key={index} style={styles.skillItem}>
+                                    <View>
+                                        <Text style={styles.experienceText}>{skill.name}</Text>
+                                        <Text>
+                                            {skill.note ? skill.note : 'Chưa có thông tin'}
+                                        </Text>
                                     </View>
-                                ))}
-                                {selectedSkills.length > 5 && (
-                                    <TouchableOpacity onPress={handleSeeMore}>
-                                        <Text style={styles.seeMoreText}>{showAllSkills ? 'See less' : 'See more'}</Text>
-                                    </TouchableOpacity>
-                                )}
-                            </View>
+                                    {role === 'user' && (
+                                        <View style={styles.buttonsContainer1}>
+                                            <TouchableOpacity
+                                                style={styles.addButton}
+                                                onPress={() => editSkill(skill, skill.id)}
+                                            >
+                                                <AntDesign name="edit" size={24} color="#FF9228" />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                style={styles.addButton}
+                                                onPress={() => deleteSkill(skill.id)}
+                                            >
+                                                <AntDesign name="delete" size={24} color="#FF9228" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    )}
+                                </View>
+                            ))}
                         </>
                     )}
                 </View>
@@ -375,12 +685,14 @@ const Profile = () => {
             <View style={styles.section}>
                 <View style={styles.iconWithText}>
                     <MaterialCommunityIcons name="certificate-outline" size={24} color="#FF9228" />
-                    <Text style={styles.sectionText}>Certification</Text>
-                    <View style={styles.editButtonContainer}>
-                        <TouchableOpacity style={styles.addButton} onPress={certificationScreen}>
-                            <AntDesign name="plus" size={24} color="orange" />
-                        </TouchableOpacity>
-                    </View>
+                    <Text style={styles.sectionText}>Chứng chỉ</Text>
+                    {role === 'user' && (
+                        <View style={styles.editButtonContainer}>
+                            <TouchableOpacity style={styles.addButton} onPress={certificationScreen}>
+                                <AntDesign name="plus" size={24} color="orange" />
+                            </TouchableOpacity>
+                        </View>
+                    )}
                 </View>
                 <View>
                     {certificationLists.length > 0 && (
@@ -393,21 +705,22 @@ const Profile = () => {
                                         <Text>{certification.description}</Text>
                                         <Text>{certification.startDate}</Text>
                                     </View>
-
-                                    <View style={styles.buttonsContainer1}>
-                                        <TouchableOpacity
-                                            style={styles.addButton}
-                                            onPress={() => editCertification(certification, index)}
-                                        >
-                                            <AntDesign name="edit" size={24} color="#FF9228" />
-                                        </TouchableOpacity>
-                                        <TouchableOpacity
-                                            style={styles.addButton}
-                                            onPress={() => deleteCertification(index)}
-                                        >
-                                            <AntDesign name="delete" size={24} color="#FF9228" />
-                                        </TouchableOpacity>
-                                    </View>
+                                    {role === 'user' && (
+                                        <View style={styles.buttonsContainer1}>
+                                            <TouchableOpacity
+                                                style={styles.addButton}
+                                                onPress={() => editCertification(certification, certification.id)}
+                                            >
+                                                <AntDesign name="edit" size={24} color="#FF9228" />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                style={styles.addButton}
+                                                onPress={() => deleteCertification(certification.id)}
+                                            >
+                                                <AntDesign name="delete" size={24} color="#FF9228" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    )}
                                 </View>
                             ))}
                         </>
@@ -423,184 +736,226 @@ const Profile = () => {
                 <View style={styles.iconWithText}>
                     <MaterialCommunityIcons name="file-account" size={24} color="orange" />
                     <Text style={styles.sectionText}>Resume</Text>
-                    <View style={styles.editButtonContainer}>
-                        <TouchableOpacity style={styles.addButton} onPress={pickDocument}>
-                            <AntDesign name="plus" size={24} color="orange" />
-                        </TouchableOpacity>
-                    </View>
+                    {role === 'user' && (
+                        <View style={styles.editButtonContainer}>
+                            <TouchableOpacity style={styles.addButton} onPress={pickDocument}>
+                                <AntDesign name="plus" size={24} color="orange" />
+                            </TouchableOpacity>
+                        </View>
+                    )}
                 </View>
-                {selectedFile && (
+                {selectedFiles.length > 0 && (
                     <>
                         <View style={styles.separator}></View>
-                        <View style={styles.experienceItem}>
-                            <MaterialIcons name="picture-as-pdf" size={40} color="red" />
-                            <View >
-                                <Text style={styles.sectionText}>{selectedFile.name}</Text>
-                                <Text style={styles.sectionText}>{formatFileSize(selectedFile.size)}</Text>
+                        {selectedFiles.map((file, index) => (
+                            <View key={index} style={styles.experienceItem}>
+                                <MaterialIcons name="picture-as-pdf" size={40} color="red" />
+                                <View>
+                                    <Text style={styles.sectionText}>{file.nameFile}</Text>
+                                    <Text style={styles.sectionText}>{formatFileSize(file.size)}</Text>
+                                </View>
+
+                                <View style={styles.buttonsContainer1}>
+                                    <TouchableOpacity style={styles.addButton} onPress={() => save(file)}>
+                                        <MaterialIcons name="save-alt" size={24} color="#FF9228" />
+                                    </TouchableOpacity>
+                                    {role === 'user' && (
+                                        <TouchableOpacity style={styles.addButton} onPress={() => deleteFile(file.id)}>
+                                            <AntDesign name="delete" size={24} color="#FF9228" />
+                                        </TouchableOpacity>
+                                    )}
+                                </View>
+
                             </View>
-                            <View style={styles.buttonsContainer1}>
-                                <TouchableOpacity style={styles.addButton} onPress={saveFile}>
-                                    <MaterialIcons name="save-alt" size={24} color="#FF9228" />
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.addButton} onPress={() => setSelectedFile(null)}>
-                                    <AntDesign name="delete" size={24} color="#FF9228" />
-                                </TouchableOpacity>
-                            </View>
-                        </View>
+                        ))}
                     </>
                 )}
             </View>
         );
     };
 
+    const toggleModal = () => {
+        setModalVisible(!modalVisible);  // Function to toggle the modal's visibility
+    };
     return (
-        <Container statusBarContentColor='light'>
-            <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
-                <View style={styles.container}>
-                    <View style={styles.header}>
-                        <Image source={BACKGROUND} style={{ height: 140, width: '100%', position: 'absolute', top: 0 }}></Image>
-                        <View style={styles.profileContainer}>
-                            {image ? (
+        <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+            <View style={styles.container}>
+                <View style={styles.header}>
+                    <Image source={BACKGROUND} style={{ height: height / 4.7, width: '100%', position: 'absolute', top: 0 }}></Image>
+                    <View style={styles.profileContainer}>
+                        {image ? (
+                            <TouchableOpacity onPress={toggleModal}>
                                 <Image source={{ uri: image }} style={styles.profileImage} />
-                            ) : (
-                                <MaterialCommunityIcons name="account-circle" size={90} color="black" style={{ marginLeft: 15 }} />
-                            )}
-                        </View>
+                            </TouchableOpacity>
+                        ) : (
+                            <MaterialCommunityIcons name="account-circle" size={100} color="black" style={{ marginLeft: '5%', position: 'absolute' }} />
+                        )}
+                        <Modal
+                            animationType="slide"
+                            transparent={true}
+                            visible={modalVisible}
+                            onRequestClose={toggleModal}  // Handles hardware back button on Android
+                        >
+                            <View style={styles.centeredView}>
+                                <View style={styles.modalView}>
+                                    <Image source={{ uri: image }} style={styles.fullSizeImage} />
+                                    <TouchableOpacity
+                                        style={styles.buttonClose}
+                                        onPress={toggleModal}
+                                    >
+                                        <Text style={styles.textStyle}>Thoát</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </Modal>
+                    </View>
+                    {role === 'user' && (
                         <TouchableOpacity style={styles.cameraIcon} onPress={showImagePickerOptions}>
                             <FontAwesome5 name="camera" size={15} color="white" />
                         </TouchableOpacity>
-                        <View style={styles.nameRoleContainer}>
-                            <Text style={styles.name}>Nguyễn Quân</Text>
-                            <Text style={styles.role}>Applicant</Text>
-                        </View>
+                    )}
+                    <View style={styles.nameRoleContainer}>
+                        <Text style={styles.name}>{name}</Text>
+                        <Text style={styles.role}>Người xin việc</Text>
                     </View>
-                    <ScrollView>
-                        <View style={{
-                            margin: 20,
-                        }}>
-                            {renderAboutMeSection()}
-                            {renderExperienceSection()}
-                            {renderEducationSection()}
-                            {renderSkillSection()}
-                            {renderCertificationSection()}
-                            {renderResumeSection()}
-                        </View>
-                    </ScrollView>
                 </View>
-            </SafeAreaView >
-        </Container >
+
+                <ScrollView style={{ marginTop: '13%' }}>
+                    <View style={{
+                        margin: 20,
+                    }}>
+                        {renderAboutMeSection()}
+                        {renderExperienceSection()}
+                        {renderEducationSection()}
+                        {renderSkillSection()}
+                        {renderCertificationSection()}
+                        {renderResumeSection()}
+                    </View>
+
+                </ScrollView>
+            </View>
+        </SafeAreaView>
 
     );
 }
 
 const styles = StyleSheet.create({
-    profileContainer: {
-        // justifyContent: 'center',
-        // alignItems: 'center',
-        position: 'relative',
-        top: 5,
+    centeredView: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        marginTop: 22
     },
-    skillsContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        // justifyContent: 'center',
-        // alignItems: 'center',
-        marginVertical: 15,
-    },
-    skillItem: {
-        backgroundColor: 'white',
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-        margin: 3,
+    modalView: {
+        margin: 20,
+        backgroundColor: "white",
         borderRadius: 20,
-        borderWidth: 1,
-        borderColor: '#e1e4e8',
-        justifyContent: 'center',
-        alignItems: 'center',
-        maxWidth: '40%', // Điều chỉnh này giúp không quá 3 kỹ năng trên một hàng
+        padding: 35,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5
     },
-    skillText: {
-        color: '#130160',
-        fontWeight: 'bold',
-        textAlign: 'center', // Đảm bảo văn bản được căn giữa trong kỹ năng
+    fullSizeImage: {
+        width: 300,  // Set this according to your needs
+        height: 300,  // Set this according to your needs
+        resizeMode: 'contain'
     },
-    seeMoreText: {
-        color: '#130160',
-        fontWeight: 'bold',
-        marginTop: 10,
-        alignSelf: 'center', // Đảm bảo nút "See more" được căn giữa
+    buttonClose: {
+        backgroundColor: "#2196F3",
+        borderRadius: 20,
+        padding: 10,
+        elevation: 2,
+        marginTop: 15
+    },
+    textStyle: {
+        color: "white",
+        fontWeight: "bold",
+        textAlign: "center"
+    },
+    profileContainer: {
+        position: 'absolute',
+        top: 50,
+        left: 15,
     },
     buttonsContainer1: {
-        // Đổi từ 'row' sang 'column' để sắp xếp các thành phần theo chiều dọc thay vì chiều ngang
         flexDirection: 'column',
-        justifyContent: 'center', // Căn giữa các nút theo chiều dọc
-        alignItems: 'center', // Căn giữa các nút theo chiều ngang
-        padding: 10, // Thêm padding nếu cần
-        // marginLeft: '89%'
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 1,
     },
     experienceItem: {
-        flexDirection: 'row', // Sắp xếp các thành phần theo chiều ngang
-        justifyContent: 'space-between', // Phân tách thông tin và các nút chỉnh sửa/xóa
-        alignItems: 'center', // Căn giữa các thành phần theo chiều dọc
-        padding: 10, // Thêm padding xung quanh để tạo khoảng cách
-        backgroundColor: 'white', // Nền trắng cho mỗi mục kinh nghiệm
-        marginBottom: 10, // Khoảng cách giữa các mục
-        borderRadius: 5, // Bo tròn góc nếu cần
-        // shadowColor: '#000', // Màu bóng
-        // shadowOffset: { width: 0, height: 1 }, // Offset cho bóng
-        // shadowOpacity: 0.22, // Độ mờ của bóng
-        // shadowRadius: 2.22, // Bán kính bóng
-        elevation: 3, // Độ cao của phần tử (cho Android)
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 10,
+        backgroundColor: colors.grey_light,
+        marginBottom: 10,
+        borderRadius: 5,
+        elevation: 3,
+    },
+    skillItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 10,
+        backgroundColor: colors.grey_light,
+        height: 90,
+        marginBottom: 10,
+        borderRadius: 5,
+        elevation: 3,
     },
     experienceInfo: {
-        flex: 1, // Cho phép nó chiếm đa phần không gian trong hàng
-        marginRight: 10, // Khoảng cách giữa thông tin và các nút
+        flex: 1,
+        marginRight: 10,
     },
     experienceText: {
-        fontSize: 18, // Đặt kích thước font
-        fontWeight: '900', // Đặt font đậm
-        color: 'black', // Màu chữ
-        marginVertical: 2, // Khoảng cách giữa các dòng
+        fontSize: 18,
+        fontWeight: '900',
+        color: 'black',
+        marginVertical: 2,
     },
     container: {
         flex: 1,
         backgroundColor: '#f2f2f2',
     },
     header: {
-
-        // flexDirection: 'row',
-        // justifyContent: 'flex-start', // Align items to the start of the container
-        // alignItems: 'center', // Center items vertically
-        // backgroundColor: '#6c5ce7',
-        // paddingHorizontal: 50,
-        paddingVertical: 25,
+        // backgroundColor: 'red',
+        paddingVertical: '16%',
     },
     nameRoleContainer: {
-        alignItems: 'center',
-        marginTop: -60,
+        position: 'absolute',
+        top: 70,
+        left: 150
     },
     profileImage: {
+        marginLeft: '6%',
         width: 80,
         height: 80,
         borderRadius: 60,
+        top: 10
     },
     cameraIcon: {
         backgroundColor: 'grey',
         borderRadius: 30,
         padding: 10,
-        position: 'absolute', // Position the camera icon absolutely
-        left: 75, // Adjust according to your needs
-        top: 78, // Adjust based on the size of the profile image and header height
+        position: 'absolute',
+        left: 80,
+        top: 105,
     },
     name: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: 'black',
+        color: 'white',
     },
     role: {
         fontSize: 16,
-        color: 'black',
-        // marginVertical: 10,
+        color: '#FF9228',
     },
     section: {
         marginBottom: 20,

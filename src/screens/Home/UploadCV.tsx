@@ -1,44 +1,39 @@
-import React, { useCallback } from "react";
+import React from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, TextInput, KeyboardAvoidingView } from 'react-native'
 import { colors, fonts, sizes } from "@/theme";
 import google from '@assets/images/google.png'
 import { Icon } from "@rneui/base";
-import * as DocumentPicker from 'expo-document-picker'
 import PDF from '@assets/images/PDF.png'
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import RootNavigation from "@/route/RootNavigation";
+import BottomModal from "@/components/BottomModal";
+import { BASE_API } from "@/services/BaseApi";
 
+type Resume = {
+    id: number
+    nameFile: string
+    fileBase64: string
+}
 
-
-export const UploadCV = () => {
+export const UploadCV = ({ route }) => {
+    let workId = route.params.workId || null;
     const upload = uploadStyle
-    const [result, setResult] = React.useState({})
-    const [name, setName] = React.useState("")
-    const [size, setSize] = React.useState(0)
-    const [selected, setSelected] = React.useState<boolean>(false)
-
+    const [showBottomModal, setShowBottomModal] = React.useState<boolean>(false)
+    const [selected, setSelected] = React.useState<Resume>(null)
+    const [resumes, setResumes] = React.useState<Resume[]>([])
+    const [information, setInformation] = React.useState<string>(null)
+    
     React.useEffect(() => {
-        console.log(JSON.stringify(result, null, 2))
-    }, [result])
+        BASE_API.get("resumes").then((res) => {
+            setResumes(res.data)
+        }).catch((err) => {
+            console.log(err)
+        })
+    }, [])
 
 
     const removeUpload = () => {
-        // setName("")
-        // setSize("")
-        // setResult({})
-        setSelected(false)
-    }
-    const handleError = (err: any) => {
-        if (DocumentPicker.isCancel(err)) {
-            console.warn('cancelled')
-            // User cancelled the picker, exit any dialogs or menus and move on
-        }
-        // else if (isInProgress(err)) {
-        //     console.warn('multiple pickers were opened, only the last will be considered')
-        // } 
-        else {
-            throw err
-        }
+        setSelected(null)
     }
 
     return (
@@ -65,36 +60,24 @@ export const UploadCV = () => {
 
                     <View style={{ marginTop: 20 }}>
                         <TouchableOpacity onPress={async () => {
-                            try {
-                                const pickerResult = await DocumentPicker.getDocumentAsync({
-                                    // presentationStyle: 'fullScreen',
-                                })
-                                setName(pickerResult.assets[0].name)
-                                setSize(pickerResult.assets[0].size)
-                                setResult(pickerResult.assets)
-                                setSelected(true)
-                            } catch (e) {
-                                if (e) 
-                                    console.warn(e)
-                                // handleError(e)
-                            }
-                        }} style={{ minHeight: 100, backgroundColor: selected == true ? colors.tertiary_light : 'none', borderColor: colors.primary, borderWidth: selected == false ? 1 : 0, borderRadius: 25, borderStyle: selected == false ? "dashed" : "solid" }}>
-                            {selected == false ? (<View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', minHeight: 100 }}>
+                            setShowBottomModal(true)
+                        }} style={{ minHeight: 100, backgroundColor: selected ? colors.tertiary_light : 'none', borderColor: colors.primary, borderWidth: selected ? 0 : 1, borderRadius: 25, borderStyle: selected ? "solid" : "dashed" }}>
+                            {!selected ? (<View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', minHeight: 100 }}>
                                 <Icon name="upload-file" />
-                                <Text style={upload.desc_text_5}>  Upload CV/Resume</Text>
+                                <Text style={upload.desc_text_5}>  Choose Your CV/Resume</Text>
                             </View>) : (<View style={{ minHeight: 100 }}>
                                 <View style={{ margin: 20, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                                     <Image source={PDF} style={{ width: 50, height: 50 }} />
                                     <View style={{ flex: 1 }}>
-                                        <Text numberOfLines={1} style={[upload.desc_text_5]}>{selected == false ? "No File Name" : name}</Text>
-                                        <Text style={upload.desc_text_6}>{selected == false ? "No File Size" : (size / 1024).toFixed(2) + "kb  - 10 Feb 2022 at 11:30 am"}</Text>
+                                        <Text numberOfLines={1} style={[upload.desc_text_5]}>{selected?.nameFile}</Text>
+                                        {/* <Text style={upload.desc_text_6}>{selected?.updatedAt}</Text> */}
                                     </View>
 
                                 </View>
-                                <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginLeft: 20, marginRight: 20, marginTop: 0, marginBottom: 20 }}>
-                                    <Icon onPress={removeUpload} color={'red'} name="delete" size={30} />
+                                <TouchableOpacity style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginLeft: 20, marginRight: 20, marginTop: 0, marginBottom: 20 }} onPress={removeUpload} >
+                                    <Icon color={'red'} name="delete" size={30} />
                                     <Text style={[upload.desc_text_6, { color: 'red' }]}>Remove file</Text>
-                                </View>
+                                </TouchableOpacity>
                             </View>)}
 
                         </TouchableOpacity>
@@ -108,14 +91,19 @@ export const UploadCV = () => {
                         <View style={{ marginTop: 20 }}>
                             <KeyboardAvoidingView>
                                 <TextInput style={{
-                                    height: 230,
-                                    backgroundColor: 'white',
-                                    borderRadius: 10,
-                                    fontSize: sizes.h12,
-                                    fontFamily: fonts.dMSans.regular,
-                                    color: colors.primary,
-                                    padding: 25, display: 'flex'
-                                }} textAlignVertical="top" placeholder={`Explain why you are the right person for ${'\n'}the job`} multiline>
+                                        height: 230,
+                                        backgroundColor: 'white',
+                                        borderRadius: 10,
+                                        fontSize: sizes.h12,
+                                        fontFamily: fonts.dMSans.regular,
+                                        color: colors.primary,
+                                        padding: 25, display: 'flex'
+                                    }} textAlignVertical="top" 
+                                    placeholder={`Explain why you are the right person for ${'\n'}the job`} 
+                                    multiline
+                                    value={information}
+                                    onChangeText={setInformation}
+                                >
                                 </TextInput>
                             </KeyboardAvoidingView>
                         </View>
@@ -127,10 +115,19 @@ export const UploadCV = () => {
                     {/* Bottom button */}
 
                     <TouchableOpacity onPress={() => {
-                        if (selected == true) {
-                            RootNavigation.navigate("UploadCVSuccess", {
-                                filename: name, filesize: size
+                        if (selected) {
+                            BASE_API.post('resume_works', {
+                                resumeId: selected.id,
+                                workId: workId,
+                                informartion: information
                             })
+                                .then((res) => {
+                                    RootNavigation.navigate("UploadCVSuccess", {
+                                        filename: selected?.nameFile, filesize: 1000
+                                    })
+                                }).catch((err) => {
+                                    Alert.alert('ERROR', 'vcl')
+                                })
                         } else {
                             Alert.alert('NO FILE SELECTED', 'Please select a file for upload')
                         }
@@ -140,6 +137,20 @@ export const UploadCV = () => {
 
                 </View>
             </View>
+            <BottomModal
+                showBottomModal={showBottomModal}
+                setShowBottomModal={setShowBottomModal}
+                options={resumes.map(resume => {
+                    return {
+                        icon: <Image source={PDF} style={{ width: 40, height: 40 }} />,
+                        title: resume.nameFile,
+                        onPressOption: () => {
+                            setShowBottomModal(false)
+                            setSelected(resume)
+                        }
+                    }
+                })}
+            />
         </KeyboardAwareScrollView>
     )
 }

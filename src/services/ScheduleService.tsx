@@ -1,54 +1,56 @@
 // File: services/scheduleService.js
 import { BASE_URL } from '@/config/config';
-import axios from 'axios';
+import { store } from '@/redux/store/store';
+import { BASE_API } from './BaseApi';
 
-const baseUrl = `${BASE_URL}`;
-const token = 'eyJhbGciOiJIUzI1NiJ9.eyJwaG9uZU51bWJlciI6IjEyMyIsInN1YiI6IjEyMyIsImV4cCI6MTcxNzcyODI1OX0.68LnlXQypTsM-Q-WQRK3jeUB2hoAGXgBVgOJ-WOq_zA';
+// const baseUrl = `${BASE_URL}`;
+// const token = store.getState().authReducer.access_token;
+// console.log(token)
 
-// Cấu hình Axios headers
-const axiosConfig = {
-    headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-    },
-};
+// // Cấu hình Axios headers
+// const axiosConfig = {
+//     headers: {
+//         'Authorization': `Bearer ${token}`,
+//         'Content-Type': 'application/json',
+//     },
+// };
 
 const scheduleService = {
     fetchItemsByUser: (phoneNumber) => {
-        return axios.get(`${baseUrl}/schedules_by_user/${phoneNumber}`, axiosConfig);
+        return BASE_API.get(`/schedules_by_user/${phoneNumber}`);
     },
 
     addItem: (phoneNumber, item) => {
-        return axios.post(`${baseUrl}/schedules/${phoneNumber}`, item, axiosConfig);
+        return BASE_API.post(`/schedules/${phoneNumber}`, item);
     },
 
     updateItem: (id, item) => {
-        return axios.put(`${baseUrl}/schedules/${id}`, item, axiosConfig);
+        return BASE_API.put(`/schedules/${id}`, item);
     },
 
     deleteItem: (id) => {
-        return axios.delete(`${baseUrl}/schedules/${id}`, axiosConfig);
+        return BASE_API.delete(`/schedules/${id}`);
     },
 
     createLeave: (leave) => {
-        return axios.post(`${baseUrl}/leave`, leave, axiosConfig);
+        return BASE_API.post(`/leave`, leave);
     },
 
-    getLeaveReasonByItem: (id) => {
-        return axios.get(`${baseUrl}/leave?id=${id}`, axiosConfig);
+    getLeaveReasonByItem: (work_id, date) => {
+        return BASE_API.get(`/leave/${work_id}/${date}`);
     },
 
-    getCheckExistReason: (itemId) => {
-        return axios.get(`${baseUrl}/leave/checkItemExist/${itemId}`, axiosConfig);
+    getCheckExistReason: (work_id, date) => {
+        return BASE_API.get(`/leave/checkItemExist/${work_id}/${date}`);
     },
     acceptReason: (reasonId) => {
-        return axios.put(`${baseUrl}/leave/acceptReason/${reasonId}`, reasonId, axiosConfig);
+        return BASE_API.put(`/leave/acceptReason/${reasonId}`, reasonId);
     },
     rejectReason: (reasonId) => {
-        return axios.put(`${baseUrl}/leave/rejectReason/${reasonId}`, reasonId, axiosConfig);
+        return BASE_API.put(`/leave/rejectReason/${reasonId}`, reasonId);
     },
-    countReason: (itemId) => {
-        return axios.get(`${baseUrl}/leave/countReason/${itemId}`, axiosConfig);
+    countReason: (work_id, date) => {
+        return BASE_API.get(`/leave/countReason/${work_id}/${date}`);
     },
 };
 

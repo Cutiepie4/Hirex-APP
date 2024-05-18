@@ -1,25 +1,28 @@
-import { SafeAreaView, Text, View, FlatList, StyleSheet, Image, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity, ScrollView, Button, Keyboard, Dimensions, ActivityIndicator } from 'react-native'
+import { Text, View, StyleSheet, Platform, TouchableOpacity, ActivityIndicator, Linking, Keyboard, Image } from 'react-native'
 import React, { useCallback, useEffect, useState } from 'react'
-import Container from '../../components/Container'
-import { deepPurple, orange, regularPadding, titleFontStyle } from '../../styles/styles'
-import { Bubble, Composer, ComposerProps, GiftedChat, IChatMessage, InputToolbar, MessageImage, Send, TEST_ID } from 'react-native-gifted-chat'
-import Header from '../../components/Header';
+import { deepPurple, orange, placeholderTextColor, regularPadding, titleFontStyle } from '../../styles/styles'
+import { Bubble, Composer, GiftedChat, IChatMessage, InputToolbar, MessageImage, Send } from 'react-native-gifted-chat'
 import { Ionicons } from '@expo/vector-icons';
-import { Feather } from '@expo/vector-icons';
-import RootNavigation from '../../route/RootNavigation';
-import AVATAR from '../../assets/images/avt.png'
-import { ParseConversationId } from '../../utils/utils';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { FontAwesome } from '@expo/vector-icons';
-import { useDispatch, useSelector } from 'react-redux';
-import { hideLoading, showLoading } from '../../redux/slice/authSlice';
 import { RootReducer } from '@/redux/store/reducer';
 import Toast from 'react-native-toast-message';
-
+import { MaterialIcons } from '@expo/vector-icons';
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
+import { ParseConversationId } from '@/utils/utils'
+import { useSelector } from 'react-redux';
+import Container from '@/components/Container';
+import RootNavigation from '@/route/RootNavigation';
+import Header from '@/components/Header';
+import AVATAR from '../../assets/images/avt.png'
+import CHAT_HERE from '../../assets/images/chat-here.png'
+import { Feather } from '@expo/vector-icons';
+import { Video } from 'expo-av';
+import { AntDesign } from '@expo/vector-icons';
+import { BASE_API } from '@/services/BaseApi';
 
 export interface Message {
     id: string,
@@ -27,6 +30,8 @@ export interface Message {
     sentAt: FirebaseFirestoreTypes.Timestamp,
     sentBy: string,
     image?: string,
+    video?: string,
+    file?: AttachedFile,
 };
 
 export interface ChatRoom {
@@ -34,31 +39,43 @@ export interface ChatRoom {
     messages: Message[],
 };
 
+export interface AttachedFile {
+    type: string,
+    url: string,
+    fileName: string
+};
+
 const ChatScreen = (props) => {
     const { phoneNumber } = useSelector((state: RootReducer) => state.authReducer);
     const { messages: initMessages, participants: initParticipants, chatFriendPhone } = props.route.params.data;
+    const [friendInfo, setFriendInfo] = useState<{ fullName: String, imageBase64: string }>({ fullName: chatFriendPhone, imageBase64: null });
     const [participants, setParticipants] = useState(initParticipants);
+    const [sendLoading, setSendLoading] = useState(false);
     const [messages, setMessages] = useState<IChatMessage[]>(
         initMessages?.map((item) => {
             return {
-                ...item,
                 _id: item.id,
                 sentAt: item.sentAt,
                 user: {
                     _id: item.sentBy
-                }
+                },
+                ...item,
             }
         }) || []
     );
-    const dispatch = useDispatch();
-    const [sendLoading, setSendLoading] = useState(false);
 
-    const convertMessageToSave = (array: IChatMessage[] | [{ user: { _id: string }, image: string }]) => {
+    const convertMessageToSave = (array: IChatMessage[] | [{ user: { _id: string }, image: string, video: string, file: AttachedFile }]) => {
         return array.map(message => ({
             content: message.text ?? '',
             sentAt: firestore.Timestamp.fromDate(new Date()),
             sentBy: message.user._id,
-            image: message.image ?? ''
+            image: message.image ?? '',
+            video: message.video ?? '',
+            file: message.file ?? {
+                url: '',
+                type: '',
+                fileName: '',
+            }
         }));
     };
 
@@ -74,13 +91,16 @@ const ChatScreen = (props) => {
                 name: message.sentBy
             },
             image: message.image ?? '',
+            video: message.video ?? '',
+            file: message.file?.url && message.file
         }));
     };
 
     const fetchData = useCallback(() => {
+        const conversationId = ParseConversationId(participants);
         const unsubscribe = firestore()
             .collection('conversations_col')
-            .doc(ParseConversationId(participants))
+            .doc(conversationId)
             .onSnapshot((docSnapshot) => {
                 if (docSnapshot.exists) {
                     setParticipants(docSnapshot.data().participants);
@@ -95,21 +115,34 @@ const ChatScreen = (props) => {
 
     useEffect(() => {
         const unsubscribe = fetchData();
+        fetchFriendName();
         return () => {
             unsubscribe();
         };
     }, [fetchData]);
 
-    const onSend = async (messages: IChatMessage[] = [], image?: string) => {
+    const fetchFriendName = async () => {
+        const response = await BASE_API.get(`/users/by-phone?phoneNumber=${chatFriendPhone}`);
+        response.status == 200 && setFriendInfo(response.data);
+    };
+
+    const onSend = useCallback(async (messages: IChatMessage[] = [], image?: string, video?: string, file?: AttachedFile) => {
+        console.log('vide', video)
         setSendLoading(true);
         try {
-            const messageData = convertMessageToSave(image
+            const messageData = convertMessageToSave(image || file?.url || video
                 ? [
                     {
                         user: {
                             _id: phoneNumber,
                         },
-                        image: image,
+                        image: image ?? '',
+                        video: video ?? '',
+                        file: file ?? {
+                            type: '',
+                            fileName: '',
+                            url: ''
+                        }
                     },
                 ]
                 : messages
@@ -129,6 +162,7 @@ const ChatScreen = (props) => {
                 transaction.update(conversationRef, { messages: updatedMessages });
             });
         } catch (error) {
+            console.log('error', error)
             Toast.show({
                 type: 'error',
                 props: {
@@ -139,12 +173,65 @@ const ChatScreen = (props) => {
         } finally {
             setSendLoading(false);
         }
+    }, []);
+
+    const openPdf = async (pdfUri) => {
+        try {
+            const supported = await Linking.canOpenURL(pdfUri);
+            if (supported) {
+                await Linking.openURL(pdfUri);
+            } else {
+                console.error('Cannot open PDF: ', pdfUri);
+            }
+        } catch (error) {
+            console.error('Error opening PDF: ', error);
+        }
     };
 
     const renderBubble = (props) => {
+        const { currentMessage } = props;
+        const file: AttachedFile = currentMessage.file;
+
         return (
             <Bubble
                 {...props}
+                renderCustomView={() => {
+                    if (file?.url)
+                        return (
+                            <View style={{
+                                paddingHorizontal: regularPadding,
+                                paddingVertical: regularPadding,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                borderRadius: 10,
+                                marginHorizontal: 10,
+                                marginVertical: regularPadding / 2,
+                                backgroundColor: '#f5f5f5'
+                            }}>
+                                <TouchableOpacity
+                                    onPress={() => file?.url && openPdf(file.url)}
+                                    style={{
+                                        borderWidth: 1,
+                                        borderColor: deepPurple,
+                                        borderRadius: 20,
+                                        width: 40,
+                                        height: 40,
+                                        justifyContent: 'center',
+                                        alignItems: 'center'
+                                    }}
+                                >
+                                    <FontAwesome name="cloud-download" size={24} color={deepPurple} />
+                                </TouchableOpacity>
+                                <Text style={{
+                                    color: deepPurple,
+                                    marginLeft: 12
+                                }}>
+                                    {file.fileName ?? 'Không có tên file'}
+                                </Text>
+                            </View>
+                        )
+                    return null;
+                }}
                 wrapperStyle={{
                     right: {
                         backgroundColor: deepPurple
@@ -157,6 +244,10 @@ const ChatScreen = (props) => {
         );
     };
 
+    const renderChatFooter = () => {
+        return <View style={{ height: 24 }} />;
+    };
+
     const renderInputToolbar = (props) => {
         return <InputToolbar
             {...props}
@@ -165,8 +256,13 @@ const ChatScreen = (props) => {
             }}
             containerStyle={{
                 backgroundColor: 'white',
-                marginHorizontal: regularPadding,
+                paddingHorizontal: regularPadding,
+                paddingVertical: 6,
                 alignContent: 'center',
+                marginHorizontal: regularPadding / 2,
+                borderRadius: 20,
+                marginBottom: 10,
+                borderTopWidth: 0
             }}
             renderComposer={(composerProps) => (
                 <View
@@ -179,13 +275,13 @@ const ChatScreen = (props) => {
                     <TouchableOpacity
                         onPress={pickImage}
                         style={{
-                            marginRight: 10
+                            marginRight: regularPadding
                         }}
                     >
                         <FontAwesome name="image" size={20} color={deepPurple} />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={pickDocument}>
-                        <FontAwesome name="file-pdf-o" size={18} color="black" />
+                        <MaterialIcons name="attachment" size={24} color={deepPurple} />
                     </TouchableOpacity>
                     <Composer
                         {...composerProps}
@@ -232,32 +328,63 @@ const ChatScreen = (props) => {
             <MessageImage
                 {...props}
                 imageStyle={{
-                    resizeMode: 'contain'
+                    resizeMode: 'cover'
                 }}
             />
         )
     };
 
     const renderChatEmpty = () => (
-        <View style={{
-            flex: 1,
-            backgroundColor: 'red',
-            justifyContent: 'center',
-            alignItems: 'center',
-        }}>
-            <Text>Khong co tin nhan</Text>
+        <View
+            style={{
+                ...Platform.select({
+                    ios: {
+                        transform: [{ scaleY: -1 }],
+                    },
+                    android: {
+                        transform: [{ scaleX: -1 }, { scaleY: -1 }],
+                    },
+                }),
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+            }}
+        >
+            <View
+                style={{
+                    width: 200,
+                    height: 200,
+                    justifyContent: 'center',
+                    marginBottom: 30
+                }}
+            >
+                <Image source={CHAT_HERE} resizeMode="contain" style={{ flex: 1, width: undefined, height: undefined }} />
+            </View>
+            <View>
+                <Text
+                    style={{
+                        fontStyle: 'italic',
+                        color: placeholderTextColor,
+                        fontSize: 16
+                    }}
+                >
+                    Hãy đặt câu hỏi tại đây
+                </Text>
+            </View>
         </View>
     );
 
     const pickDocument = async () => {
         try {
-            const result = await DocumentPicker.getDocumentAsync({
-                type: '*/*',
+            const result: DocumentPicker.DocumentPickerResult = await DocumentPicker.getDocumentAsync({
+                type: 'application/pdf',
                 copyToCacheDirectory: true,
             });
 
             if (!result.canceled) {
-                console.log('Document picked:', result.assets);
+                console.log('Document picked:', result);
+                const { uri, name } = result.assets[0];
+                await uploadFile(uri, name);
             } else {
                 console.log('Document picking cancelled');
             }
@@ -273,19 +400,27 @@ const ChatScreen = (props) => {
         });
 
         if (!result.canceled) {
-            await uploadImage(result.assets[0].uri);
+            await uploadImage(result.assets[0]);
         }
     };
 
-    const uploadImage = async (uri: string) => {
+    const uploadImage = async (assets: ImagePicker.ImagePickerAsset) => {
         setSendLoading(true);
         try {
-            const response = await fetch(uri);
+            const response = await fetch(assets.uri);
             const blob = await response.blob();
-            const storageRef = storage().ref(`images/${new Date().getTime()}`);
-            await storageRef.put(blob);
-            const downloadURL = await storageRef.getDownloadURL();
-            await onSend([], downloadURL);
+            if (assets.type == 'image') {
+                const storageRef = storage().ref(`images/${new Date().getTime()}`);
+                await storageRef.put(blob);
+                const downloadURL = await storageRef.getDownloadURL();
+                await onSend([], downloadURL);
+            }
+            else {
+                const storageRef = storage().ref(`videos/${new Date().getTime()}`);
+                await storageRef.put(blob);
+                const downloadURL = await storageRef.getDownloadURL();
+                await onSend([], '', downloadURL);
+            }
         } catch (error) {
             console.error('Error uploading image:', error);
         } finally {
@@ -293,17 +428,56 @@ const ChatScreen = (props) => {
         }
     };
 
+    const uploadFile = async (uri: string, originalFileName: string) => {
+        setSendLoading(true);
+        try {
+            const response = await fetch(uri);
+            const blob = await response.blob();
+            const fileType = originalFileName.split('.').pop();
+            const storageRef = storage().ref(`pdfs/${originalFileName}_${new Date().getTime()}.${fileType}`);
+            await storageRef.put(blob);
+            const downloadURL = await storageRef.getDownloadURL();
+            await onSend([], '', '', {
+                type: fileType,
+                url: downloadURL,
+                fileName: originalFileName
+            });
+        } catch (error) {
+            console.error('Error uploading file:', error);
+        } finally {
+            setSendLoading(false);
+        }
+    };
+
+    const renderMessageVideo = (props) => (
+        <TouchableOpacity style={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: deepPurple,
+        }}
+            onPress={() => RootNavigation.navigate('VideoStream', { uriVideo: props.currentMessage?.video })}
+        >
+            <Video
+                source={{ uri: props.currentMessage?.video }}
+                style={{ width: 200, height: 200 }}
+                shouldPlay={false}
+            />
+            <View style={{ position: 'absolute' }}>
+                <AntDesign name="play" size={50} color="white" />
+            </View>
+        </TouchableOpacity>
+    );
+
     return (
         <Container
-            backgroundColor={'white'}
             statusBarColor='white'
             statusBarContentColor='dark'
         >
             <Header
                 leftHeaderComponent={
                     <>
-                        <Image source={AVATAR} style={styles.imageBox} />
-                        <Text style={[titleFontStyle, { fontSize: 16 }]}>{chatFriendPhone}</Text>
+                        <Image source={friendInfo?.imageBase64 ? { uri: `data:image;base64,${friendInfo.imageBase64}` } : AVATAR} style={styles.imageBox} />
+                        <Text style={[titleFontStyle, { fontSize: 16 }]}>{friendInfo.fullName}</Text>
                     </>
                 }
                 backArrow
@@ -316,7 +490,8 @@ const ChatScreen = (props) => {
 
             <TouchableOpacity
                 style={{
-                    flex: 1
+                    flex: 1,
+                    paddingHorizontal: regularPadding / 2
                 }}
                 activeOpacity={1}
                 onPress={Keyboard.dismiss}
@@ -329,9 +504,8 @@ const ChatScreen = (props) => {
                         name: phoneNumber,
                     }}
                     messagesContainerStyle={{
-                        backgroundColor: '#f8f8f8'
+                        backgroundColor: 'transparent'
                     }}
-                    isCustomViewBottom={true}
                     textInputProps={{
                         placeholder: "Enter your message...",
                     }}
@@ -340,7 +514,10 @@ const ChatScreen = (props) => {
                     renderInputToolbar={renderInputToolbar}
                     renderSend={renderSend}
                     renderMessageImage={renderMessageImage}
+                    renderMessageVideo={renderMessageVideo}
                     renderChatEmpty={renderChatEmpty}
+                    renderAvatarOnTop
+                    renderChatFooter={renderChatFooter}
                 />
             </TouchableOpacity>
         </Container >

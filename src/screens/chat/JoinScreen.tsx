@@ -33,7 +33,7 @@ const JoinScreen = (props) => {
     const draggableRef = useRef();
     const [localStream, setLocalStream] = useState<MediaStream>();
     const [remoteStream, setRemoteStream] = useState<MediaStream>();
-    const [cachedLocalPC, setCachedLocalPC] = useState();
+    const [cachedLocalPC, setCachedLocalPC] = useState<RTCPeerConnection>();
     const [isMuted, setIsMuted] = useState(false);
     const [isOffCam, setIsOffCam] = useState(false);
     const [isFront, setIsFront] = useState(true);
@@ -47,7 +47,32 @@ const JoinScreen = (props) => {
     }, [localStream]);
 
     async function endCall() {
+        refuseCall();
+
+        if (localStream) {
+            localStream.getTracks().forEach(track => {
+                track.removeEventListener("mute");
+                track.removeEventListener("unmute");
+                track.removeEventListener("ended");
+                track.release();
+                track.stop();
+            });
+        }
+
+        if (remoteStream) {
+            remoteStream.getTracks().forEach(track => {
+                track.removeEventListener("mute");
+                track.removeEventListener("unmute");
+                track.removeEventListener("ended");
+                track.release();
+                track.stop();
+            });
+        }
+
         if (cachedLocalPC) {
+            cachedLocalPC.getTransceivers().forEach((transceiver) => {
+                transceiver.stop();
+            });
             const senders = cachedLocalPC.getSenders();
             senders.forEach((sender) => {
                 cachedLocalPC.removeTrack(sender);
@@ -61,14 +86,13 @@ const JoinScreen = (props) => {
         setLocalStream(null);
         setRemoteStream(null);
         setCachedLocalPC(null);
-        refuseCall();
     }
 
     const startLocalStream = async () => {
-        const devices = await mediaDevices.enumerateDevices();
         const facing = isFront ? "front" : "environment";
+        const devices: MediaDeviceInfo[] = await mediaDevices.enumerateDevices();
         const videoSourceId = devices.find(
-            (device) => device.kind === "videoinput" && device.facing === facing
+            (device) => device.kind === "videoinput"
         );
         const facingMode = isFront ? "user" : "environment";
         const constraints = {
@@ -137,7 +161,8 @@ const JoinScreen = (props) => {
         const unsubscribeRoom = roomRef.onSnapshot((doc) => {
             const data = doc.data();
             if (!data.answer) {
-                RootNavigation.pop();
+                console.log('join endcall')
+                endCall();
             }
         });
 
