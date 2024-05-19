@@ -18,7 +18,7 @@ import LoadingOverlay from './src/components/LoadingOverlay';
 import { loadFonts } from '@/theme';
 import CustomToast from '@/components/CustomToast';
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging'
-import { saveDeviceToken } from '@/redux/slice/authSlice';
+import { clearDeviceToken, hideLoading, saveDeviceToken } from '@/redux/slice/authSlice';
 import { BASE_API } from '@/services/BaseApi';
 import { hideIncommingCall, showIncommingCall } from '@/redux/slice/chatSlice';
 import IncomingCall from '@/screens/chat/IncomingCall';
@@ -69,14 +69,15 @@ const EntryNavigation = () => {
         })
 
         messaging().setBackgroundMessageHandler(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-            Toast.show({
-                type: 'notification',
-                props: {
-                    title: remoteMessage.notification.title,
-                    content: remoteMessage.notification.body
-                },
-                autoHide: false
-            })
+            if (remoteMessage.data.type == 'INFO') {
+                Toast.show({
+                    type: 'notification',
+                    props: {
+                        title: remoteMessage.notification.title,
+                        content: remoteMessage.notification.body
+                    },
+                })
+            }
         });
 
         messaging().onTokenRefresh(async (token) => {
