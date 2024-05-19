@@ -52,6 +52,7 @@ const Login = () => {
                 console.error('Token not found in response');
             }
         } catch (error) {
+            console.log("xxxx", error)
             Toast.show({
                 type: 'error',
                 props: {

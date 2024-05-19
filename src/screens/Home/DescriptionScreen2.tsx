@@ -80,7 +80,7 @@ export const Description2 = () => {
                                         <View>
                                             <Feather name="info" size={24} color="black" style={{marginBottom:6}} />
                                             <Feather name="award" size={24} color="black" onPress={() => {
-                                                RootNavigation.navigate('Appreciation', { employeeId: employee?.id, companyId: work?.company?.id })
+                                                RootNavigation.navigate('Appreciation', { employeeId: employee?.id, workId: work?.id })
                                             }} />
                                         </View>
                                     </View>
