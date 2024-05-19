@@ -15,7 +15,7 @@ const ReasonListScreen = ({ navigation, route }) => {
     useEffect(() => {
         const fetchLeaveReasons = async () => {
             try {
-                // console.log(route.params)
+                console.log(route.params.reservation.work_id)
                 const response = await scheduleService.getLeaveReasonByItem(route.params?.reservation?.work_id, route.params?.reservation?.day);
                 const newLeaveStatus = response.data.reduce((acc, reason) => {
                     acc[reason.id] = reason.isAccept;

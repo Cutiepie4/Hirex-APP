@@ -31,7 +31,8 @@ const ScheduleEmployerScreen: React.FC = () => {
     const [submit, setSubmit] = useState<boolean>(true);
     const [noReason, setNoReason] = useState({});
     const { phoneNumber, role } = useSelector((state: RootReducer) => state.authReducer);
-
+    const [markDate, setMarkDate] = useState({});
+    // console.log(dayPick)
     const handleAddOrUpdateItem = async () => {
         try {
             setShowItemsDetail(false);
@@ -101,7 +102,7 @@ const ScheduleEmployerScreen: React.FC = () => {
             dispatch(hideLoading());
         }
     };
-    console.log(reservationPick)
+    // console.log(reservationPick)
 
     const updateDayItems = (dayItems, reservationPick) => {
         const itemIndex = dayItems.findIndex(item => item.name === reservationPick.name);
@@ -143,35 +144,14 @@ const ScheduleEmployerScreen: React.FC = () => {
         const [hour, minute] = timeArray;
         return moment({ hour, minute }).format('HH:mm');
     };
-    const fetchItems = async () => {
+    //Lấy danh sách sự kiện
+    const fetchItems = async (date) => {
         try {
-            const response = await scheduleService.fetchItemsByUser(phoneNumber);
-            const newWorkIds = {};
+            const response = await scheduleService.fetchItemsByUser(phoneNumber, moment(date).startOf('month').format('YYYY-MM-DD'), moment(date).endOf('month').format('YYYY-MM-DD'));
             const newItems = {};
 
             for (const item of response.data) {
                 const dateStr = item.date;
-                newWorkIds[dateStr] = item.work_id;
-                // for (const subitem of item.items) {
-                //     if (subitem.type === 'working') {
-                //         try {
-                //             const countResponse = await scheduleService.countReason(subitem.work.id, dateStr);
-                //             setNoReason(prevState => ({
-                //                 ...prevState,
-                //                 [subitem.id]: countResponse.data
-                //             }));
-                //         } catch (error) {
-                //             console.log(error.message)
-                //             Toast.show({
-                //                 type: 'error',
-                //                 props: {
-                //                     title: 'Lỗi',
-                //                     content: error.message,
-                //                 },
-                //             });
-                //         }
-                //     }
-                // }
 
                 newItems[dateStr] = (item.itemsDTO || []).map(subItem => ({
                     id: subItem.id.toString(),
@@ -184,15 +164,14 @@ const ScheduleEmployerScreen: React.FC = () => {
                     type: subItem.type,
                     notification: subItem.notification,
                     type_notif: subItem.type_notif,
-                    work_id: subItem.work?.id,
+                    work_id: subItem.work_id,
+                    totalReason: subItem.totalReason,
                 }));
             }
 
-            setItems(prevItems => ({
-                ...prevItems,
-                ...newItems
-            }));
+            setItems(newItems);
         } catch (error) {
+            console.log(error.message)
             Toast.show({
                 type: 'error',
                 props: {
@@ -202,8 +181,32 @@ const ScheduleEmployerScreen: React.FC = () => {
             });
         }
     };
+
+    //Lấy danh sách đánh dấu ngày
+    const fetchMarkDate = async () => {
+        try {
+            const response = await scheduleService.fetchMarkDate(phoneNumber);
+            const newMark = {};
+
+            for (const mark of response.data) {
+                newMark[mark.date] = { 'marked': true };
+            }
+
+            setMarkDate(newMark)
+        } catch (error) {
+            Toast.show({
+                type: 'error',
+                props: {
+                    title: 'Lỗi',
+                    content: 'Lỗi',
+                },
+            });
+        }
+    };
+
     useEffect(() => {
-        fetchItems();
+        fetchItems(dayPick);
+        fetchMarkDate();
     }, []);
     // console.log(items)
     const handleReason = (id) => {
@@ -372,19 +375,22 @@ const ScheduleEmployerScreen: React.FC = () => {
                     // maxDate={moment().endOf('month').format('YYYY-MM-DD')}
                     onRefresh={() => {
                         console.log('refresh')
-                        fetchItems
+                        fetchItems(dayPick)
                     }}
                     onDayChange={day => {
                         setDayPick(day.dateString);
                     }}
                     onDayPress={day => {
+                        const selectedMonth = moment(day.dateString).format('YYYY-MM');
+                        const currentMonth = moment(dayPick).format('YYYY-MM');
+                        if (selectedMonth !== currentMonth) {
+                            fetchItems(day.dateString);
+                        }
                         setDayPick(day.dateString);
                     }}
                     refreshing={false}
-                // renderDay={renderDay}
-                // markedDates={{
-                //   '2024-02-06': {marked: true, dotColor: 'red' },
-                // }}
+                    // renderDay={renderDay}
+                    markedDates={markDate}
                 />
 
                 <TouchableOpacity

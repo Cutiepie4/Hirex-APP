@@ -34,8 +34,8 @@ const AgendaScreen: React.FC = () => {
     const [refreshing, setRefreshing] = useState<boolean>(false);
     const [reservationPick, setReservationPick] = useState<ExtendedAgendaEntry>(undefined);
     const [submit, setSubmit] = useState<boolean>(true);
-    const [workIds, setWorkIds] = useState({});
     const { phoneNumber, role } = useSelector((state: RootReducer) => state.authReducer);
+    const [markDate, setMarkDate] = useState({});
     console.log(reservationPick)
     const handleAddOrUpdateItem = async () => {
         try {
@@ -58,11 +58,8 @@ const AgendaScreen: React.FC = () => {
             let response;
             if (isNew) {
                 response = await scheduleService.addItem(phoneNumber, item);
-                const newWorkIds = { ...workIds };
                 // console.log(response)
                 if (response.status == 200 && response.data) {
-                    newWorkIds[dayPick] = response.data.work_id;
-                    setWorkIds(newWorkIds);
                     console.log('1')
                     console.log(response.data)
                     dayItems.push({ ...reservationPick, id: response.data.id } as AgendaEntry);
@@ -76,7 +73,7 @@ const AgendaScreen: React.FC = () => {
                 }
             } else {
                 response = await scheduleService.updateItem(reservationPick.id, item);
-                
+
                 updateDayItems(dayItems, response.data);
                 // console.log(dayItems)
                 Toast.show({
@@ -114,10 +111,6 @@ const AgendaScreen: React.FC = () => {
         }
     };
 
-    const updateWorkIds = (dayPick, workId) => {
-        const newWorkIds = { ...workIds, [dayPick]: workId };
-        setWorkIds(newWorkIds);
-    };
 
     const updateDayItems = (dayItems, reservationPick) => {
         const itemIndex = dayItems.findIndex(item => item.id === reservationPick.id);
@@ -157,51 +150,69 @@ const AgendaScreen: React.FC = () => {
         return moment({ hour, minute }).format('HH:mm');
     };
     // Lấy danh sách sự kiện
-    useEffect(() => {
-        const fetchItems = async () => {
-            try {
-                const response = await scheduleService.fetchItemsByUser(phoneNumber);
-                const newWorkIds = {};
-                const newItems = {};
+    const fetchItems = async (date) => {
+        try {
+            const response = await scheduleService.fetchItemsByUser(phoneNumber, moment(date).startOf('month').format('YYYY-MM-DD'), moment(date).endOf('month').format('YYYY-MM-DD'));
+            const newItems = {};
 
-                for (const item of response.data) {
-                    const dateStr = item.date;
-                    newWorkIds[dateStr] = item.work_id;
-                    newItems[dateStr] = (item.itemsDTO || []).map(subItem => ({
-                        id: subItem.id.toString(),
-                        name: subItem.id.toString(),
-                        notes: subItem.notes,
-                        day: dateStr,
-                        start: convertToMoment(subItem.startTime),
-                        end: convertToMoment(subItem.endTime),
-                        title: subItem.title,
-                        type: subItem.type,
-                        notification: subItem.notification,
-                        type_notif: subItem.type_notif,
-                        work_id: subItem.work?.id,
-                        total_reason: subItem.totalReason,
-                    }));
-                }
-
-                setWorkIds(prevWorkIds => ({
-                    ...prevWorkIds,
-                    ...newWorkIds
+            for (const item of response.data) {
+                const dateStr = item.date;
+                newItems[dateStr] = (item.itemsDTO || []).map(subItem => ({
+                    id: subItem.id.toString(),
+                    name: subItem.id.toString(),
+                    notes: subItem.notes,
+                    day: dateStr,
+                    start: convertToMoment(subItem.startTime),
+                    end: convertToMoment(subItem.endTime),
+                    title: subItem.title,
+                    type: subItem.type,
+                    notification: subItem.notification,
+                    type_notif: subItem.type_notif,
+                    work_id: subItem.work?.id,
+                    total_reason: subItem.totalReason,
                 }));
-                setItems(prevItems => ({
-                    ...prevItems,
-                    ...newItems
-                }));
-            } catch (error) {
-                Toast.show({
-                    type: 'error',
-                    props: {
-                        title: 'Lỗi',
-                        content: 'Lỗi không thể lấy danh sách sự kiện',
-                    },
-                });
             }
-        };
-        fetchItems();
+
+            setItems(prevItems => ({
+                ...prevItems,
+                ...newItems
+            }));
+        } catch (error) {
+            Toast.show({
+                type: 'error',
+                props: {
+                    title: 'Lỗi',
+                    content: 'Lỗi không thể lấy danh sách sự kiện',
+                },
+            });
+        }
+    };
+
+    //Lấy danh sách đánh dấu ngày
+    const fetchMarkDate = async () => {
+        try {
+            const response = await scheduleService.fetchMarkDate(phoneNumber);
+            const newMark = {};
+
+            for (const mark of response.data) {
+                newMark[mark.date] = { 'marked': true };
+            }
+
+            setMarkDate(newMark)
+        } catch (error) {
+            Toast.show({
+                type: 'error',
+                props: {
+                    title: 'Lỗi',
+                    content: 'Lỗi',
+                },
+            });
+        }
+    };
+
+    useEffect(() => {
+        fetchItems(dayPick);
+        fetchMarkDate();
     }, []);
     const handleSetValue = useCallback((isShow: boolean, isNew: boolean, day: string, reservation: ExtendedAgendaEntry) => {
         setReservationPick({ ...reservation })
@@ -333,27 +344,31 @@ const AgendaScreen: React.FC = () => {
             <SafeAreaView style={styles.container}>
                 <Agenda
                     items={items}
-                    loadItemsForMonth={loadItems}
+                    // loadItemsForMonth={loadItems}
                     renderItem={renderItem}
                     renderEmptyDate={renderEmptyDate}
                     // rowHasChanged={rowHasChanged}
                     showClosingKnob={true}
-                    minDate={moment().startOf('month').format('YYYY-MM-DD')}
-                    maxDate={moment().endOf('month').format('YYYY-MM-DD')}
+                    // minDate={moment().startOf('month').format('YYYY-MM-DD')}
+                    // maxDate={moment().endOf('month').format('YYYY-MM-DD')}
                     onRefresh={() => {
                         console.log('refresh')
+                        fetchItems(dayPick)
                     }}
                     onDayChange={day => {
                         setDayPick(day.dateString);
                     }}
                     onDayPress={day => {
+                        const selectedMonth = moment(day.dateString).format('YYYY-MM');
+                        const currentMonth = moment(dayPick).format('YYYY-MM');
+                        if (selectedMonth !== currentMonth) {
+                            fetchItems(day.dateString);
+                        }
                         setDayPick(day.dateString);
                     }}
                     refreshing={false}
-                // renderDay={renderDay}
-                // markedDates={{
-                //   '2024-02-06': {marked: true, dotColor: 'red' },
-                // }}
+                    // renderDay={renderDay}
+                    markedDates={markDate}
                 />
 
                 <TouchableOpacity

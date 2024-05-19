@@ -16,10 +16,12 @@ import { BASE_API } from './BaseApi';
 // };
 
 const scheduleService = {
-    fetchItemsByUser: (phoneNumber) => {
-        return BASE_API.get(`/schedules_by_user/${phoneNumber}`);
+    fetchItemsByUser: (phoneNumber, dateStart, dateEnd) => {
+        return BASE_API.get(`/schedules_by_user/${phoneNumber}/${dateStart}/${dateEnd}`);
     },
-
+    fetchMarkDate: (phoneNumber) => {
+        return BASE_API.get(`/mark-date/${phoneNumber}`);
+    },
     addItem: (phoneNumber, item) => {
         return BASE_API.post(`/schedules/${phoneNumber}`, item);
     },
