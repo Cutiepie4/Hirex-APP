@@ -1,5 +1,5 @@
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import Container from '../../components/Container'
 import Header from '../../components/Header'
 import { deepPurple, orange, placeholderFontStyle, placeholderTextColor, purple, regularPadding, titleFontStyle } from '../../styles/styles'
@@ -7,6 +7,7 @@ import GOOGLE from '../../assets/images/google_logo.png'
 import NO_NOTIFICATIONS from '../../assets/images/no_notifications.png'
 import RootNavigation from '../../route/RootNavigation'
 import { BASE_API } from '@/services/BaseApi'
+import { useFocusEffect } from '@react-navigation/native'
 
 export interface Notification {
     id: number,
@@ -46,19 +47,20 @@ const Notifications = () => {
     };
 
     const readAllNotifications = async () => {
-        await BASE_API.post('/notifications/read-all').then(res => setNoti(prev => prev.map(item => { return { ...item, read: true } })));
-    }
+        await BASE_API.get('/notifications/read-all').then(res => setNoti(noti.map(item => { return { ...item, read: true } })));
+    };
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const response = await BASE_API.get('/notifications');
-            if (response.status == 200) {
-                setNoti(response.data);
-            }
-        };
+    useFocusEffect(
+        useCallback(() => {
+            const fetchData = async () => {
+                const response = await BASE_API.get('/notifications');
+                if (response.status == 200) {
+                    setNoti(response.data);
+                }
+            };
 
-        fetchData();
-    }, []);
+            fetchData();
+        }, []));
 
     const renderItem = ({ item, index }: { item: Notification, index: number }) => (
         <TouchableOpacity

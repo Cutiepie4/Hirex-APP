@@ -13,7 +13,7 @@ const NotificationDetail = ({ route }) => {
     const { notification }: { notification: Notification } = route.params;
 
     useEffect(() => {
-        BASE_API.post(`/notifications/read/${notification.id}`);
+        BASE_API.get(`/notifications/read/${notification.id}`);
     }, []);
 
     return (

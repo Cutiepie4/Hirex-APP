@@ -127,7 +127,7 @@ const IncomingCall = () => {
             setCaller(remoteMessage.notification.title);
             setRoomId(remoteMessage.notification.body);
         }
-        if (remoteMessage.data.type == 'INFO') {
+        if (remoteMessage.data.type === 'INFO') {
             Toast.show({
                 type: 'notification',
                 props: {
