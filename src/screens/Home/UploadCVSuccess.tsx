@@ -6,26 +6,26 @@ import PDF from '@assets/images/PDF.png'
 import { useRoute, useNavigation } from "@react-navigation/core";
 import uploadSuccess from '@assets/images/uploadsuccess.png'
 import RootNavigation from "@/route/RootNavigation";
+import { formatRemainingTime } from "@/utils/formatRemainingTime";
 
-export const UploadCVSuccess = () => {
-    const route = useRoute()
+export const UploadCVSuccess = ({ route }) => {
     const upload = uploadStyle
 
-    const { filename, filesize }: any = route.params
+    const { filename, filesize, work }: any = route.params
     return (
         <ScrollView>
 
             <View style={upload.container}>
                 <View style={upload.logoContainer}>
                     <View style={upload.logo}>
-                        <Image source={google} />
+                        <Image source={{ uri: `data:image;base64,${work?.company?.imageBase64}`}} />
                     </View>
                 </View>
 
                 <View style={upload.header_container}>
 
-                    <Text style={upload.desc_text_1}>UI/UX Designer</Text>
-                    <Text style={upload.desc_text_2}>Google    <Text style={{ fontSize: 10, textAlignVertical: 'center' }}>{'\u2B24'}</Text>   Carlifornia   <Text style={{ fontSize: 10, textAlignVertical: 'center' }}>{'\u2B24'}</Text>   1 day ago</Text>
+                    <Text style={upload.desc_text_1}>{work?.name}</Text>
+                    <Text style={upload.desc_text_2}>{work?.company?.shortName}{'    '}<Text style={{ fontSize: 10, textAlignVertical: 'center' }}>{'\u2B24'}</Text>{'   '}{work?.address}{'   '}<Text style={{ fontSize: 10, textAlignVertical: 'center' }}>{'\u2B24'}</Text>{'   '}{formatRemainingTime(work?.createOn)}</Text>
                 </View>
 
                 <View style={{ marginLeft: 25, marginRight: 25, marginTop: 25 }}>
@@ -45,20 +45,20 @@ export const UploadCVSuccess = () => {
                         <Image style={{ width: 200, height: 200 }} source={uploadSuccess} />
                     </View>
                     <View style={{ marginTop: 30 }}>
-                        <Text style={[upload.desc_text_3, { textAlign: 'center' }]}>Successful</Text>
-                        <Text style={[upload.desc_text_4, { textAlign: 'center' }]}>Congratulations, your application has been sent</Text>
+                        <Text style={[upload.desc_text_3, { textAlign: 'center' }]}>Thành công</Text>
+                        <Text style={[upload.desc_text_4, { textAlign: 'center' }]}>Xin chúc mừng, CV của bạn đã được gửi đi</Text>
                     </View>
 
                     <View style={{ marginTop: 20, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <TouchableOpacity onPress={() => {
+                        {/* <TouchableOpacity onPress={() => {
                             RootNavigation.navigate('MainSearch')
                         }} style={{ height: 60, width: '80%', backgroundColor: colors.tertiary, display: 'flex', justifyContent: 'center', alignItems: 'center', borderRadius: 6, marginBottom: 10 }} activeOpacity={0.8}>
                             <Text style={[upload.desc_text_3, { color: colors.primary }]}>FIND A SIMILAR JOB</Text>
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
                         <TouchableOpacity onPress={() => {
                             RootNavigation.navigate('Home')
                         }} style={{ height: 60, width: '80%', backgroundColor: colors.primary, display: 'flex', justifyContent: 'center', alignItems: 'center', borderRadius: 6 }} activeOpacity={0.8}>
-                            <Text style={[upload.desc_text_3, { color: 'white' }]}>BACK TO HOME</Text>
+                            <Text style={[upload.desc_text_3, { color: 'white' }]}>VỀ TRANG CHỦ</Text>
                         </TouchableOpacity>
                     </View>
 

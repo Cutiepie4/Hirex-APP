@@ -68,7 +68,7 @@ const Notifications = () => {
                 marginTop: 10,
                 marginHorizontal: regularPadding,
                 width: width - regularPadding * 2,
-            }, item.read && styles.isRead]}
+            }, !item.read && styles.isRead]}
             onPress={() => RootNavigation.navigate('NotificationDetail', { notification: item })}
         >
             <View style={{

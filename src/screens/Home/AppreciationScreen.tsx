@@ -25,7 +25,7 @@ export const Appreciation = ({ route }) => {
             .then((res) => {
                 setAppreciation(res.data)
             }).catch((err) => {
-                toastResponse({type: 'error', content: err.message})
+                toastResponse({type: 'error', content: err.response.data})
             })
     }, [])
     
@@ -43,7 +43,7 @@ export const Appreciation = ({ route }) => {
                 toastResponse({type: 'success', content: 'Lưu thành công'})
             })
             .catch(err => {
-                toastResponse({type: 'error', content: err.message})
+                toastResponse({type: 'error', content: err.response.data})
             })
     }
 

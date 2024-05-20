@@ -24,5 +24,6 @@ export const colors = {
     pinky:"#fdeff5",
     ultra_sur:"#fff5f3",
     grey_sur:"#ccc4c2",
-    ultra_ama:"#faf2ea"
+    ultra_ama:"#faf2ea",
+    star:"#f1c40f"
 }

@@ -9,7 +9,7 @@ import Messages from '../screens/chat/Messages';
 import CallActionBox from '../screens/chat/CallActionBox';
 import CallScreen from '../screens/chat/CallScreen';
 import { hideTabBar, showTabBar } from '../redux/slice/authSlice';
-import { Home, Description, Description2, UploadCV, UploadCVSuccess, Appreciation } from '@/screens/Home';
+import { Home, Description, Description2, UploadCV, UploadCVSuccess, Appreciation, HomeHandler, Company as CompanyHome } from '@/screens/Home';
 import ChatScreen from '../screens/chat/ChatScreen';
 import Setting from '../screens/setting/Setting';
 import { Profile, AboutMeScreen, Experience, Education, Certification, Skill } from '../screens';
@@ -24,15 +24,23 @@ import Test from '@/screens/chat/Test';
 import VideoStream from '@/screens/chat/VideoStream';
 import ProfileHandler from '@/screens/profile/ProfileHandler';
 import Company from '@/screens/profile/Company';
+import CompanyDescription from '@/screens/Home/CompanyDescriptionScreen';
+import Review from '@/screens/Home/ReviewScreen';
 
 const homeScreenStack = {
-    Home: Home,
+    HomeHandler: HomeHandler,
     Description: Description,
     Description2: Description2,
     UploadCV: UploadCV,
     UploadCVSuccess: UploadCVSuccess,
     ChatScreen: ChatScreen,
     Appreciation: Appreciation,
+}
+
+const companyScreenStack = {
+    Company: CompanyHome,
+    CompanyDescription: CompanyDescription,
+    Review: Review,
 }
 
 const chatScreenStack = {
@@ -73,7 +81,7 @@ const HomeStack = ({ navigation, route }: any) => {
 
     useLayoutEffect(() => {
         const routeName = getFocusedRouteNameFromRoute(route);
-        if (routeName === 'Home' || routeName == undefined) {
+        if (routeName === 'HomeHandler' || routeName == undefined) {
             dispatch(showTabBar());
         } else {
             dispatch(hideTabBar());
@@ -87,6 +95,31 @@ const HomeStack = ({ navigation, route }: any) => {
             }}
         >
             {Object.entries(homeScreenStack).map(([name, component]) => (
+                <Stack.Screen key={name} name={name} component={component} />
+            ))}
+        </Stack.Navigator>
+    );
+};
+
+const CompanyStack = ({ navigation, route }: any) => {
+    const dispatch = useDispatch();
+
+    useLayoutEffect(() => {
+        const routeName = getFocusedRouteNameFromRoute(route);
+        if (routeName === 'Company' || routeName == undefined) {
+            dispatch(showTabBar());
+        } else {
+            dispatch(hideTabBar());
+        }
+    }, [navigation, route]);
+
+    return (
+        <Stack.Navigator
+            screenOptions={{
+                headerShown: false,
+            }}
+        >
+            {Object.entries(companyScreenStack).map(([name, component]) => (
                 <Stack.Screen key={name} name={name} component={component} />
             ))}
         </Stack.Navigator>
@@ -168,4 +201,4 @@ const SettingStack = ({ navigation, route }: any) => {
         </Stack.Navigator>
     );
 };
-export { HomeStack, ChatStack, ProfileStack, SettingStack }
+export { HomeStack, ChatStack, ProfileStack, SettingStack, CompanyStack }

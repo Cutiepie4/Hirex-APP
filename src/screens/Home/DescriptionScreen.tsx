@@ -13,23 +13,24 @@ import { useSelector } from 'react-redux';
 import { ParseConversationId } from '@/utils/utils';
 import firestore from '@react-native-firebase/firestore'
 import { formatRemainingTime } from '@/utils/formatRemainingTime';
+import { toastResponse } from '@/utils/toastResponse';
 
-export type Expert = {
+type Expert = {
     id: number
     name: string
 }
 
-export type User = {
+type User = {
     id: number
     phoneNumber: string
 }
 
-export type Employer = {
+type Employer = {
     id: number
     user: User
 }
 
-export type Company = {
+type Company = {
     id: number
     name: string
     shortName: string
@@ -42,7 +43,7 @@ export type Company = {
     employer: Employer
 }
 
-export type Work = {
+type Work = {
     id: number
     name: string
     address: string
@@ -57,18 +58,24 @@ export type Work = {
     jobPosition: string
     typeWork: string
     typeJob: string
+    wage: number
 }
 
-export const Description = () => {
+export const Description = ({ route }) => {
+    let workId = route.params.workId || null
     const [info, setInfo] = React.useState(false)
     const [work, setWork] = React.useState<Work>(null)
     const desc = descStyle
     React.useEffect(() => {
-        BASE_API.get("works/1").then((res) => {
+        const fetchData = async () => {
+            const res = await BASE_API.get(`works/${workId}`);
             setWork(res.data)
-        }).catch((err) => {
-            console.log(err)
-        })
+        };
+
+        fetchData()
+            .catch((err) => {
+                toastResponse({ type: 'error', content: err.response.data || err.message })
+            });
     }, [])
     
 
@@ -90,14 +97,14 @@ export const Description = () => {
             RootNavigation.navigate('ChatScreen', { data: { chatFriendPhone: chatFriend, participants, messages: [] } });
         } catch (error) {
             console.error('Error adding document: ', error);
-        }
+        } 
     };
 
     return (
         <View style={desc.container}>
             <View style={desc.logoContainer}>
                 <View style={desc.logo}>
-                    <Image source={google} />
+                    <Image style={{ width: 70, height: 70, resizeMode: 'cover', borderRadius: 90 }} source={{ uri: `data:image;base64,${work?.company?.imageBase64}`}} />
                 </View>
             </View>
 
@@ -125,7 +132,7 @@ export const Description = () => {
 
                         <View style={{ marginTop: 20 }}>
                             {/* Description miniscreen */}
-                            <ScrollView showsVerticalScrollIndicator={false} style={{ height: 520 }}>
+                            <ScrollView showsVerticalScrollIndicator={false} style={{ height: 390 }}>
                                 <View>
                                     <Text style={[desc.desc_text_3, { color: colors.primary }]}>Mô tả công việc</Text>
                                     <Text style={desc.desc_text_4}>{work?.description}</Text>
@@ -155,7 +162,7 @@ export const Description = () => {
 
                                     <View style={{ marginTop: 25 }}>
                                         <Text style={[desc.desc_text_6, { color: colors.primary, marginBottom: 5 }]}>Kinh nghiệm</Text>
-                                        <Text style={[desc.desc_text_7, { color: colors.primary }]}>3 Years</Text>
+                                        <Text style={[desc.desc_text_7, { color: colors.primary }]}>3 Năm</Text>
                                     </View>
 
                                     <View style={{ marginTop: 25 }}>
@@ -193,7 +200,7 @@ export const Description = () => {
                     ) : (<View style={{ marginTop: 20 }}>
                         {/* Company miniscreen */}
 
-                        <ScrollView showsVerticalScrollIndicator={false} style={{ height: 520 }}>
+                        <ScrollView showsVerticalScrollIndicator={false} style={{ height: 390 }}>
                             <View>
                                 <Text style={[desc.desc_text_3, { color: colors.primary }]}>Giới thiệu công ty</Text>
                                 <Text style={desc.desc_text_4}>{work?.company?.description}</Text>
@@ -211,7 +218,7 @@ export const Description = () => {
                             </View>
                             <View style={{ marginTop: 30 }}>
                                 <Text style={[desc.desc_text_3, { color: colors.primary }]}>Quy mô</Text>
-                                <Text style={[desc.desc_text_4]}>{work?.company?.employeeSize} Employees</Text>
+                                <Text style={[desc.desc_text_4]}>{work?.company?.employeeSize} Nhân viên</Text>
 
                             </View>
                             <View style={{ marginTop: 30 }}>
@@ -236,7 +243,7 @@ export const Description = () => {
             <View style={{ position: 'absolute', width: '100%', height: 70, backgroundColor: colors.background, bottom: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'row' }}>
                 {/* Bottom button */}
                 <Icon name="bookmark-border" color={colors.ultra} style={{ marginRight: 20 }} onPress={() => {}} />
-                <TouchableOpacity onPress={() => { RootNavigation.navigate('UploadCV', { workId: work?.id }) }} style={{ height: 50, width: '60%', backgroundColor: colors.primary, display: 'flex', justifyContent: 'center', alignItems: 'center', borderRadius: 6 }} activeOpacity={0.8}>
+                <TouchableOpacity onPress={() => { RootNavigation.navigate('UploadCV', { work: work, workId: work?.id }) }} style={{ height: 50, width: '60%', backgroundColor: colors.primary, display: 'flex', justifyContent: 'center', alignItems: 'center', borderRadius: 6 }} activeOpacity={0.8}>
                     <Text style={[desc.desc_text_3, { color: 'white' }]}>ỨNG TUYỂN NGAY</Text>
                 </TouchableOpacity>
                 <Icon name="link" color={work?.company?.employer?.user?.phoneNumber ? colors.ultra : colors.grey} style={{ marginLeft: 20 }} onPress={() => {if (work?.company?.employer?.user?.phoneNumber) { addConversation(work?.company?.employer?.user?.phoneNumber) }}}/>

@@ -18,7 +18,7 @@ import LoadingOverlay from './src/components/LoadingOverlay';
 import { loadFonts } from '@/theme';
 import CustomToast from '@/components/CustomToast';
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging'
-import { saveDeviceToken } from '@/redux/slice/authSlice';
+import { clearDeviceToken, saveDeviceToken } from '@/redux/slice/authSlice';
 import { BASE_API } from '@/services/BaseApi';
 import { hideIncommingCall, showIncommingCall } from '@/redux/slice/chatSlice';
 import IncomingCall from '@/screens/chat/IncomingCall';
@@ -39,8 +39,9 @@ const authScreens = {
 const EntryNavigation = () => {
     const { access_token, phoneNumber, deviceToken } = useSelector((state: RootReducer) => state.authReducer);
     const dispatch = useDispatch();
-
+    
     useEffect(() => {
+        dispatch(clearDeviceToken());
         dispatch(hideIncommingCall());
         const requestUserPermissions = async () => {
             const authStatus = await messaging().requestPermission();
@@ -131,9 +132,9 @@ const App = () => {
             <Provider store={store}>
                 <PersistGate persistor={persistor} loading={null}>
                     <NavigationContainer ref={navigationRef}>
-                        <LoadingOverlay>
+                        {/* <LoadingOverlay> */}
                             {showBanner ? <Banner /> : <EntryNavigation />}
-                        </LoadingOverlay>
+                        {/* </LoadingOverlay> */}
                         <CustomToast />
                         <IncomingCall />
                     </NavigationContainer>

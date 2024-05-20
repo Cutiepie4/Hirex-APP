@@ -2,22 +2,17 @@ import React from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native'
 import { colors, fonts, sizes } from "@/theme";
 import profile from '@assets/images/profile.png'
-import woman from '@assets/images/woman2.png'
 import job from '@assets/images/job.png'
-import Card from '@/components/Card/CardJobEmployee'
+import Card from '@/components/Card/CardJobEmployer'
 import Container from "@/components/Container";
 import RootNavigation from "@/route/RootNavigation";
 import { BASE_API } from "@/services/BaseApi";
 import { toastResponse } from "@/utils/toastResponse";
-import { RootReducer } from "@/redux/store/reducer";
-import { useSelector } from "react-redux";
 
 
-
-export const Home = () => {
+export const Home2 = () => {
     const home = homeStyle
     const [jobs, setJobs] = React.useState([])
-    const { fullname } = useSelector((state: RootReducer) => state.authReducer)
 
     React.useEffect(() => {
         const fetchData = async () => {
@@ -40,58 +35,11 @@ export const Home = () => {
                     </View>
                 </View>
                 <View>
-                    <Text style={home.home_text_1}>Hello {"\n"}{fullname}</Text>
+                    <Text style={home.home_text_1}>Hello {"\n"}</Text>
                 </View>
                 <ScrollView showsVerticalScrollIndicator={false} style={{ marginTop: 10 }}>
-                    <View style={{ marginTop: 10 }}>
-                        <Text style={home.home_text_3}>Find Your Job</Text>
-                    </View>
                     <View style={{ marginTop: 20 }}>
-                        <View style={{ display: 'flex', gap: 10, flexDirection: 'row', height: 200 }}>
-                            {/* Remote job button */}
-                            <TouchableOpacity onPress={() => {
-                                // RootNavigation.navigate('MainSearch') 
-                            }}
-                                activeOpacity={0.8}
-                                style={{ flex: 1, backgroundColor: colors.sega, marginRight: 10, borderRadius: 10, display: 'flex', justifyContent: 'center', alignItems: 'center' }}
-                            >
-                                <Image source={job} style={{ height: 40, width: 40, marginBottom: 10 }} />
-                                <Text style={home.home_text_3}>44.5K</Text>
-                                <Text style={home.home_text_4}>Remote Job</Text>
-                            </TouchableOpacity >
-
-                            <View style={{ flex: 1, marginLeft: 10, borderRadius: 10, display: 'flex', justifyContent: 'space-between' }}>
-                                {/* FUll time button */}
-                                <TouchableOpacity onPress={
-                                    () => {
-                                        // RootNavigation.navigate('MainSearch') 
-                                    }}
-                                    activeOpacity={0.8}
-                                    style={{ height: '45%', backgroundColor: colors.tertiary_deep, borderRadius: 10, display: 'flex', justifyContent: 'center', alignItems: 'center' }}
-                                >
-                                    <Text style={home.home_text_3}>66.8K</Text>
-                                    <Text style={home.home_text_4}>Full Time</Text>
-                                </TouchableOpacity>
-
-                                {/* Part time button */}
-                                <TouchableOpacity
-                                    onPress={() => {
-                                        // RootNavigation.navigate('MainSearch') 
-                                    }}
-                                    activeOpacity={0.8}
-                                    style={{ height: '45%', backgroundColor: colors.ultra_light, borderRadius: 10, display: 'flex', justifyContent: 'center', alignItems: 'center' }}
-                                >
-                                    <Text style={home.home_text_3}>38.9K</Text>
-                                    <Text style={home.home_text_4}>Part Time</Text>
-                                </TouchableOpacity>
-
-                            </View>
-                        </View>
-                    </View>
-
-
-                    <View style={{ marginTop: 20 }}>
-                        <Text style={home.home_text_3}>Recent Job List</Text>
+                        <Text style={home.home_text_3}>My Job List</Text>
                     </View>
 
                     <View style={{ marginTop: 20 }}>
@@ -100,9 +48,9 @@ export const Home = () => {
                                 <Card
                                     name={item.name}
                                     address={item?.address}
-                                    img={item?.company?.imageBase64}
                                     salary={`${item?.wage}tr VND`}
                                     onPress={() => { RootNavigation.navigate('Description', { workId: item?.id }) }}
+                                    onPress2={() => { RootNavigation.navigate('Description2', { workId: item?.id }) }}
                                 />
                             </View>)
                         })}
@@ -113,7 +61,7 @@ export const Home = () => {
     )
 }
 
-export default Home;
+export default Home2;
 
 
 const homeStyle = StyleSheet.create({

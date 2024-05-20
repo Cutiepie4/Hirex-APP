@@ -49,6 +49,9 @@ const authSlice = createSlice({
         },
         saveDeviceToken: (state, action) => {
             return { ...state, deviceToken: action.payload }
+        },
+        clearDeviceToken: (state) => {
+            return { ...state, deviceToken: '' }
         }
     },
     extraReducers(builder) {
@@ -56,5 +59,5 @@ const authSlice = createSlice({
     },
 });
 
-export const { login, showLoading, hideLoading, logout, showTabBar, hideTabBar, saveDeviceToken } = authSlice.actions;
+export const { login, showLoading, hideLoading, logout, showTabBar, hideTabBar, saveDeviceToken, clearDeviceToken } = authSlice.actions;
 export default authSlice.reducer;

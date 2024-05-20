@@ -9,18 +9,26 @@ import { formatRemainingTime } from '@/utils/formatRemainingTime';
 import moment from 'moment';
 import { Feather } from '@expo/vector-icons';
 import RootNavigation from '@/route/RootNavigation';
+import * as MediaLibrary from 'expo-media-library';
+import * as FileSystem from 'expo-file-system';
+import { toastResponse } from '@/utils/toastResponse';
 
-export const Description2 = () => {
+export const Description2 = ({ route }) => {
+    let workId = route.params.workId || null
     const [info, setInfo] = React.useState(false)
     const desc = descStyle
     const [work, setWork] = React.useState(null)
 
     React.useEffect(() => {
-        BASE_API.get(`works/1?employer`).then((res) => {
+        const fetchData = async () => {
+            const res = await BASE_API.get(`works/${workId}?employer`);
             setWork(res.data)
-        }).catch((err) => {
-            console.log(err)
-        })
+        };
+
+        fetchData()
+            .catch((err) => {
+                toastResponse({ type: 'error', content: err.response.data || err.message })
+            });
     }, [])
 
     const decideStatusResumeWork = async (resumeWorkId: number, resumeWorkStatus: string) => {
@@ -37,6 +45,36 @@ export const Description2 = () => {
             console.log(err)
         })
     }
+
+    const save = async (name, base64) => {
+        if (base64) {
+            const { status } = await MediaLibrary.requestPermissionsAsync();
+            if (status !== 'granted') {
+                alert('Permission required to save files');
+                return;
+            }
+
+            const fileUri = FileSystem.cacheDirectory + name;
+
+            try {
+                await FileSystem.writeAsStringAsync(
+                    fileUri,
+                    base64,
+                    {
+                        encoding: FileSystem.EncodingType.Base64,
+                    }
+                );
+                const asset = await MediaLibrary.createAssetAsync(fileUri);
+                await MediaLibrary.createAlbumAsync('Download', asset, false);
+                alert('Lưu file thành công!');
+            } catch (error) {
+                console.error('Error saving the file', error);
+                alert('An error occurred while saving the file.');
+            }
+        } else {
+            alert('Invalid file data.');
+        }
+    };
 
     return (
         <View style={desc.container}>
@@ -101,19 +139,19 @@ export const Description2 = () => {
                                             <Text numberOfLines={1} style={[desc.desc_text_8]}>{resumeWork?.resume?.nameFile}</Text>
                                             <Text style={desc.desc_text_9}>{moment(resumeWork?.updatedAt).format("D MMM YYYY [at] hh:mm a")}</Text>
                                         </View>
-                                        <View  >
+                                        <TouchableOpacity onPress={() => save(resumeWork?.resume?.nameFile, resumeWork?.resume?.fileBase64)}>
                                             <Feather name="info" size={24} color="black" style={{marginBottom:6}} />
-                                        </View>
+                                        </TouchableOpacity>
                                     </View>
                                     {resumeWork?.status === "PENDING" ? 
                                         (<View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
                                             <TouchableOpacity style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginLeft: 20, marginRight: 20, marginTop: 0, marginBottom: 20 }} onPress={() => decideStatusResumeWork(resumeWork?.id, "REJECTED")}>
                                                 <Icon color={'red'} name="delete" size={30} />
-                                                <Text style={[desc.desc_text_9, { color: 'red' }]}>Reject</Text>
+                                                <Text style={[desc.desc_text_9, { color: 'red' }]}>Từ chối</Text>
                                             </TouchableOpacity>
                                             <TouchableOpacity style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginLeft: 20, marginRight: 20, marginTop: 0, marginBottom: 20 }} onPress={() => decideStatusResumeWork(resumeWork?.id, "ACCEPTED")}>
                                                 <Icon color={'green'} name="check" size={30} />
-                                                <Text style={[desc.desc_text_9, { color: 'green' }]}>Accept</Text>
+                                                <Text style={[desc.desc_text_9, { color: 'green' }]}>Chấp thuận</Text>
                                             </TouchableOpacity>
                                         </View>) : 
                                         (<View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>

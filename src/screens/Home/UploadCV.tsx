@@ -9,6 +9,7 @@ import RootNavigation from "@/route/RootNavigation";
 import BottomModal from "@/components/BottomModal";
 import { BASE_API } from "@/services/BaseApi";
 import { toastResponse } from "@/utils/toastResponse";
+import { formatRemainingTime } from "@/utils/formatRemainingTime";
 
 type Resume = {
     id: number
@@ -18,6 +19,7 @@ type Resume = {
 
 export const UploadCV = ({ route }) => {
     let workId = route.params.workId || null;
+    let work = route.params.work || null;
     const upload = uploadStyle
     const [showBottomModal, setShowBottomModal] = React.useState<boolean>(false)
     const [selected, setSelected] = React.useState<Resume>(null)
@@ -28,7 +30,7 @@ export const UploadCV = ({ route }) => {
         BASE_API.get("resumes").then((res) => {
             setResumes(res.data)
         }).catch((err) => {
-            toastResponse({type: 'error', content: err.message})
+            toastResponse({type: 'error', content: err.response.data })
         })
     }, [])
 
@@ -42,21 +44,21 @@ export const UploadCV = ({ route }) => {
             <View style={upload.container}>
                 <View style={upload.logoContainer}>
                     <View style={upload.logo}>
-                        <Image source={google} />
+                        <Image source={{ uri: `data:image;base64,${work?.company?.imageBase64}`}} />
                     </View>
                 </View>
 
                 <View style={upload.header_container}>
 
-                    <Text style={upload.desc_text_1}>UI/UX Designer</Text>
-                    <Text style={upload.desc_text_2}>Google    <Text style={{ fontSize: 10, textAlignVertical: 'center' }}>{'\u2B24'}</Text>   Carlifornia   <Text style={{ fontSize: 10, textAlignVertical: 'center' }}>{'\u2B24'}</Text>   1 day ago</Text>
+                    <Text style={upload.desc_text_1}>{work?.name}</Text>
+                    <Text style={upload.desc_text_2}>{work?.company?.shortName}{'    '}<Text style={{ fontSize: 10, textAlignVertical: 'center' }}>{'\u2B24'}</Text>{'   '}{work?.address}{'   '}<Text style={{ fontSize: 10, textAlignVertical: 'center' }}>{'\u2B24'}</Text>{'   '}{formatRemainingTime(work?.createOn)}</Text>
                 </View>
 
                 <View style={{ marginTop: 20, paddingLeft: 25, paddingRight: 25 }}>
                     <View>
-                        <Text style={[upload.desc_text_3, { color: colors.primary }]}>Upload CV
+                        <Text style={[upload.desc_text_3, { color: colors.primary }]}>Chọn CV
                         </Text>
-                        <Text style={upload.desc_text_4}>Add your CV/Resume to apply for a job</Text>
+                        <Text style={upload.desc_text_4}>Thêm CV/Hồ sơ của bạn để ứng tuyển công việc</Text>
                     </View>
 
                     <View style={{ marginTop: 20 }}>
@@ -65,7 +67,7 @@ export const UploadCV = ({ route }) => {
                         }} style={{ minHeight: 100, backgroundColor: selected ? colors.tertiary_light : 'none', borderColor: colors.primary, borderWidth: selected ? 0 : 1, borderRadius: 25, borderStyle: selected ? "solid" : "dashed" }}>
                             {!selected ? (<View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', minHeight: 100 }}>
                                 <Icon name="upload-file" />
-                                <Text style={upload.desc_text_5}>  Choose Your CV/Resume</Text>
+                                <Text style={upload.desc_text_5}>  Chọn CV/Hồ sô của bạn</Text>
                             </View>) : (<View style={{ minHeight: 100 }}>
                                 <View style={{ margin: 20, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                                     <Image source={PDF} style={{ width: 50, height: 50 }} />
@@ -87,7 +89,7 @@ export const UploadCV = ({ route }) => {
 
 
                     <View style={{ marginTop: 20 }}>
-                        <Text style={[upload.desc_text_3, { color: colors.primary }]}>Information
+                        <Text style={[upload.desc_text_3, { color: colors.primary }]}>Thông tin
                         </Text>
                         <View style={{ marginTop: 20 }}>
                             <KeyboardAvoidingView>
@@ -100,7 +102,7 @@ export const UploadCV = ({ route }) => {
                                         color: colors.primary,
                                         padding: 25, display: 'flex'
                                     }} textAlignVertical="top" 
-                                    placeholder={`Explain why you are the right person for ${'\n'}the job`} 
+                                    placeholder={`Giải thích tại sao bạn là người phù hợp với ${'\n'}công việc`} 
                                     multiline
                                     value={information}
                                     onChangeText={setInformation}
@@ -124,16 +126,16 @@ export const UploadCV = ({ route }) => {
                             })
                                 .then((res) => {
                                     RootNavigation.navigate("UploadCVSuccess", {
-                                        filename: selected?.nameFile, filesize: 1000
+                                        filename: selected?.nameFile, filesize: 1000, work: work
                                     })
                                 }).catch((err) => {
-                                    toastResponse({type: 'error', content: err.message})
+                                    toastResponse({ type: 'error', content: err.response.data || err.message })
                                 })
                         } else {
                             Alert.alert('NO FILE SELECTED', 'Please select a file for upload')
                         }
                     }} style={{ height: 50, width: '80%', backgroundColor: colors.primary, display: 'flex', justifyContent: 'center', alignItems: 'center', borderRadius: 6 }} activeOpacity={0.8}>
-                        <Text style={[upload.desc_text_3, { color: 'white' }]}>APPLY NOW</Text>
+                        <Text style={[upload.desc_text_3, { color: 'white' }]}>ỨNG TUYỂN</Text>
                     </TouchableOpacity>
 
                 </View>

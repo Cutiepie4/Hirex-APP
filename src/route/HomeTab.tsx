@@ -1,6 +1,6 @@
 import React from 'react';
 import { BottomTabBarProps, createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { ChatStack, HomeStack, ProfileStack, SettingStack } from './TabStack';
+import { ChatStack, HomeStack, ProfileStack, SettingStack, CompanyStack } from './TabStack';
 import { Entypo } from '@expo/vector-icons';
 import { orange, placeholderTextColor } from '../styles/styles';
 import { Feather } from '@expo/vector-icons';
@@ -14,15 +14,41 @@ const Tab = createBottomTabNavigator();
 
 const HomeTab = () => {
 
-    const { showTabBar } = useSelector((state: RootReducer) => state.authReducer);
+    const { showTabBar, role } = useSelector((state: RootReducer) => state.authReducer);
 
     const iconSize = 22;
 
-    const TabItems = [
+    const TabItems = role === 'ADMIN' ? [
         {
             name: 'Tab1',
             component: HomeStack,
             icon: <Entypo name="home" size={iconSize} />,
+        },
+        {
+            name: 'Tab2',
+            component: ProfileStack,
+            icon: <FontAwesome name="id-card" size={iconSize} color="black" />,
+        },
+        {
+            name: 'Tab3',
+            component: ChatStack,
+            icon: <Entypo name="chat" size={iconSize} color="black" />,
+        },
+        {
+            name: 'Tab4',
+            component: SettingStack,
+            icon: <FontAwesome name="user" size={iconSize} color="black" />,
+        },
+    ] : [
+        {
+            name: 'Tab0',
+            component: HomeStack,
+            icon: <Entypo name="home" size={iconSize} />,
+        },
+        {
+            name: 'Tab1',
+            component: CompanyStack,
+            icon: <FontAwesome name="building" size={iconSize} />,
         },
         {
             name: 'Tab2',

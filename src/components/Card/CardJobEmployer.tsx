@@ -12,13 +12,14 @@ interface CardProps {
     salary: string;
 
     onPress: () => void;
+    onPress2: () => void;
     color?: string;
     filled?: boolean;
     style?: StyleProp<ViewStyle>;
 }
 
 
-const Card = (props: CardProps) => {
+const Card2 = (props: CardProps) => {
     const card = cardStyle
     const filledBgColor = props.color || colors.primary;
     const outlinedColor = colors.white;
@@ -36,7 +37,7 @@ const Card = (props: CardProps) => {
                 </View>
                 <View style={{ marginLeft: 10, flex: 3 }}>
                     <Text style={card.card_text_1}>{props.name}</Text>
-                    <Text style={card.card_text_2}>Google inc . {props.address}</Text>
+                    <Text style={card.card_text_2}>Hivelab Vina . {props.address}</Text>
                 </View>
                 <View  >
 
@@ -48,20 +49,16 @@ const Card = (props: CardProps) => {
             </View>
             <View style={{ marginTop: 15 }}>
                 <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <View style={{ display: 'flex', flexDirection: 'row' }}>
-                        <View style={{ borderRadius: 25, backgroundColor: colors.background_2, padding: 5, paddingLeft: 15, paddingRight: 15, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                            <Text style={card.card_text_5}>Senior Designer</Text>
-                        </View>
-
-                        <View style={{ borderRadius: 25, backgroundColor: colors.background_2, padding: 5, paddingLeft: 15, paddingRight: 15, marginLeft: 10, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                            <Text style={card.card_text_5}>Full time</Text>
-                        </View>
+                    <View>
+                        <TouchableOpacity onPress={props.onPress} style={{ height: 35, width: 80, backgroundColor: colors.infi, borderRadius: 6, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                            <Text style={card.card_text_5}>Xem chi tiết</Text>
+                        </TouchableOpacity>
                     </View>
 
 
                     <View>
-                        <TouchableOpacity onPress={props.onPress} style={{ height: 35, width: 80, backgroundColor: colors.infi, borderRadius: 6, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                            <Text style={card.card_text_5}>Apply</Text>
+                        <TouchableOpacity onPress={props.onPress2} style={{ height: 35, width: 80, backgroundColor: colors.infi, borderRadius: 6, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                            <Text style={card.card_text_5}>TT nhân viên</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -70,7 +67,7 @@ const Card = (props: CardProps) => {
     )
 }
 
-export default Card;
+export default Card2;
 
 const cardStyle = StyleSheet.create({
     container: {
