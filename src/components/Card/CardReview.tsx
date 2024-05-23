@@ -15,6 +15,11 @@ interface CardProps {
     recommend: boolean;
     whatYouLike: string;
     feedback: string;
+    salaryRate: number;
+    trainingRate: number;
+    managementRate: number;
+    cultureRate: number;
+    officeRate: number;
 
     onPress: () => void;
     color?: string;

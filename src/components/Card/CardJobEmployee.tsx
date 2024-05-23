@@ -39,12 +39,12 @@ const Card = (props: CardProps) => {
                     <Text style={card.card_text_1}>{props.name}</Text>
                     <Text style={card.card_text_2}>Hivelab Vina . {props.address}</Text>
                 </View>
-                <View>
+                {/* <View>
                     <Icon size={30} name="bookmark-border" />
-                </View>
+                </View> */}
             </View>
             <View style={{ marginTop: 15 }}>
-                <Text style={card.card_text_3}>{props.salary}<Text style={card.card_text_4}>/Mo</Text></Text>
+                <Text style={card.card_text_3}>{props.salary}<Text style={card.card_text_4}>/Th</Text></Text>
             </View>
             <View style={{ marginTop: 15 }}>
                 <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>

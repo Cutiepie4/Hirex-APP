@@ -1,10 +1,7 @@
 import React from 'react'
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native'
 import { colors, fonts, sizes } from '@/theme';
-import google from '@assets/images/google.png'
-import company1 from '@assets/images/company1.png'
-import company2 from '@assets/images/company2.png'
-import { color, Icon } from '@rneui/base';
+import { Icon } from '@rneui/base';
 // import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import RootNavigation from '@/route/RootNavigation';
 import { BASE_API } from '@/services/BaseApi';
@@ -66,6 +63,8 @@ export const Description = ({ route }) => {
     const [info, setInfo] = React.useState(false)
     const [work, setWork] = React.useState<Work>(null)
     const desc = descStyle
+    const { role } = useSelector((state: RootReducer) => state.authReducer)
+
     React.useEffect(() => {
         const fetchData = async () => {
             const res = await BASE_API.get(`works/${workId}`);
@@ -239,16 +238,16 @@ export const Description = ({ route }) => {
             </View>
 
 
-
-            <View style={{ position: 'absolute', width: '100%', height: 70, backgroundColor: colors.background, bottom: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'row' }}>
-                {/* Bottom button */}
-                <Icon name="bookmark-border" color={colors.ultra} style={{ marginRight: 20 }} onPress={() => {}} />
-                <TouchableOpacity onPress={() => { RootNavigation.navigate('UploadCV', { work: work, workId: work?.id }) }} style={{ height: 50, width: '60%', backgroundColor: colors.primary, display: 'flex', justifyContent: 'center', alignItems: 'center', borderRadius: 6 }} activeOpacity={0.8}>
-                    <Text style={[desc.desc_text_3, { color: 'white' }]}>ỨNG TUYỂN NGAY</Text>
-                </TouchableOpacity>
-                <Icon name="link" color={work?.company?.employer?.user?.phoneNumber ? colors.ultra : colors.grey} style={{ marginLeft: 20 }} onPress={() => {if (work?.company?.employer?.user?.phoneNumber) { addConversation(work?.company?.employer?.user?.phoneNumber) }}}/>
-
-            </View>
+            {role.toLowerCase() == 'USER'.toLowerCase() && (
+                <View style={{ position: 'absolute', width: '100%', height: 70, backgroundColor: colors.background, bottom: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'row' }}>
+                    {/* Bottom button */}
+                    {/* <Icon name="bookmark-border" color={colors.ultra} style={{ marginRight: 20 }} onPress={() => {}} /> */}
+                    <TouchableOpacity onPress={() => { RootNavigation.navigate('UploadCV', { work: work, workId: work?.id }) }} style={{ height: 50, width: '70%', backgroundColor: colors.primary, display: 'flex', justifyContent: 'center', alignItems: 'center', borderRadius: 6 }} activeOpacity={0.8}>
+                        <Text style={[desc.desc_text_3, { color: 'white' }]}>ỨNG TUYỂN NGAY</Text>
+                    </TouchableOpacity>
+                    <Icon name="link" color={work?.company?.employer?.user?.phoneNumber ? colors.ultra : colors.grey} style={{ marginLeft: 20 }} onPress={() => {if (work?.company?.employer?.user?.phoneNumber) { addConversation(work?.company?.employer?.user?.phoneNumber) }}}/>
+                </View>
+            )}
 
         </View>
     )

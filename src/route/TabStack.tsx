@@ -26,6 +26,7 @@ import ProfileHandler from '@/screens/profile/ProfileHandler';
 import Company from '@/screens/profile/Company';
 import CompanyDescription from '@/screens/Home/CompanyDescriptionScreen';
 import Review from '@/screens/Home/ReviewScreen';
+import ProfileReadonly from '@/screens/Home/ProfileReadonly';
 
 const homeScreenStack = {
     HomeHandler: HomeHandler,
@@ -35,12 +36,17 @@ const homeScreenStack = {
     UploadCVSuccess: UploadCVSuccess,
     ChatScreen: ChatScreen,
     Appreciation: Appreciation,
+    ProfileReadonly: ProfileReadonly,
 }
 
 const companyScreenStack = {
     Company: CompanyHome,
     CompanyDescription: CompanyDescription,
     Review: Review,
+    Description: Description,
+    Description2: Description2,
+    UploadCV: UploadCV,
+    UploadCVSuccess: UploadCVSuccess,
 }
 
 const chatScreenStack = {

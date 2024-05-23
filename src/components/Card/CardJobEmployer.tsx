@@ -2,14 +2,13 @@ import { Icon } from "@rneui/base";
 import React from "react";
 
 import { View, Text, StyleSheet, Image, TouchableOpacity, StyleProp, ViewStyle } from 'react-native'
-import google_icon from '@assets/images/google_icon.png'
 import { colors, fonts, sizes } from "@/theme";
-import RootNavigation from "@/route/RootNavigation";
 
 interface CardProps {
     name: string;
     address: string;
     salary: string;
+    img: string;
 
     onPress: () => void;
     onPress2: () => void;
@@ -33,19 +32,18 @@ const Card2 = (props: CardProps) => {
         }}>
             <View style={{ display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-between' }}>
                 <View style={{ height: 45, width: 45, backgroundColor: colors.tertiary_deep, borderRadius: 50, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <Image style={{ height: 26, width: 26 }} source={google_icon} />
+                    <Image style={{ height: 45, width: 45, resizeMode: 'cover', borderRadius: 90 }} source={{ uri: `data:image;base64,${props.img}` }} />
                 </View>
                 <View style={{ marginLeft: 10, flex: 3 }}>
                     <Text style={card.card_text_1}>{props.name}</Text>
                     <Text style={card.card_text_2}>Hivelab Vina . {props.address}</Text>
                 </View>
-                <View  >
-
+                {/* <View>
                     <Icon size={30} name="bookmark-border" />
-                </View>
+                </View> */}
             </View>
             <View style={{ marginTop: 15 }}>
-                <Text style={card.card_text_3}>{props.salary}<Text style={card.card_text_4}>/Mo</Text></Text>
+                <Text style={card.card_text_3}>{props.salary}<Text style={card.card_text_4}>/Th</Text></Text>
             </View>
             <View style={{ marginTop: 15 }}>
                 <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>

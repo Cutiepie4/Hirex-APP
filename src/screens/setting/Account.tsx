@@ -250,7 +250,7 @@ const Account = ({ route }) => {
                     <View style={styles.nameRoleContainer}>
                         <Text style={styles.name}>{name}</Text>
                         <Text style={styles.role}>
-                            {role === 'user' ? 'Người xin việc' : 'Người tuyển dụng'}
+                            {role.toLowerCase() == 'USER'.toLowerCase() ? 'Người xin việc' : 'Người tuyển dụng'}
                         </Text>
                     </View>
                 </View>

@@ -9,7 +9,7 @@ export const HomeHandler = () => {
 
   return ( 
     <>
-      {role == 'USER' ? <Home /> : <Home2 /> }
+      {role.toLowerCase() == 'USER'.toLowerCase() ? <Home /> : <Home2 /> }
     </>
   )
 }

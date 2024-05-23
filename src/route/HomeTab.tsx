@@ -18,7 +18,7 @@ const HomeTab = () => {
 
     const iconSize = 22;
 
-    const TabItems = role === 'ADMIN' ? [
+    const TabItems = role.toLowerCase() === 'ADMIN'.toLowerCase() ? [
         {
             name: 'Tab1',
             component: HomeStack,

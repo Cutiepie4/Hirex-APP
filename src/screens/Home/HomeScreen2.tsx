@@ -2,17 +2,20 @@ import React from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native'
 import { colors, fonts, sizes } from "@/theme";
 import profile from '@assets/images/profile.png'
-import job from '@assets/images/job.png'
 import Card from '@/components/Card/CardJobEmployer'
 import Container from "@/components/Container";
 import RootNavigation from "@/route/RootNavigation";
 import { BASE_API } from "@/services/BaseApi";
 import { toastResponse } from "@/utils/toastResponse";
+import { useSelector } from "react-redux";
+import { RootReducer } from "@/redux/store/reducer";
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 
 export const Home2 = () => {
     const home = homeStyle
     const [jobs, setJobs] = React.useState([])
+    const { fullname } = useSelector((state: RootReducer) => state.authReducer)
 
     React.useEffect(() => {
         const fetchData = async () => {
@@ -31,11 +34,12 @@ export const Home2 = () => {
             <View style={home.container}>
                 <View style={{ position: 'absolute', right: 25, marginTop: '5%' }}>
                     <View style={{ height: 45, width: 45, borderRadius: 50, position: 'relative' }}>
-                        <Image style={{ height: 45, width: 45 }} source={profile} />
+                        {/* <Image style={{ height: 45, width: 45 }} source={profile} /> */}
+                        <MaterialCommunityIcons name="account-circle" size={45} color="black" />
                     </View>
                 </View>
                 <View>
-                    <Text style={home.home_text_1}>Hello {"\n"}</Text>
+                    <Text style={home.home_text_1}>Hello {"\n"}{fullname}</Text>
                 </View>
                 <ScrollView showsVerticalScrollIndicator={false} style={{ marginTop: 10 }}>
                     <View style={{ marginTop: 20 }}>
@@ -48,6 +52,7 @@ export const Home2 = () => {
                                 <Card
                                     name={item.name}
                                     address={item?.address}
+                                    img={item?.company?.imageBase64}
                                     salary={`${item?.wage}tr VND`}
                                     onPress={() => { RootNavigation.navigate('Description', { workId: item?.id }) }}
                                     onPress2={() => { RootNavigation.navigate('Description2', { workId: item?.id }) }}

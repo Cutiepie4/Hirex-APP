@@ -16,7 +16,8 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bitcode": false
+      "bitcode": false,
+      "bundleIdentifier": "com.ptit.hirex"
     },
     "android": {
       "adaptiveIcon": {

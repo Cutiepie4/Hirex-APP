@@ -122,18 +122,17 @@ export const CompanyDescription = ({ route }) => {
                         >
                             <View style={card.container}>
                                 <Text style={card.card_text_1}>Overall Rating</Text>
-                                <View style={{ display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-between' }}>
+                                <View style={{ display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <View style={{ marginLeft: 10 }}>
                                         <TouchableOpacity onPress={() => { setShowBottomModal(true) }}>
                                             <Rating showRating readonly showReadOnlyText={false} imageSize={14} fractions={1} startingValue={company?.avgOverallRate} />
                                         </TouchableOpacity>
                                     </View>
-                                    <View style={{ marginTop: 20, marginLeft: 20 }}>
-                                        <Text style={{ ...card.card_text_1, color: company?.recommendPercent >= 50 ? 'green' : 'red' }}>{company?.recommendPercent}% </Text>
+                                    <View style={{ marginLeft: 10 }}>
+                                        <Progress.Circle progress={company?.recommendPercent / 100} color={company?.recommendPercent >= 50 ? 'green' : 'red'} showsText textStyle={{fontFamily: fonts.dMSans.bold}} />
+                                        {/* <Text style={{ ...card.card_text_1, color: company?.recommendPercent >= 50 ? 'green' : 'red' }}>{company?.recommendPercent}% </Text> */}
                                     </View>
-                                    <View style={{ marginTop: 15 }}>
-                                        <Text style={card.card_text_1}>Người đề xuất{'\n'}làm việc tại đây</Text>
-                                    </View>
+                                    <Text style={card.card_text_1}>Người đề xuất{'\n'}làm việc tại đây</Text>
                                 </View>
                                 <View style={{ marginTop: 10 }}>
                                     <Collapsible collapsed={closeCollapsible}>
@@ -211,6 +210,11 @@ export const CompanyDescription = ({ route }) => {
                                         recommend={item.recommend}
                                         whatYouLike={item.whatYouLike}
                                         feedback={item.feedback}
+                                        salaryRate={item.salaryRate}
+                                        trainingRate={item.trainingRate}
+                                        managementRate={item.managementRate}
+                                        cultureRate={item.cultureRate}
+                                        officeRate={item.officeRate}
                                         onPress={() => { }}
                                     />
                                 </View>)

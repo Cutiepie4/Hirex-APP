@@ -9,6 +9,8 @@ import Container from "@/components/Container";
 import RootNavigation from "@/route/RootNavigation";
 import { BASE_API } from "@/services/BaseApi";
 import { toastResponse } from "@/utils/toastResponse";
+import { useSelector } from "react-redux";
+import { RootReducer } from "@/redux/store/reducer";
 
 
 
@@ -16,13 +18,7 @@ export const Company = () => {
     const company = companyStyle
     const [companies, setCompanies] = React.useState([])
     const [refreshing, setRefreshing] = React.useState(false);
-
-    // const onRefresh = React.useCallback(() => {
-    //   setRefreshing(true);
-    //   setTimeout(() => {
-    //     setRefreshing(false);
-    //   }, 2000);
-    // }, []);
+    const { fullname } = useSelector((state: RootReducer) => state.authReducer)
   
     const fetchData = async () => {
         setRefreshing(true);
@@ -48,7 +44,7 @@ export const Company = () => {
                     </View>
                 </View>
                 <View>
-                    <Text style={company.company_text_1}>Hello {"\n"}</Text>
+                    <Text style={company.company_text_1}>Hello {"\n"}{fullname}</Text>
                 </View>
                 <ScrollView showsVerticalScrollIndicator={false} style={{ marginTop: 10 }}
                     refreshControl={

@@ -1,30 +1,31 @@
 import React from 'react'
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native'
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Dimensions } from 'react-native'
 import { colors, fonts, sizes } from '@/theme';
 import google from '@assets/images/google.png'
-import profile from '@assets/images/profile.png'
 import { Icon } from '@rneui/base';
 import { BASE_API } from '@/services/BaseApi';
 import { formatRemainingTime } from '@/utils/formatRemainingTime';
 import moment from 'moment';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import RootNavigation from '@/route/RootNavigation';
-import * as MediaLibrary from 'expo-media-library';
-import * as FileSystem from 'expo-file-system';
 import { toastResponse } from '@/utils/toastResponse';
+import { downloadAndOpenPDF } from '@/utils/utils';
+import PDF from '@assets/images/PDF.png';
+import { RefreshControl } from 'react-native-gesture-handler';
+
 
 export const Description2 = ({ route }) => {
     let workId = route.params.workId || null
     const [info, setInfo] = React.useState(false)
     const desc = descStyle
     const [work, setWork] = React.useState(null)
+    const [refreshing, setRefreshing] = React.useState(false);
 
+    const fetchData = async () => {
+        const res = await BASE_API.get(`works/${workId}?employer`);
+        setWork(res.data)
+    };
     React.useEffect(() => {
-        const fetchData = async () => {
-            const res = await BASE_API.get(`works/${workId}?employer`);
-            setWork(res.data)
-        };
-
         fetchData()
             .catch((err) => {
                 toastResponse({ type: 'error', content: err.response.data || err.message })
@@ -46,48 +47,18 @@ export const Description2 = ({ route }) => {
         })
     }
 
-    const save = async (name, base64) => {
-        if (base64) {
-            const { status } = await MediaLibrary.requestPermissionsAsync();
-            if (status !== 'granted') {
-                alert('Permission required to save files');
-                return;
-            }
-
-            const fileUri = FileSystem.cacheDirectory + name;
-
-            try {
-                await FileSystem.writeAsStringAsync(
-                    fileUri,
-                    base64,
-                    {
-                        encoding: FileSystem.EncodingType.Base64,
-                    }
-                );
-                const asset = await MediaLibrary.createAssetAsync(fileUri);
-                await MediaLibrary.createAlbumAsync('Download', asset, false);
-                alert('Lưu file thành công!');
-            } catch (error) {
-                console.error('Error saving the file', error);
-                alert('An error occurred while saving the file.');
-            }
-        } else {
-            alert('Invalid file data.');
-        }
-    };
-
     return (
         <View style={desc.container}>
             <View style={desc.logoContainer}>
                 <View style={desc.logo}>
-                    <Image source={google} />
+                    <Image style={{ width: 70, height: 70, resizeMode: 'cover', borderRadius: 90 }} source={{ uri: `data:image;base64,${work?.company?.imageBase64}`}} />
                 </View>
             </View>
 
             <View style={desc.header_container}>
 
                 <Text style={desc.desc_text_1}>{work?.name}</Text>
-                <Text style={desc.desc_text_2}>Google    <Text style={{ fontSize: 10, textAlignVertical: 'center' }}>{'\u2B24'}</Text>   {work?.address}   <Text style={{ fontSize: 10, textAlignVertical: 'center' }}>{'\u2B24'}</Text>   {formatRemainingTime(work?.createOn)}</Text>
+                <Text style={desc.desc_text_2}>{work?.company?.shortName}    <Text style={{ fontSize: 10, textAlignVertical: 'center' }}>{'\u2B24'}</Text>   {work?.address}   <Text style={{ fontSize: 10, textAlignVertical: 'center' }}>{'\u2B24'}</Text>   {formatRemainingTime(work?.createOn)}</Text>
             </View>
 
             <View style={{ paddingLeft: 25, paddingRight: 25, marginTop: 10 }}>
@@ -100,69 +71,83 @@ export const Description2 = ({ route }) => {
                     </TouchableOpacity>
                 </View>
 
-                <View>
-
-                    {info == false ? (
-
-                        <View style={{ marginTop: 20 }}>
-                            {/* Employee miniscreen */}
-                            <ScrollView showsVerticalScrollIndicator={false} style={{ height: 470 }}>
-                            {work?.employees?.map((employee, key) => {
-                                return <View key={key} style={{ minHeight: 100, marginBottom: 20, backgroundColor: colors.tertiary_light, borderColor: colors.primary, borderWidth: 0, borderRadius: 25 }}>
-                                    <View style={{ margin: 20, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                                        <Image style={{ height: 50, width: 50, marginRight: 10 }} source={profile} />
-                                        <View style={{ flex: 1 }}>
-                                            <Text numberOfLines={1} style={[desc.desc_text_8]}>{employee?.user?.fullname}</Text>
-                                            <Text style={desc.desc_text_9}>{employee?.user?.phone_number}</Text>
-                                        </View>
-                                        <View>
-                                            <Feather name="info" size={24} color="black" style={{marginBottom:6}} />
-                                            <Feather name="award" size={24} color="black" onPress={() => {
+                <View style={{ marginTop: 20 }}>
+                    {/* Employee miniscreen */}
+                    <ScrollView showsVerticalScrollIndicator={false} style={{ height: 470 }}
+                        refreshControl={
+                            <RefreshControl refreshing={refreshing} onRefresh={fetchData} />
+                        }
+                    >
+                        {info == false ? (
+                            <View>
+                                {work?.employees?.map((employee, key) => {
+                                    return <View key={key} style={{ minHeight: 100, marginBottom: 20, backgroundColor: colors.tertiary_light, borderColor: colors.primary, borderWidth: 0, borderRadius: 25 }}>
+                                        <View style={{ margin: 20, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                                            {employee?.user?.imageBase64 ? (
+                                                <Image style={{ height: 50, width: 50, marginRight: 10 }} source={{ uri: `data:image;base64,${employee?.user?.imageBase64}` }} />
+                                            ) : (
+                                                <MaterialCommunityIcons name="account-circle" size={50} color="black" style={{ marginRight: 10 }} />
+                                            )}
+                                            <View style={{ flex: 1 }}>
+                                                <Text numberOfLines={1} style={[desc.desc_text_8]}>{employee?.user?.fullname}</Text>
+                                                <Text style={desc.desc_text_9}>{employee?.user?.phone_number}</Text>
+                                            </View>
+                                            <View>
+                                                <Feather name="info" size={24} color="black" style={{ marginBottom: 6 }} onPress={() => {
+                                                    RootNavigation.navigate('ProfileReadonly', { employeeId: employee?.id })
+                                                }} />
+                                                {/* <Feather name="award" size={24} color="black" onPress={() => {
                                                 RootNavigation.navigate('Appreciation', { employeeId: employee?.id, workId: work?.id })
-                                            }} />
+                                            }} /> */}
+                                            </View>
                                         </View>
                                     </View>
-                                </View>})
-                            }
-                        </ScrollView>
-
-                        </View>
-                    ) : (<View style={{ marginTop: 20 }}>
-                        {/* Resume miniscreen */}
-
-                        <ScrollView showsVerticalScrollIndicator={false} style={{ height: 470 }}>
-                            {work?.resumeWorks?.map((resumeWork, key) => {
-                                return <View key={key} style={{ minHeight: 100, marginBottom: 20, backgroundColor: colors.tertiary_light, borderColor: colors.primary, borderWidth: 0, borderRadius: 25 }}>
-                                    <View style={{ margin: 20, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                                        <Image style={{ height: 50, width: 50, marginRight: 10 }} source={profile} />
-                                        <View style={{ flex: 1 }}>
-                                            <Text numberOfLines={1} style={[desc.desc_text_8]}>{resumeWork?.resume?.nameFile}</Text>
-                                            <Text style={desc.desc_text_9}>{moment(resumeWork?.updatedAt).format("D MMM YYYY [at] hh:mm a")}</Text>
+                                })
+                                }
+                            </View>
+                        ) : (
+                            <View>
+                                {work?.resumeWorks?.map((resumeWork, key) => {
+                                    return <View key={key} style={{ minHeight: 100, marginBottom: 20, backgroundColor: colors.tertiary_light, borderColor: colors.primary, borderWidth: 0, borderRadius: 25 }}>
+                                        <View style={{ margin: 20, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                                            <Image source={PDF} style={{ width: 50, height: 50 }} />
+                                            <View style={{ flex: 1 }}>
+                                                <Text numberOfLines={1} style={[desc.desc_text_8]}>{resumeWork?.resume?.nameFile}</Text>
+                                                <Text style={desc.desc_text_9}>{moment(resumeWork?.updatedAt).format("D MMM YYYY [at] hh:mm a")}</Text>
+                                            </View>
+                                            <View>
+                                                <TouchableOpacity onPress={() => {
+                                                    RootNavigation.navigate('ProfileReadonly', { employeeId: resumeWork?.resume?.employeeId, information: resumeWork?.information })
+                                                }}>
+                                                    <Feather name="info" size={24} color="black" style={{ marginBottom: 6 }} />
+                                                </TouchableOpacity>
+                                                <TouchableOpacity onPress={() => {
+                                                    downloadAndOpenPDF(resumeWork?.resume?.fileBase64, 'application/pdf', resumeWork?.resume?.nameFile)
+                                                }}>
+                                                    <Ionicons name="download-outline" size={26} />
+                                                </TouchableOpacity>
+                                            </View>
                                         </View>
-                                        <TouchableOpacity onPress={() => save(resumeWork?.resume?.nameFile, resumeWork?.resume?.fileBase64)}>
-                                            <Feather name="info" size={24} color="black" style={{marginBottom:6}} />
-                                        </TouchableOpacity>
+                                        {resumeWork?.status === "PENDING" ?
+                                            (<View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+                                                <TouchableOpacity style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginLeft: 20, marginRight: 20, marginTop: 0, marginBottom: 20 }} onPress={() => decideStatusResumeWork(resumeWork?.id, "REJECTED")}>
+                                                    <Icon color={'red'} name="delete" size={30} />
+                                                    <Text style={[desc.desc_text_9, { color: 'red' }]}>Từ chối</Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginLeft: 20, marginRight: 20, marginTop: 0, marginBottom: 20 }} onPress={() => decideStatusResumeWork(resumeWork?.id, "ACCEPTED")}>
+                                                    <Icon color={'green'} name="check" size={30} />
+                                                    <Text style={[desc.desc_text_9, { color: 'green' }]}>Chấp thuận</Text>
+                                                </TouchableOpacity>
+                                            </View>) :
+                                            (<View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                                                <Text style={[desc.desc_text_9, { color: resumeWork?.status === "ACCEPTED" ? 'green' : 'red', marginBottom: 20 }]}>{resumeWork?.status}</Text>
+                                            </View>)
+                                        }
                                     </View>
-                                    {resumeWork?.status === "PENDING" ? 
-                                        (<View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
-                                            <TouchableOpacity style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginLeft: 20, marginRight: 20, marginTop: 0, marginBottom: 20 }} onPress={() => decideStatusResumeWork(resumeWork?.id, "REJECTED")}>
-                                                <Icon color={'red'} name="delete" size={30} />
-                                                <Text style={[desc.desc_text_9, { color: 'red' }]}>Từ chối</Text>
-                                            </TouchableOpacity>
-                                            <TouchableOpacity style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginLeft: 20, marginRight: 20, marginTop: 0, marginBottom: 20 }} onPress={() => decideStatusResumeWork(resumeWork?.id, "ACCEPTED")}>
-                                                <Icon color={'green'} name="check" size={30} />
-                                                <Text style={[desc.desc_text_9, { color: 'green' }]}>Chấp thuận</Text>
-                                            </TouchableOpacity>
-                                        </View>) : 
-                                        (<View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                                            <Text style={[desc.desc_text_9, { color: resumeWork?.status === "ACCEPTED" ? 'green' : 'red', marginBottom: 20 }]}>{resumeWork?.status}</Text>
-                                        </View>)
-                                    }
-                                </View>
-                            })}
-                        </ScrollView>
-
-                    </View>)}
+                                })}
+                            </View>
+                        )}
+                    </ScrollView>
                 </View>
             </View>
         </View>

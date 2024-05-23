@@ -504,7 +504,7 @@ const Profile = () => {
                     <AntDesign name="user" size={24} color="#FF9228" />
                     <Text style={styles.sectionText}>Giới thiệu</Text>
                     {aboutMe ? (
-                        role === 'user' && (
+                        role.toLowerCase() == 'USER'.toLowerCase() && (
                             <View style={styles.editButtonContainer}>
                                 <TouchableOpacity style={styles.addButton} onPress={aboutScreen}>
                                     <AntDesign name="edit" size={24} color="orange" />
@@ -512,7 +512,7 @@ const Profile = () => {
                             </View>
                         )
                     ) : (
-                        role === 'user' && (
+                        role.toLowerCase() == 'USER'.toLowerCase() && (
                             <TouchableOpacity style={[styles.addButton, { marginLeft: 'auto' }]} onPress={aboutScreen}>
                                 <AntDesign name="plus" size={24} color="orange" />
                             </TouchableOpacity>
@@ -535,7 +535,7 @@ const Profile = () => {
                 <View style={styles.iconWithText}>
                     <Entypo name="briefcase" size={24} color="orange" />
                     <Text style={styles.sectionText}>Kinh nghiệm làm việc</Text>
-                    {role === 'user' && (
+                    {role.toLowerCase() == 'USER'.toLowerCase() && (
                         <View style={styles.editButtonContainer}>
                             <TouchableOpacity style={styles.addButton} onPress={experienceScreen}>
                                 <AntDesign name="plus" size={24} color="#FF9228" />
@@ -554,7 +554,7 @@ const Profile = () => {
                                         <Text>{experience.company}</Text>
                                         <Text>{experience.startDate} - {experience.endDate}</Text>
                                     </View>
-                                    {role === 'user' && (
+                                    {role.toLowerCase() == 'USER'.toLowerCase() && (
                                         <View style={styles.buttonsContainer1}>
                                             <TouchableOpacity
                                                 style={styles.addButton}
@@ -585,7 +585,7 @@ const Profile = () => {
                 <View style={styles.iconWithText}>
                     <MaterialCommunityIcons name="book-education" size={24} color="orange" />
                     <Text style={styles.sectionText}>Học vấn</Text>
-                    {role === 'user' && (
+                    {role.toLowerCase() == 'USER'.toLowerCase() && (
                         <View style={styles.editButtonContainer}>
                             <TouchableOpacity style={styles.addButton} onPress={educationScreen}>
                                 <AntDesign name="plus" size={24} color="orange" />
@@ -604,7 +604,7 @@ const Profile = () => {
                                         <Text>{education.institution}</Text>
                                         <Text>{education.startDate} - {education.endDate}</Text>
                                     </View>
-                                    {role === 'user' && (
+                                    {role.toLowerCase() == 'USER'.toLowerCase() && (
                                         <View style={styles.buttonsContainer1}>
                                             <TouchableOpacity
                                                 style={styles.addButton}
@@ -635,7 +635,7 @@ const Profile = () => {
                 <View style={styles.iconWithText}>
                     <AntDesign name="staro" size={24} color="#FF9228" />
                     <Text style={styles.sectionText}>Kỹ năng</Text>
-                    {role === 'user' && (
+                    {role.toLowerCase() == 'USER'.toLowerCase() && (
                         <View style={styles.editButtonContainer}>
                             <TouchableOpacity style={styles.addButton} onPress={skillScreen}>
                                 <AntDesign name="plus" size={24} color="orange" />
@@ -655,7 +655,7 @@ const Profile = () => {
                                             {skill.note ? skill.note : 'Chưa có thông tin'}
                                         </Text>
                                     </View>
-                                    {role === 'user' && (
+                                    {role.toLowerCase() == 'USER'.toLowerCase() && (
                                         <View style={styles.buttonsContainer1}>
                                             <TouchableOpacity
                                                 style={styles.addButton}
@@ -686,7 +686,7 @@ const Profile = () => {
                 <View style={styles.iconWithText}>
                     <MaterialCommunityIcons name="certificate-outline" size={24} color="#FF9228" />
                     <Text style={styles.sectionText}>Chứng chỉ</Text>
-                    {role === 'user' && (
+                    {role.toLowerCase() == 'USER'.toLowerCase() && (
                         <View style={styles.editButtonContainer}>
                             <TouchableOpacity style={styles.addButton} onPress={certificationScreen}>
                                 <AntDesign name="plus" size={24} color="orange" />
@@ -705,7 +705,7 @@ const Profile = () => {
                                         <Text>{certification.description}</Text>
                                         <Text>{certification.startDate}</Text>
                                     </View>
-                                    {role === 'user' && (
+                                    {role.toLowerCase() == 'USER'.toLowerCase() && (
                                         <View style={styles.buttonsContainer1}>
                                             <TouchableOpacity
                                                 style={styles.addButton}
@@ -736,7 +736,7 @@ const Profile = () => {
                 <View style={styles.iconWithText}>
                     <MaterialCommunityIcons name="file-account" size={24} color="orange" />
                     <Text style={styles.sectionText}>Resume</Text>
-                    {role === 'user' && (
+                    {role.toLowerCase() == 'USER'.toLowerCase() && (
                         <View style={styles.editButtonContainer}>
                             <TouchableOpacity style={styles.addButton} onPress={pickDocument}>
                                 <AntDesign name="plus" size={24} color="orange" />
@@ -759,7 +759,7 @@ const Profile = () => {
                                     <TouchableOpacity style={styles.addButton} onPress={() => save(file)}>
                                         <MaterialIcons name="save-alt" size={24} color="#FF9228" />
                                     </TouchableOpacity>
-                                    {role === 'user' && (
+                                    {role.toLowerCase() == 'USER'.toLowerCase() && (
                                         <TouchableOpacity style={styles.addButton} onPress={() => deleteFile(file.id)}>
                                             <AntDesign name="delete" size={24} color="#FF9228" />
                                         </TouchableOpacity>
@@ -809,7 +809,7 @@ const Profile = () => {
                             </View>
                         </Modal>
                     </View>
-                    {role === 'user' && (
+                    {role.toLowerCase() == 'USER'.toLowerCase() && (
                         <TouchableOpacity style={styles.cameraIcon} onPress={showImagePickerOptions}>
                             <FontAwesome5 name="camera" size={15} color="white" />
                         </TouchableOpacity>

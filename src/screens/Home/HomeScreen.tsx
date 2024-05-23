@@ -11,6 +11,7 @@ import { BASE_API } from "@/services/BaseApi";
 import { toastResponse } from "@/utils/toastResponse";
 import { RootReducer } from "@/redux/store/reducer";
 import { useSelector } from "react-redux";
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 
 
@@ -36,7 +37,8 @@ export const Home = () => {
             <View style={home.container}>
                 <View style={{ position: 'absolute', right: 25, marginTop: '5%' }}>
                     <View style={{ height: 45, width: 45, borderRadius: 50, position: 'relative' }}>
-                        <Image style={{ height: 45, width: 45 }} source={profile} />
+                        {/* <Image style={{ height: 45, width: 45 }} source={profile} /> */}
+                        <MaterialCommunityIcons name="account-circle" size={45} color="black" />
                     </View>
                 </View>
                 <View>
