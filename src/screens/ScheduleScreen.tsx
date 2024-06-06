@@ -22,6 +22,7 @@ export type ExtendedAgendaEntry = AgendaEntry & {
     type_notif: string;
     work_id: number,
     totalReason: number,
+    nameEmployees: [];
 };
 const generateRandomId = () => `newId_${Math.random().toString(36).substring(2, 9)}`;
 
@@ -162,14 +163,15 @@ const AgendaScreen: React.FC = () => {
                     name: subItem.id.toString(),
                     notes: subItem.notes,
                     day: dateStr,
-                    start: convertToMoment(subItem.startTime),
-                    end: convertToMoment(subItem.endTime),
+                    start: moment(subItem.startTime, 'HH:mm:ss').format('HH:mm'),
+                    end: moment(subItem.endTime, 'HH:mm:ss').format('HH:mm'),
                     title: subItem.title,
                     type: subItem.type,
                     notification: subItem.notification,
                     type_notif: subItem.type_notif,
-                    work_id: subItem.work?.id,
+                    work_id: subItem.work_id,
                     total_reason: subItem.totalReason,
+                    nameEmployee: subItem.nameEmployees,
                 }));
             }
 
@@ -284,6 +286,9 @@ const AgendaScreen: React.FC = () => {
                             </Text>
                         </View>
                         <View style={styles.coloredBar} />
+                        <View>
+                            {/* {reservation.)} */}
+                        </View>
                         <View
                             style={{
                                 position: 'absolute',
@@ -307,15 +312,19 @@ const AgendaScreen: React.FC = () => {
                                 right: 10,
                             }}
                         >
-                            <Ionicons name="notifications-outline" size={24} color="black" />
+                            {
+                                reservation.type_notif === 'Không có' ?
+                                    (<Ionicons name="notifications-off-outline" size={24} color="black" />) :
+                                    (<Ionicons name="notifications-outline" size={24} color="black" />)
+                            }
                         </View>
                     </TouchableOpacity>
 
                 </View>
             </Swipeable>
         );
-    }, [items, setItems, reservationPick]);
-    // console.log(items)
+    }, [items, reservationPick]);
+    console.log(items)
     const loadItems = (month) => {
         console.log(month)
     };
@@ -387,6 +396,7 @@ const AgendaScreen: React.FC = () => {
                         type_notif: 'Không có',
                         work_id: -1,
                         totalReason: 0,
+                        nameEmployees: [],
                     })}
                 >
                     <Ionicons name="add-circle-outline" size={60} color="#50C7C7" />

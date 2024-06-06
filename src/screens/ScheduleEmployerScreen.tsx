@@ -111,7 +111,7 @@ const ScheduleEmployerScreen: React.FC = () => {
             console.log(reservationPick)
         }
     };
-    // console.log(items)
+    console.log(items)
     // xóa sự kiện
     const handleDeleteItem = useCallback(async (reservation: ExtendedAgendaEntry) => {
         try {
@@ -158,14 +158,15 @@ const ScheduleEmployerScreen: React.FC = () => {
                     name: subItem.id.toString(),
                     notes: subItem.notes,
                     day: dateStr,
-                    start: convertToMoment(subItem.startTime),
-                    end: convertToMoment(subItem.endTime),
+                    start: moment(subItem.startTime, 'HH:mm:ss').format('HH:mm'),
+                    end: moment(subItem.endTime, 'HH:mm:ss').format('HH:mm'),
                     title: subItem.title,
                     type: subItem.type,
                     notification: subItem.notification,
                     type_notif: subItem.type_notif,
                     work_id: subItem.work_id,
                     totalReason: subItem.totalReason,
+                    nameEmployees: subItem.nameEmployees
                 }));
             }
 
@@ -283,6 +284,11 @@ const ScheduleEmployerScreen: React.FC = () => {
                             <Text style={[styles.nameText]}>
                                 {reservation.notes}
                             </Text>
+                            <View>
+                                {reservation.nameEmployees.map((name, index) => (
+                                    <Text key={index}>{name}</Text>
+                                ))}
+                            </View>
                         </View>
                         <View style={styles.coloredBar} />
                         <View
@@ -331,8 +337,11 @@ const ScheduleEmployerScreen: React.FC = () => {
                                     </Text>
                                 </View>
                             }
-                            <Ionicons name="notifications-outline" size={24} color="black">
-                            </Ionicons>
+                            {
+                                reservation.type_notif === 'Không có' ?
+                                (<Ionicons name="notifications-off-outline" size={24} color="black" />):
+                                (<Ionicons name="notifications-outline" size={24} color="black" />)
+                            }
                         </View>
                     </TouchableOpacity>
 
@@ -409,6 +418,7 @@ const ScheduleEmployerScreen: React.FC = () => {
                         type_notif: 'Không có',
                         work_id: -1,
                         totalReason: 0,
+                        nameEmployees: [],
                     })}
                 >
                     <Ionicons name="add-circle-outline" size={60} color="#50C7C7" />
